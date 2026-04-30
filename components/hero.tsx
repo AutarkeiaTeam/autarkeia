@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ScoreCard } from "./score-card"
 
@@ -16,8 +17,8 @@ export function Hero() {
               Autarkeia helps you build genuine self-sufficiency — from growing your own food to knowing exactly how resilient your household is if the world around you stops cooperating.
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
-              <Button size="lg" className="bg-[#009b70] text-white hover:bg-[#008060] px-8 font-medium rounded-lg">
-                Get your free score
+              <Button size="lg" className="bg-[#009b70] text-white hover:bg-[#008060] px-8 font-medium rounded-lg" asChild>
+                <Link href="/quiz">Get your free score</Link>
               </Button>
               <Button size="lg" variant="outline" className="border-[#d4dce8] text-[#0d1b2a] hover:bg-[#f5f7fa] font-normal rounded-lg">
                 Explore the platform
