@@ -44,8 +44,8 @@ export function Navbar() {
           <Button variant="ghost" className="text-[13px] font-normal text-[#0d1b2a]">
             Sign in
           </Button>
-          <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg">
-            Get your score
+          <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg" asChild>
+            <Link href="/quiz">Get your score</Link>
           </Button>
         </div>
 
@@ -77,8 +77,8 @@ export function Navbar() {
               <Button variant="ghost" className="justify-start text-[13px] font-normal text-[#0d1b2a]">
                 Sign in
               </Button>
-              <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg">
-                Get your score
+              <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg" asChild>
+                <Link href="/quiz" onClick={() => setMobileMenuOpen(false)}>Get your score</Link>
               </Button>
             </div>
           </div>
