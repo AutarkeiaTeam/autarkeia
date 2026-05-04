@@ -1,4 +1,3 @@
-import { Navbar } from "@/components/navbar"
 import { Hero } from "@/components/hero"
 import { StatsBar } from "@/components/stats-bar"
 import { Pillars } from "@/components/pillars"
@@ -11,7 +10,6 @@ import { Footer } from "@/components/footer"
 export default function Home() {
   return (
     <main className="min-h-screen">
-      <Navbar />
       <Hero />
       <StatsBar />
       <Pillars />
