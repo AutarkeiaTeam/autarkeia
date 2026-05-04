@@ -7,13 +7,13 @@ import { Logo } from "./logo"
 import { Button } from "@/components/ui/button"
 
 const navLinks = [
-  { href: "#self-sufficiency", label: "Self-sufficiency" },
+  { href: "/quiz/self-sufficiency", label: "Self-sufficiency" },
   { href: "#rural-communities", label: "Rural Communities" },
-  { href: "#marketplace", label: "Marketplace" },
-  { href: "#library", label: "Library" },
-  { href: "#news", label: "World News Watch" },
-  { href: "#forums", label: "Forums" },
-  { href: "#pricing", label: "Pricing" },
+  { href: "/marketplace", label: "Marketplace" },
+  { href: "/library", label: "Library" },
+  { href: "/news", label: "World News Watch" },
+  { href: "/forums", label: "Forums" },
+  { href: "/#pricing", label: "Pricing" },
 ]
 
 export function Navbar() {
