@@ -1,4 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk'
 import type { QuizType, QuizAnswers } from '@/lib/quiz-data'
 import { getQuizConfig } from '@/lib/quiz-data'
 
@@ -65,20 +64,46 @@ export async function POST(req: Request) {
     }
     const config = getQuizConfig(quizType)
     const formattedAnswers = formatAnswersForPrompt(quizType, answers)
-    const systemPrompt = `You are Autarkeia's AI analyst. Analyse these quiz answers and return ONLY raw JSON with no markdown or backticks. The JSON must have: overall_score (integer 0-92), category_scores (object with keys: ${config.categories.join(', ')} each value 0-100), score_label (one of: Just getting started, Early stage, Moderately self-sufficient, Highly self-sufficient), action_plan (object with week/month/year arrays, each with 3 items having title/description/estimated_cost/priority), product_recommendations (array of 6 items with category/name/why/estimated_price). Be specific to location and situation.`
+    const systemPrompt = `You are Autarkeia's AI analyst. Analyse these quiz answers and return ONLY raw JSON with no markdown or backticks. The JSON must have: overall_score (integer 0-92), category_scores (object with keys: ${config.categories.join(', ')} each value 0-100), score_label (one of: Just getting started, Early stage, Moderately self-sufficient, Highly self-sufficient), action_plan (object with week/month/year arrays each with exactly 3 items having title/description/estimated_cost/priority as high or medium or low), product_recommendations (array of exactly 6 items with category/name/why/estimated_price). Be specific to the user location and situation. Never exceed 92 for overall_score.`
 
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4000,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: formattedAnswers }],
+    const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey!,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: formattedAnswers }],
+      }),
     })
 
-    const content = message.content[0]
-    if (content.type !== 'text') throw new Error('Unexpected response type')
-    const result = JSON.parse(content.text)
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Anthropic API error:', response.status, errorText)
+      return Response.json({ result: FALLBACK })
+    }
+
+    const data = await response.json()
+    const content = data.content?.[0]
+    if (!content || content.type !== 'text') {
+      return Response.json({ result: FALLBACK })
+    }
+
+    const text = content.text.trim()
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      return Response.json({ result: FALLBACK })
+    }
+
+    const result = JSON.parse(jsonMatch[0])
     return Response.json({ result })
+
   } catch (error) {
     console.error('Quiz analysis error:', error)
     return Response.json({ result: FALLBACK })
