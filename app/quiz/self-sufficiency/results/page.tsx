@@ -1,4 +1,3 @@
-import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { QuizResults } from '@/components/quiz/quiz-results'
 
@@ -10,7 +9,6 @@ export const metadata = {
 export default function SelfSufficiencyResultsPage() {
   return (
     <main className="min-h-screen flex flex-col">
-      <Navbar />
       
       <div className="flex-1 bg-white py-12 sm:py-16">
         <div className="mx-auto max-w-4xl px-4 lg:px-8">
