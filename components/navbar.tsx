@@ -44,9 +44,11 @@ export function Navbar() {
           <Button variant="ghost" className="text-[13px] font-normal text-[#0d1b2a]">
             Sign in
           </Button>
-          <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg">
-            Get your score
-          </Button>
+          <Link href="/quiz">
+            <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg">
+              Get your score
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile menu button */}
