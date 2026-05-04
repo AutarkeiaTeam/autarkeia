@@ -7,8 +7,8 @@ import { Logo } from "./logo"
 import { Button } from "@/components/ui/button"
 
 const navLinks = [
-  { href: "/quiz/self-sufficiency", label: "Self-sufficiency" },
-  { href: "#rural-communities", label: "Rural Communities" },
+  { href: "/quiz", label: "Self-sufficiency" },
+  { href: "/communities", label: "Rural Communities" },
   { href: "/marketplace", label: "Marketplace" },
   { href: "/library", label: "Library" },
   { href: "/news", label: "World News Watch" },
