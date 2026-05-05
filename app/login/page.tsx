@@ -1,8 +1,8 @@
 "use client"
-import {{ useState }} from "react"
+import { useState } from "react"
 import Link from "next/link"
 
-export default function Login() {{
+export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
@@ -21,22 +21,21 @@ export default function Login() {{
         <div className="flex flex-col gap-4 mb-6">
           <div>
             <label className="text-xs font-medium text-[#3d5166] mb-1.5 block">Email address</label>
-            <input type="email" value={{email}} onChange={{e => setEmail(e.target.value)}} className="w-full border border-[#d4dce8] rounded-lg px-4 py-2.5 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70] transition-colors" placeholder="you@example.com" />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border border-[#d4dce8] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#009b70]" placeholder="you@example.com" />
           </div>
           <div>
             <div className="flex justify-between mb-1.5">
               <label className="text-xs font-medium text-[#3d5166]">Password</label>
-              <a href="#" className="text-xs text-[#009b70] hover:underline">Forgot password?</a>
+              <a href="#" className="text-xs text-[#009b70]">Forgot password?</a>
             </div>
-            <input type="password" value={{password}} onChange={{e => setPassword(e.target.value)}} className="w-full border border-[#d4dce8] rounded-lg px-4 py-2.5 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70] transition-colors" placeholder="••••••••" />
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border border-[#d4dce8] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#009b70]" placeholder="••••••••" />
           </div>
         </div>
-        <button className="w-full bg-[#009b70] text-white text-sm font-medium py-2.5 rounded-lg hover:bg-[#007a58] transition-colors mb-4">Sign in</button>
+        <button className="w-full bg-[#009b70] text-white text-sm font-medium py-2.5 rounded-lg hover:bg-[#007a58] mb-4">Sign in</button>
         <p className="text-center text-xs text-[#8a9bb0]">
-          Don&apos;t have an account?{{" "}}
-          <Link href="/signup" className="text-[#009b70] hover:underline font-medium">Create one free</Link>
+          No account? <Link href="/signup" className="text-[#009b70] font-medium">Create one free</Link>
         </p>
       </div>
     </div>
   )
-}}
+}
