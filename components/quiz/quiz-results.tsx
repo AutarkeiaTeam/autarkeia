@@ -153,7 +153,7 @@ export function QuizResults({ quizType }: QuizResultsProps) {
   const [error, setError] = useState<string | null>(null)
 
   const config = getQuizConfig(quizType)
-  const otherQuizType = quizType === 'self-sufficiency' ? 'emergency-preparedness' : 'self-sufficiency'
+  const otherQuizType = quizType === 'self-sufficiency' ? 'emergency-readiness' : 'self-sufficiency'
   const otherQuizConfig = getQuizConfig(otherQuizType)
 
   useEffect(() => {

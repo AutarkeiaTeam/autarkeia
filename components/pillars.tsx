@@ -1,10 +1,10 @@
-import { Brain, ShoppingBag, BookOpen, Grid3X3, MessageSquare, Home, Globe } from "lucide-react"
+import { ShieldCheck, ShoppingBag, BookOpen, Home, Globe, Sparkles } from "lucide-react"
 
 const pillars = [
   {
-    icon: Brain,
-    title: "AI Planner",
-    description: "Personalized roadmaps to self-sufficiency powered by AI. Get step-by-step guidance based on your location, resources, and goals.",
+    icon: ShieldCheck,
+    title: "Emergency Readiness",
+    description: "Assess your household readiness and get practical actions for this week, 30 days and one year.",
   },
   {
     icon: ShoppingBag,
@@ -14,27 +14,22 @@ const pillars = [
   {
     icon: BookOpen,
     title: "Library",
-    description: "Comprehensive guides, tutorials, and courses on everything from food preservation to off-grid energy systems.",
-  },
-  {
-    icon: Grid3X3,
-    title: "App Directory",
-    description: "Discover and integrate the best tools for tracking, planning, and managing your self-sufficiency journey.",
-  },
-  {
-    icon: MessageSquare,
-    title: "Forums",
-    description: "Connect with thousands of like-minded individuals. Share experiences, ask questions, and learn from experts.",
+    description: "Books, films, courses, apps, and YouTube resources for emergency readiness and long-term self-sufficiency.",
   },
   {
     icon: Home,
-    title: "Rural Communities",
-    description: "Find and connect with intentional communities, rural properties, and collaborative living opportunities worldwide.",
+    title: "Communities",
+    description: "Explore the long-term vision for global self-sufficient communities being planned with partners and investors.",
   },
   {
     icon: Globe,
     title: "World News Watch",
     description: "Stay informed about global events that impact self-sufficiency. AI-curated news with actionable insights.",
+  },
+  {
+    icon: Sparkles,
+    title: "Plans",
+    description: "Choose Free or Pro and unlock the level of guidance that matches your household needs.",
   },
 ]
 
@@ -44,7 +39,7 @@ export function Pillars() {
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-light text-[#0d1b2a] sm:text-4xl">
-            Seven Pillars of <span className="text-[#009b70]">Independence</span>
+            Platform <span className="text-[#009b70]">Highlights</span>
           </h2>
           <p className="mt-4 text-lg font-light text-[#3d5166] max-w-2xl mx-auto">
             Everything you need to build a resilient, self-sufficient life - all in one platform.

@@ -5,7 +5,7 @@ export default function Advertise() {
     { name: "Sponsored story", location: "World News Watch feed", price: "€500/month", specs: "Native article format with your brand", best: "Companies with a relevant story to tell" },
     { name: "Sponsored product", location: "Marketplace featured slot", price: "€200/month", specs: "Featured card at top of category", best: "Product brands seeking direct sales" },
     { name: "Newsletter sponsor", location: "Weekly World News Watch briefing", price: "€250/month", specs: "Logo + 50-word message to subscribers", best: "Any brand relevant to self-sufficiency" },
-    { name: "Community partner", location: "Rural Communities page", price: "€400/month", specs: "Logo + description + link", best: "Land agents, natural builders, off-grid specialists" },
+    { name: "Community partner", location: "Communities page", price: "€400/month", specs: "Logo + description + link", best: "Land agents, natural builders, off-grid specialists" },
   ]
 
   return (
