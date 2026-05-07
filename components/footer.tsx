@@ -5,50 +5,26 @@ const footerLinks = {
   platform: {
     title: "Platform",
     links: [
-      { label: "AI Planner", href: "#" },
-      { label: "Marketplace", href: "#" },
-      { label: "Library", href: "#" },
-      { label: "App Directory", href: "#" },
-      { label: "Forums", href: "#" },
+      { label: "Quiz", href: "/quiz" },
+      { label: "Marketplace", href: "/marketplace" },
+      { label: "Library", href: "/library" },
+      { label: "World News Watch", href: "/news" },
+      { label: "Plans", href: "/plans" },
     ],
   },
   community: {
-    title: "Community",
+    title: "Communities",
     links: [
-      { label: "Rural Communities", href: "#" },
-      { label: "World News Watch", href: "#" },
-      { label: "Success Stories", href: "#" },
-      { label: "Expert Network", href: "#" },
-      { label: "Events", href: "#" },
-    ],
-  },
-  resources: {
-    title: "Resources",
-    links: [
-      { label: "Getting Started", href: "#" },
-      { label: "Documentation", href: "#" },
-      { label: "Blog", href: "#" },
-      { label: "Podcast", href: "#" },
-      { label: "Newsletter", href: "#" },
+      { label: "Our vision", href: "/communities" },
+      { label: "Register interest", href: "/communities#register-interest" },
     ],
   },
   company: {
     title: "Company",
     links: [
-      { label: "About", href: "#" },
-      { label: "Careers", href: "#" },
-      { label: "Press", href: "#" },
-      { label: "Contact", href: "#" },
-      { label: "Partners", href: "#" },
-    ],
-  },
-  legal: {
-    title: "Legal",
-    links: [
-      { label: "Privacy", href: "#" },
-      { label: "Terms", href: "#" },
-      { label: "Cookies", href: "#" },
-      { label: "Licenses", href: "#" },
+      { label: "About", href: "/about" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
     ],
   },
 }
@@ -57,12 +33,15 @@ export function Footer() {
   return (
     <footer className="bg-[#0d1b2a] py-16">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-6">
+        <div className="grid gap-8 lg:grid-cols-4">
           {/* Brand column */}
           <div className="lg:col-span-1">
             <LogoLight className="text-xl" />
             <p className="mt-4 text-sm font-light text-white/60 leading-relaxed">
-              Everything you need to need nothing.
+              Emergency readiness first. Self-sufficiency for life.
+            </p>
+            <p className="mt-2 text-sm font-light text-white/60 leading-relaxed">
+              autarkeia.world
             </p>
           </div>
 
@@ -91,10 +70,10 @@ export function Footer() {
             © {new Date().getFullYear()} Autarkeia. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <Link href="#" className="text-sm font-light text-white/40 hover:text-[#009b70] transition-colors">
+            <Link href="/privacy" className="text-sm font-light text-white/40 hover:text-[#009b70] transition-colors">
               Privacy Policy
             </Link>
-            <Link href="#" className="text-sm font-light text-white/40 hover:text-[#009b70] transition-colors">
+            <Link href="/terms" className="text-sm font-light text-white/40 hover:text-[#009b70] transition-colors">
               Terms of Service
             </Link>
           </div>

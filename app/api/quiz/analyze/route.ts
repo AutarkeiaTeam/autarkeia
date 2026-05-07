@@ -22,7 +22,7 @@ function formatAnswersForPrompt(quizType: QuizType, answers: QuizAnswers): strin
     }
     return `Q${idx + 1}: ${q.question}\nAnswer: ${answerText}`
   }).join('\n\n')
-  return `Quiz Type: ${quizType === 'self-sufficiency' ? 'Self-Sufficiency' : 'Emergency Preparedness'}\n\n${formattedAnswers}`
+  return `Quiz Type: ${quizType === 'self-sufficiency' ? 'Self-Sufficiency' : 'Emergency Readiness'}\n\n${formattedAnswers}`
 }
 
 const FALLBACK = {

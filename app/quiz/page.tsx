@@ -4,7 +4,7 @@ import { Leaf, Shield, ArrowRight } from 'lucide-react'
 
 export const metadata = {
   title: 'Take the Quiz — Autarkeia',
-  description: 'Discover your self-sufficiency score and emergency preparedness level with our comprehensive quizzes.',
+  description: 'Discover your self-sufficiency score and emergency readiness level with our comprehensive quizzes.',
 }
 
 export default function QuizSelectorPage() {
@@ -18,7 +18,7 @@ export default function QuizSelectorPage() {
               Find out where you stand
             </h1>
             <p className="mt-4 text-lg font-light text-[#3d5166] max-w-2xl mx-auto">
-              Take one of our quizzes to discover your current level of preparedness and get personalised recommendations.
+              Take one of our quizzes to discover your current level of readiness and get personalised recommendations.
             </p>
           </div>
 
@@ -52,9 +52,9 @@ export default function QuizSelectorPage() {
               <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl bg-[#009b70] opacity-0 transition-opacity group-hover:opacity-100" />
             </Link>
 
-            {/* Emergency Preparedness Quiz Card */}
+            {/* Emergency Readiness Quiz Card */}
             <Link 
-              href="/quiz/emergency-preparedness"
+              href="/quiz/emergency-readiness"
               className="group relative rounded-2xl border border-[#d4dce8] bg-white p-8 transition-all hover:border-[#5c4a2a] hover:shadow-lg"
               style={{ borderWidth: '0.5px' }}
             >
@@ -66,7 +66,7 @@ export default function QuizSelectorPage() {
               </div>
               
               <h2 className="text-xl font-medium text-[#0d1b2a] mb-3">
-                Emergency Preparedness Quiz
+                Emergency Readiness Quiz
               </h2>
               
               <p className="text-[#3d5166] font-light mb-6 leading-relaxed">

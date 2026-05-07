@@ -1,10 +1,30 @@
 "use client"
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { getGoogleAuthUrl, signInWithEmail } from "@/lib/supabase-auth"
 
 export default function Login() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleLogin = async () => {
+    try {
+      setIsLoading(true)
+      setError("")
+      await signInWithEmail(email, password)
+      router.push("/dashboard")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to sign in.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const googleUrl = getGoogleAuthUrl(`${process.env.NEXT_PUBLIC_SITE_URL || "https://autarkeia.world"}/dashboard`)
 
   return (
     <div className="min-h-screen bg-[#f5f7fa] flex items-center justify-center px-4">
@@ -31,7 +51,13 @@ export default function Login() {
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border border-[#d4dce8] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#009b70]" placeholder="••••••••" />
           </div>
         </div>
-        <button className="w-full bg-[#009b70] text-white text-sm font-medium py-2.5 rounded-lg hover:bg-[#007a58] mb-4">Sign in</button>
+        <a href={googleUrl} className="mb-3 block w-full rounded-lg border border-[#d4dce8] px-4 py-2.5 text-center text-sm text-[#3d5166] hover:bg-[#f5f7fa]">
+          Continue with Google
+        </a>
+        <button onClick={handleLogin} disabled={isLoading} className="w-full bg-[#009b70] text-white text-sm font-medium py-2.5 rounded-lg hover:bg-[#007a58] mb-2 disabled:opacity-60">
+          {isLoading ? "Signing in..." : "Sign in"}
+        </button>
+        {error && <p className="mb-3 text-xs text-red-600">{error}</p>}
         <p className="text-center text-xs text-[#8a9bb0]">
           No account? <Link href="/signup" className="text-[#009b70] font-medium">Create one free</Link>
         </p>

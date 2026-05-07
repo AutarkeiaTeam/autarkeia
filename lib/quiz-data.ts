@@ -1,4 +1,4 @@
-export type QuizType = 'self-sufficiency' | 'emergency-preparedness'
+export type QuizType = 'self-sufficiency' | 'emergency-readiness'
 
 export interface QuizQuestion {
   id: string
@@ -126,7 +126,7 @@ export const selfSufficiencyQuestions: QuizQuestion[] = [
   },
 ]
 
-export const emergencyPreparednessQuestions: QuizQuestion[] = [
+export const emergencyReadinessQuestions: QuizQuestion[] = [
   {
     id: 'ep-q1',
     question: 'Where are you based?',
@@ -220,10 +220,10 @@ export function getQuizConfig(type: QuizType) {
     }
   }
   return {
-    title: 'Emergency Preparedness Quiz',
-    description: 'Find out how prepared you are for emergencies',
+    title: 'Emergency Readiness Quiz',
+    description: 'Find out how ready you are for emergencies',
     accentColor: '#5c4a2a',
-    questions: emergencyPreparednessQuestions,
+    questions: emergencyReadinessQuestions,
     categories: ['Water', 'Food', 'Medical', 'Power', 'Communication'],
   }
 }

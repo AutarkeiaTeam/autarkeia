@@ -7,13 +7,13 @@ import { Logo } from "./logo"
 import { Button } from "@/components/ui/button"
 
 const navLinks = [
-  { href: "/quiz", label: "Self-sufficiency" },
-  { href: "/communities", label: "Rural Communities" },
+  { href: "/quiz/emergency-readiness", label: "Emergency Readiness" },
+  { href: "/quiz/self-sufficiency", label: "Self-Sufficiency" },
+  { href: "/communities", label: "Communities" },
   { href: "/marketplace", label: "Marketplace" },
   { href: "/library", label: "Library" },
   { href: "/news", label: "World News Watch" },
-  { href: "/forums", label: "Forums" },
-  { href: "/#pricing", label: "Pricing" },
+  { href: "/plans", label: "Plans" },
 ]
 
 export function Navbar() {
@@ -41,8 +41,8 @@ export function Navbar() {
 
         {/* Desktop CTA */}
         <div className="hidden lg:flex lg:items-center lg:gap-x-4">
-          <Button variant="ghost" className="text-[13px] font-normal text-[#0d1b2a]">
-            Sign in
+          <Button variant="ghost" className="text-[13px] font-normal text-[#0d1b2a]" asChild>
+            <Link href="/login">Sign in</Link>
           </Button>
           <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg" asChild>
             <Link href="/quiz">Get your score</Link>
@@ -74,8 +74,8 @@ export function Navbar() {
               </Link>
             ))}
             <div className="flex flex-col gap-2 pt-4 border-t border-[#d4dce8]" style={{ borderTopWidth: '0.5px' }}>
-              <Button variant="ghost" className="justify-start text-[13px] font-normal text-[#0d1b2a]">
-                Sign in
+              <Button variant="ghost" className="justify-start text-[13px] font-normal text-[#0d1b2a]" asChild>
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Sign in</Link>
               </Button>
               <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg" asChild>
                 <Link href="/quiz" onClick={() => setMobileMenuOpen(false)}>Get your score</Link>

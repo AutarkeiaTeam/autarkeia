@@ -1,0 +1,56 @@
+import Link from "next/link"
+
+const freeFeatures = [
+  "Both quizzes (Emergency Readiness + Self-Sufficiency)",
+  "Basic score — overall percentage only",
+  "3 action items for this week only",
+  "Public library access",
+  "World News Watch headlines",
+  "No account required",
+]
+
+const proFeatures = [
+  "Everything in Free",
+  "Full score breakdown across all 5 categories",
+  "Complete action plan — this week, 30 days, 1 year",
+  "Plan saved to account and updated as you progress",
+  "Score history — track improvement over time",
+  "Full library — all guides, books, films, courses, apps",
+  "World News Watch weekly email briefing every Monday",
+  "Communities access — register interest, get updates on community development",
+  "AI chat — ask Claude about your specific situation, location and household",
+]
+
+export default function PlansPage() {
+  return (
+    <main className="min-h-screen bg-[#f5f7fa]">
+      <div className="mx-auto max-w-6xl px-4 lg:px-8 py-14">
+        <h1 className="text-3xl font-light text-[#0d1b2a]">Plans</h1>
+        <p className="mt-3 text-sm text-[#3d5166]">Two simple tiers: Free and Pro (€7/month).</p>
+
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
+          <section className="rounded-2xl bg-white border border-[#d4dce8] p-6">
+            <h2 className="text-xl font-medium text-[#0d1b2a]">Free</h2>
+            <p className="mt-2 text-3xl font-semibold text-[#0d1b2a]">€0</p>
+            <ul className="mt-4 space-y-2 text-sm text-[#3d5166]">
+              {freeFeatures.map((feature) => <li key={feature}>• {feature}</li>)}
+            </ul>
+            <Link href="/quiz" className="mt-6 inline-block rounded-lg bg-[#0d1b2a] px-5 py-2.5 text-sm font-medium text-white">Start free</Link>
+          </section>
+
+          <section className="rounded-2xl bg-white border-2 border-[#009b70] shadow-lg p-6">
+            <h2 className="text-xl font-medium text-[#0d1b2a]">Pro</h2>
+            <div className="mt-2">
+              <p className="text-3xl font-semibold text-[#0d1b2a]">€7<span className="text-base font-normal text-[#3d5166]">/month</span></p>
+              <p className="text-sm text-[#009b70] font-medium">€59/year (save 2 months)</p>
+            </div>
+            <ul className="mt-4 space-y-2 text-sm text-[#3d5166]">
+              {proFeatures.map((feature) => <li key={feature}>• {feature}</li>)}
+            </ul>
+            <Link href="/signup" className="mt-6 inline-block rounded-lg bg-[#009b70] px-5 py-2.5 text-sm font-medium text-white">Go Pro →</Link>
+          </section>
+        </div>
+      </div>
+    </main>
+  )
+}
