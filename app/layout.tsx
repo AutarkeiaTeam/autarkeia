@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     'Everything you need to need nothing. Global emergency readiness and self-sufficiency platform helping you live on your own terms.',
   generator: 'v0.app',
   icons: {
-    icon: '/favicon.png',
+    icon: { url: '/favicon.png', sizes: 'any' },
     apple: '/apple-icon.png',
   },
 }
