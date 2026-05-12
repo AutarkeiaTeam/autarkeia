@@ -1,82 +1,56 @@
+"use client"
+
 import Link from "next/link"
 import { LogoLight } from "./logo"
 
-const footerLinks = {
-  platform: {
-    title: "Platform",
-    links: [
-      { label: "Quiz", href: "/quiz" },
-      { label: "Marketplace", href: "/marketplace" },
-      { label: "Library", href: "/library" },
-      { label: "World News Watch", href: "/news" },
-      { label: "Plans", href: "/plans" },
-    ],
-  },
-  community: {
-    title: "Communities",
-    links: [
-      { label: "Our vision", href: "/communities" },
-      { label: "Register interest", href: "/communities#register-interest" },
-    ],
-  },
-  company: {
-    title: "Company",
-    links: [
-      { label: "About", href: "/about" },
-      { label: "Privacy Policy", href: "/privacy" },
-      { label: "Terms of Service", href: "/terms" },
-    ],
-  },
-}
-
 export function Footer() {
   return (
-    <footer className="bg-[#0d1b2a] py-16">
-      <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-4">
-          {/* Brand column */}
-          <div className="lg:col-span-1">
-            <LogoLight className="text-xl" />
-            <p className="mt-4 text-sm font-light text-white/60 leading-relaxed">
+    <footer className="bg-[#0d1b2a] border-t border-[#1a2942]">
+      <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <div>
+            <div className="mb-4">
+              <Link href="/" className="inline-flex items-center">
+                <LogoLight />
+              </Link>
+            </div>
+            <p className="text-sm text-[#7a8a9e]">
               Emergency readiness first. Self-sufficiency for life.
             </p>
-            <p className="mt-2 text-sm font-light text-white/60 leading-relaxed">
-              autarkeia.world
-            </p>
+            <p className="text-xs text-[#5a6a7e] mt-4">autarkeia.world</p>
           </div>
 
-          {/* Links columns */}
-          {Object.values(footerLinks).map((section) => (
-            <div key={section.title}>
-              <h3 className="text-sm font-normal text-white">{section.title}</h3>
-              <ul className="mt-4 space-y-3">
-                {section.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-sm font-light text-white/60 hover:text-[#009b70] transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div>
+            <h3 className="font-semibold text-white mb-4">Platform</h3>
+            <ul className="space-y-2">
+              <li><Link href="/quiz/emergency-readiness" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">Quiz</Link></li>
+              <li><Link href="/marketplace" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">Marketplace</Link></li>
+              <li><Link href="/library" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">Library</Link></li>
+              <li><Link href="/news" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">World News Watch</Link></li>
+              <li><Link href="/plans" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">Plans</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-white mb-4">Communities</h3>
+            <ul className="space-y-2">
+              <li><Link href="/communities" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">Our vision</Link></li>
+              <li><Link href="/communities#register-interest" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">Register interest</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-white mb-4">Company</h3>
+            <ul className="space-y-2">
+              <li><Link href="/about" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">About</Link></li>
+              <li><Link href="/privacy" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">Terms of Service</Link></li>
+            </ul>
+          </div>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-sm font-light text-white/40">
-            © {new Date().getFullYear()} Autarkeia. All rights reserved.
-          </p>
-          <div className="flex gap-6">
-            <Link href="/privacy" className="text-sm font-light text-white/40 hover:text-[#009b70] transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="text-sm font-light text-white/40 hover:text-[#009b70] transition-colors">
-              Terms of Service
-            </Link>
-          </div>
+        <div className="border-t border-[#1a2942] pt-8">
+          <p className="text-xs text-[#5a6a7e]">© 2026 Autarkeia. All rights reserved.</p>
         </div>
       </div>
     </footer>
