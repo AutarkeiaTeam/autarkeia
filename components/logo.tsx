@@ -1,14 +1,14 @@
 export function Logo({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`inline-flex items-center gap-2 font-light tracking-[3px] text-xl sm:text-2xl ${className}`}
+      className={`inline-flex items-center gap-2 font-light tracking-[2px] text-[15px] sm:text-base ${className}`}
     >
       <img
         src="/FAVICON10.png"
         alt=""
-        width={48}
-        height={48}
-        className="h-10 w-10 shrink-0 object-contain sm:h-11 sm:w-11"
+        width={40}
+        height={40}
+        className="h-9 w-9 shrink-0 object-contain sm:h-10 sm:w-10"
         aria-hidden
       />
       <span>

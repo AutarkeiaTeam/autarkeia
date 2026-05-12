@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { LogoLight } from "./logo"
 
 export function Footer() {
   return (
@@ -10,8 +9,21 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="mb-4">
-              <Link href="/" className="inline-flex items-center">
-                <LogoLight />
+              <Link
+                href="/"
+                className="flex w-full max-w-[14rem] items-center justify-between gap-3 sm:max-w-xs"
+              >
+                <img
+                  src="/FAVICON10.png"
+                  alt=""
+                  width={36}
+                  height={36}
+                  className="h-8 w-8 shrink-0 object-contain sm:h-9 sm:w-9"
+                  aria-hidden
+                />
+                <span className="text-sm font-light lowercase tracking-[0.25em] text-white/90 sm:text-base">
+                  autarkeia
+                </span>
               </Link>
             </div>
             <p className="text-sm text-[#7a8a9e]">

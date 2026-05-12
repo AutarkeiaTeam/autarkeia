@@ -21,28 +21,28 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-[#d4dce8]" style={{ borderBottomWidth: '0.5px' }}>
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 lg:px-8 lg:py-6">
-        <Link href="/" className="flex items-center">
+      <nav className="mx-auto flex max-w-7xl flex-nowrap items-center justify-between gap-2 py-5 pl-3 pr-4 lg:py-6 lg:pl-5 lg:pr-8">
+        <Link href="/" className="flex shrink-0 items-center lg:mr-8 xl:mr-12">
           <Logo />
         </Link>
 
-        <div className="hidden lg:flex lg:items-center lg:gap-x-8">
+        <div className="hidden min-w-0 flex-1 flex-nowrap items-center justify-start gap-x-2 sm:gap-x-2.5 lg:flex lg:gap-x-3 xl:gap-x-4">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-[13px] font-normal text-[#3d5166] transition-colors hover:text-[#009b70]"
+              className="shrink-0 whitespace-nowrap text-[12px] font-normal text-[#3d5166] transition-colors hover:text-[#009b70] xl:text-[13px]"
             >
               {link.label}
             </Link>
           ))}
         </div>
 
-        <div className="hidden lg:flex lg:items-center lg:gap-x-4">
-          <Button variant="ghost" className="text-[13px] font-normal text-[#0d1b2a]" asChild>
+        <div className="hidden shrink-0 items-center gap-x-2 lg:flex xl:gap-x-3">
+          <Button variant="ghost" className="whitespace-nowrap px-2 text-[12px] font-normal text-[#0d1b2a] xl:text-[13px]" asChild>
             <Link href="/login">Sign in</Link>
           </Button>
-          <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg" asChild>
+          <Button className="whitespace-nowrap rounded-lg bg-[#009b70] px-3 text-[12px] font-medium text-white hover:bg-[#008060] xl:text-[13px]" asChild>
             <Link href="/quiz">Get your score</Link>
           </Button>
         </div>
