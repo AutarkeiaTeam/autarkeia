@@ -21,7 +21,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-[#d4dce8]" style={{ borderBottomWidth: '0.5px' }}>
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-0 py-2 lg:px-0">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-0 py-1 lg:px-0">
         <Link href="/" className="flex items-center ml-0 pl-0">
           <Logo />
         </Link>
