@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: 'Autarkeia — Everything you need to need nothing.',
   description: 'Everything you need to need nothing. Global emergency readiness and self-sufficiency platform helping you live on your own terms.',
   icons: {
-    icon: '/favicon.png',
+    icon: '/favicon.ico',
   },
 }
 
