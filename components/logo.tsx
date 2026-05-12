@@ -1,8 +1,8 @@
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <img src="/logo.png" alt="Autarkeia" width="60" height="60" className="w-16 aspect-square object-contain flex-shrink-0" />
-      <span className="font-light tracking-[3px]">
+    <div className={`flex items-center gap-4 mr-12 ${className}`}>
+      <img src="/logo.png" alt="Autarkeia" width="80" height="80" className="w-48 aspect-square object-contain flex-shrink-0" />
+      <span className="font-light tracking-[3px] text-lg">
         <span className="text-[#0d1b2a]">AUT</span>
         <span className="text-[#009b70]">ARK</span>
         <span className="text-[#0d1b2a]">EIA</span>
@@ -12,9 +12,9 @@ export function Logo({ className = "" }: { className?: string }) {
 }
 export function LogoLight({ className = "" }: { className?: string }) {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <img src="/logo.png" alt="Autarkeia" width="60" height="60" className="w-16 aspect-square object-contain flex-shrink-0" />
-      <span className="font-light tracking-[3px]">
+    <div className={`flex items-center gap-4 mr-12 ${className}`}>
+      <img src="/logo.png" alt="Autarkeia" width="80" height="80" className="w-48 aspect-square object-contain flex-shrink-0" />
+      <span className="font-light tracking-[3px] text-lg">
         <span className="text-white">AUT</span>
         <span className="text-[#009b70]">ARK</span>
         <span className="text-white">EIA</span>
