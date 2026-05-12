@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: 'Autarkeia — Everything you need to need nothing.',
   description: 'Everything you need to need nothing. Global emergency readiness and self-sufficiency platform helping you live on your own terms.',
   icons: {
-    icon: '/favicon.png?nocache=12345',
+    icon: { url: '/favicon.png', type: 'image/png' },
   },
 }
 
@@ -25,9 +25,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-background">
-      <head>
-        <link rel="icon" href="/favicon.png?nocache=12345" type="image/png" />
-      </head>
       <body className={`${poppins.className} antialiased`}>
         <Navbar />
         {children}
