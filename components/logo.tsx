@@ -2,24 +2,28 @@ import Image from "next/image"
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <Image 
-      src="/logo.png" 
-      alt="Autarkeia" 
-      width={40} 
-      height={40} 
-      className={className}
-    />
+    <div className={`flex items-center ${className}`}>
+      <Image 
+        src="/logo.png" 
+        alt="Autarkeia" 
+        width={32} 
+        height={32} 
+        priority
+      />
+    </div>
   )
 }
 
 export function LogoLight({ className = "" }: { className?: string }) {
   return (
-    <Image 
-      src="/logo.png" 
-      alt="Autarkeia" 
-      width={40} 
-      height={40} 
-      className={className}
-    />
+    <div className={`flex items-center ${className}`}>
+      <Image 
+        src="/logo.png" 
+        alt="Autarkeia" 
+        width={32} 
+        height={32} 
+        priority
+      />
+    </div>
   )
 }
