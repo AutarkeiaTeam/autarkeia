@@ -10,7 +10,9 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="mb-4">
-              <LogoLight />
+              <Link href="/" className="inline-flex items-center">
+                <LogoLight />
+              </Link>
             </div>
             <p className="text-sm text-[#7a8a9e]">
               Emergency readiness first. Self-sufficiency for life.
