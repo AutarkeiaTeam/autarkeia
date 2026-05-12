@@ -12,11 +12,10 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: 'Autarkeia — Everything you need to need nothing.',
-  description:
-    'Everything you need to need nothing. Global emergency readiness and self-sufficiency platform helping you live on your own terms.',
+  description: 'Everything you need to need nothing. Global emergency readiness and self-sufficiency platform helping you live on your own terms.',
   generator: 'v0.app',
   icons: {
-    icon: { url: '/favicon.png', sizes: 'any' },
+    icon: '/favicon.png',
     apple: '/apple-icon.png',
   },
 }
@@ -28,6 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-background">
+      <head>
+        <link rel="icon" href="/favicon.png" type="image/png" />
+      </head>
       <body className={`${poppins.className} antialiased`}>
         <Navbar />
         {children}
