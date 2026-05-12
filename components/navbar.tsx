@@ -21,9 +21,9 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-[#d4dce8]" style={{ borderBottomWidth: '0.5px' }}>
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-0 py-1 lg:px-0">
-        <Link href="/" className="flex items-center ml-0 pl-0">
-          <Logo />
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:px-8">
+        <Link href="/" className="flex items-center">
+          <Logo className="text-xl" />
         </Link>
 
         <div className="hidden lg:flex lg:items-center lg:gap-x-8">
@@ -38,7 +38,7 @@ export function Navbar() {
           ))}
         </div>
 
-        <div className="hidden lg:flex lg:items-center lg:gap-x-4 pr-8">
+        <div className="hidden lg:flex lg:items-center lg:gap-x-4">
           <Button variant="ghost" className="text-[13px] font-normal text-[#0d1b2a]" asChild>
             <Link href="/login">Sign in</Link>
           </Button>
@@ -49,7 +49,7 @@ export function Navbar() {
 
         <button
           type="button"
-          className="lg:hidden p-2 text-[#0d1b2a] mr-4"
+          className="lg:hidden p-2 text-[#0d1b2a]"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
