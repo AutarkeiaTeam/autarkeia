@@ -1,5 +1,5 @@
 const logoShellClass =
-  "inline-flex items-center gap-2 font-light tracking-[2px] text-[15px] sm:text-base text-[#009b70]"
+  "inline-flex items-center gap-2 font-light tracking-[2px] text-[15px] sm:text-base"
 
 /** Same on-screen size everywhere (matches 40×40 favicon asset). */
 const logoImgClass = "h-10 w-10 shrink-0 object-contain"
@@ -21,7 +21,11 @@ export function Logo({ className = "" }: { className?: string }) {
   return (
     <div className={`${logoShellClass} ${className}`}>
       <LogoImage />
-      <span>AUTARKEIA</span>
+      <span>
+        <span className="text-[#0d1b2a]">AUT</span>
+        <span className="text-[#009b70]">ARK</span>
+        <span className="text-[#0d1b2a]">EIA</span>
+      </span>
     </div>
   )
 }
