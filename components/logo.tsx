@@ -17,25 +17,30 @@ function LogoImage() {
   )
 }
 
-export function Logo({ className = "" }: { className?: string }) {
+export type LogoVariant = "header" | "footer"
+
+export function Logo({
+  className = "",
+  variant = "header",
+}: {
+  className?: string
+  variant?: LogoVariant
+}) {
+  const edge =
+    variant === "header" ? "text-[#0d1b2a]" : "text-white"
   return (
     <div className={`${logoShellClass} ${className}`}>
       <LogoImage />
       <span>
-        <span className="text-[#0d1b2a]">AUT</span>
+        <span className={edge}>AUT</span>
         <span className="text-[#009b70]">ARK</span>
-        <span className="text-[#0d1b2a]">EIA</span>
+        <span className={edge}>EIA</span>
       </span>
     </div>
   )
 }
 
-/** Footer: raw asset + white wordmark only (no shared header shell styles). */
-export function LogoLight() {
-  return (
-    <>
-      <img src="/FAVICON10.png" alt="" width={40} height={40} />{" "}
-      <span className="text-white">autarkeia</span>
-    </>
-  )
+/** Same layout and mark as header; wordmark for dark footer (AUT/EIA white, ARK green). */
+export function LogoLight({ className = "" }: { className?: string }) {
+  return <Logo variant="footer" className={className} />
 }
