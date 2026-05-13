@@ -21,12 +21,12 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-[#d4dce8]" style={{ borderBottomWidth: '0.5px' }}>
-      <nav className="mx-auto flex max-w-7xl flex-nowrap items-center justify-between gap-2 py-5 pl-3 pr-4 lg:py-6 lg:pl-5 lg:pr-8">
-        <Link href="/" className="flex shrink-0 items-center gap-2 lg:mr-8 xl:mr-12">
+      <nav className="mx-auto flex max-w-7xl flex-nowrap items-center justify-between gap-2 px-3 py-3 pr-4 lg:px-5 lg:py-4 lg:pr-8">
+        <Link href="/" className="flex shrink-0 items-center">
           <Logo />
         </Link>
 
-        <div className="hidden min-w-0 flex-1 flex-nowrap items-center justify-start gap-x-4 sm:gap-x-5 lg:flex lg:gap-x-6 xl:gap-x-8">
+        <div className="hidden min-w-0 flex-1 flex-nowrap items-center justify-start gap-x-2 sm:gap-x-2.5 lg:flex lg:gap-x-3 xl:gap-x-4">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -38,7 +38,7 @@ export function Navbar() {
           ))}
         </div>
 
-        <div className="hidden shrink-0 items-center gap-x-2 lg:ml-10 lg:flex xl:ml-14 xl:gap-x-3">
+        <div className="hidden shrink-0 flex-nowrap items-center gap-x-2 lg:flex xl:gap-x-3">
           <Button variant="ghost" className="whitespace-nowrap px-2 text-[12px] font-normal text-[#0d1b2a] xl:text-[13px]" asChild>
             <Link href="/login">Sign in</Link>
           </Button>
