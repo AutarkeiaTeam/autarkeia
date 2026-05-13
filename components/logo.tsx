@@ -34,12 +34,12 @@ export function Logo({ className = "" }: { className?: string }) {
 export function LogoLight({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`inline-flex items-center gap-2 bg-transparent font-light tracking-[2px] text-[15px] sm:text-base ${className}`.trim()}
+      className={`inline-flex items-center gap-2 font-light tracking-[2px] text-[15px] sm:text-base ${className}`.trim()}
     >
       <img
         src="/FOOTER1.png"
         alt=""
-        className="h-6 w-auto shrink-0 bg-transparent align-middle"
+        className="h-6 w-auto shrink-0 align-middle mix-blend-multiply"
         decoding="async"
         aria-hidden
       />
