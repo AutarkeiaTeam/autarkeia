@@ -17,28 +17,21 @@ function LogoImage() {
   )
 }
 
-export type LogoVariant = "header" | "footer"
-
-export function Logo({
-  className = "",
-  variant = "header",
-}: {
-  className?: string
-  variant?: LogoVariant
-}) {
+export function Logo({ className = "" }: { className?: string }) {
   return (
     <div className={`${logoShellClass} ${className}`}>
       <LogoImage />
-      {variant === "footer" ? (
-        <span className="lowercase">autarkeia</span>
-      ) : (
-        <span>AUTARKEIA</span>
-      )}
+      <span>AUTARKEIA</span>
     </div>
   )
 }
 
-/** Footer brand row (same mark + sizing as header; lowercase wordmark). */
-export function LogoLight({ className = "" }: { className?: string }) {
-  return <Logo variant="footer" className={className} />
+/** Footer: raw asset + white wordmark only (no shared header shell styles). */
+export function LogoLight() {
+  return (
+    <>
+      <img src="/FAVICON10.png" alt="" width={40} height={40} />{" "}
+      <span className="text-white">autarkeia</span>
+    </>
+  )
 }
