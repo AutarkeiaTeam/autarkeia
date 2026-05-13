@@ -28,7 +28,7 @@ export default function PlansPage() {
         <h1 className="text-3xl font-light text-[#0d1b2a]">Plans</h1>
         <p className="mt-3 text-sm text-[#3d5166]">Two simple tiers: Free and Pro (€7/month).</p>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
+        <div id="pricing" className="mt-10 grid gap-6 md:grid-cols-2">
           <section className="rounded-2xl bg-white border border-[#d4dce8] p-6">
             <h2 className="text-xl font-medium text-[#0d1b2a]">Free</h2>
             <p className="mt-2 text-3xl font-semibold text-[#0d1b2a]">€0</p>
