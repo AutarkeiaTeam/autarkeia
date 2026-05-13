@@ -30,12 +30,25 @@ export function Logo({ className = "" }: { className?: string }) {
   )
 }
 
-/** Footer: raw asset + white wordmark only (no shared header shell styles). */
-export function LogoLight() {
+/** Footer brand: FOOTER1 mark + AUTARKEIA (light wordmark). */
+export function LogoLight({ className = "" }: { className?: string }) {
   return (
-    <>
-      <img src="/FAVICON10.png" alt="" width={40} height={40} />{" "}
-      <span className="text-white">autarkeia</span>
-    </>
+    <div
+      className={`inline-flex items-center gap-2 font-light tracking-[2px] text-[15px] sm:text-base ${className}`.trim()}
+    >
+      <img
+        src="/FOOTER1.png"
+        alt=""
+        width={24}
+        height={24}
+        className="h-6 w-6 shrink-0 object-contain"
+        aria-hidden
+      />
+      <span>
+        <span className="text-white">AUT</span>
+        <span className="text-[#009b70]">ARK</span>
+        <span className="text-white">EIA</span>
+      </span>
+    </div>
   )
 }
