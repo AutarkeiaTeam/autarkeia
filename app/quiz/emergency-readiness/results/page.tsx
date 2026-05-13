@@ -1,4 +1,3 @@
-import { Footer } from '@/components/footer'
 import { QuizResults } from '@/components/quiz/quiz-results'
 
 export const metadata = {
@@ -14,8 +13,6 @@ export default function EmergencyReadinessResultsPage() {
           <QuizResults quizType="emergency-readiness" />
         </div>
       </div>
-
-      <Footer />
     </main>
   )
 }

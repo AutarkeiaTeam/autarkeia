@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { Footer } from '@/components/footer'
 import { Leaf, Shield, ArrowRight } from 'lucide-react'
 
 export const metadata = {
@@ -94,8 +93,6 @@ export default function QuizSelectorPage() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </main>
   )
 }

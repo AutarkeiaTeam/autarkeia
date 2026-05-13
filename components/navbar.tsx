@@ -13,6 +13,7 @@ const navLinks = [
   { href: "/marketplace", label: "Marketplace" },
   { href: "/library", label: "Library" },
   { href: "/news", label: "World News Watch" },
+  { href: "/forums", label: "Forums" },
   { href: "/plans", label: "Plans" },
 ]
 

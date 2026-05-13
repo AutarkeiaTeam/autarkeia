@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowRight, ExternalLink, Calendar, Clock, Target } from 'lucide-react'
+import { ArrowRight, ExternalLink, Calendar, Clock, Target, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { QuizType, QuizResult, QuizAnswers } from '@/lib/quiz-data'
@@ -151,6 +151,10 @@ export function QuizResults({ quizType }: QuizResultsProps) {
   const [result, setResult] = useState<QuizResult | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState('')
+  const [emailBusy, setEmailBusy] = useState(false)
+  const [emailFeedback, setEmailFeedback] = useState<string | null>(null)
+  const [emailError, setEmailError] = useState<string | null>(null)
 
   const config = getQuizConfig(quizType)
   const otherQuizType = quizType === 'self-sufficiency' ? 'emergency-readiness' : 'self-sufficiency'
@@ -193,6 +197,38 @@ export function QuizResults({ quizType }: QuizResultsProps) {
 
     analyzeQuiz()
   }, [quizType])
+
+  async function sendResultsEmail() {
+    if (!result) return
+    setEmailBusy(true)
+    setEmailError(null)
+    setEmailFeedback(null)
+    try {
+      const response = await fetch('/api/quiz/email-results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          quizType,
+          overall_score: result.overall_score,
+          score_label: result.score_label,
+          category_scores: result.category_scores,
+          action_plan: result.action_plan,
+          product_recommendations: result.product_recommendations,
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        setEmailError(typeof data.error === 'string' ? data.error : 'Could not send email.')
+        return
+      }
+      setEmailFeedback(typeof data.message === 'string' ? data.message : 'Check your inbox shortly.')
+    } catch {
+      setEmailError('Network error. Please try again.')
+    } finally {
+      setEmailBusy(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -305,6 +341,51 @@ export function QuizResults({ quizType }: QuizResultsProps) {
           {result.product_recommendations.map((product, idx) => (
             <ProductCard key={idx} {...product} accentColor={config.accentColor} />
           ))}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-[#d4dce8] p-6 mb-8" style={{ borderWidth: '0.5px' }}>
+        <div className="flex items-start gap-3">
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+            style={{ backgroundColor: `${config.accentColor}18` }}
+          >
+            <Mail className="h-5 w-5" style={{ color: config.accentColor }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-medium text-[#0d1b2a]">Email my results</h3>
+            <p className="mt-1 text-sm text-[#3d5166] font-light">
+              Get your score, category breakdown, and personalized product recommendations by email. No account
+              required — or create an account later from the link in the email to save progress.
+            </p>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <label htmlFor="quiz-results-email" className="sr-only">
+                  Email address
+                </label>
+                <input
+                  id="quiz-results-email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-lg border border-[#d4dce8] px-3 py-2 text-sm outline-none focus:border-[#009b70]"
+                />
+              </div>
+              <Button
+                type="button"
+                className="text-white shrink-0"
+                style={{ backgroundColor: config.accentColor }}
+                disabled={emailBusy || !email.trim()}
+                onClick={() => void sendResultsEmail()}
+              >
+                {emailBusy ? 'Sending…' : 'Send to email'}
+              </Button>
+            </div>
+            {emailError && <p className="mt-2 text-sm text-red-600">{emailError}</p>}
+            {emailFeedback && <p className="mt-2 text-sm text-[#009b70]">{emailFeedback}</p>}
+          </div>
         </div>
       </div>
 

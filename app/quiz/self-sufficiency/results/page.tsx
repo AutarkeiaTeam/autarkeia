@@ -1,4 +1,3 @@
-import { Footer } from '@/components/footer'
 import { QuizResults } from '@/components/quiz/quiz-results'
 
 export const metadata = {
@@ -15,8 +14,6 @@ export default function SelfSufficiencyResultsPage() {
           <QuizResults quizType="self-sufficiency" />
         </div>
       </div>
-
-      <Footer />
     </main>
   )
 }

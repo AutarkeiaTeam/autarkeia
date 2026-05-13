@@ -1,4 +1,3 @@
-import { Footer } from '@/components/footer'
 import { QuizFlow } from '@/components/quiz/quiz-flow'
 import { getQuizConfig } from '@/lib/quiz-data'
 
@@ -22,8 +21,6 @@ export default function EmergencyReadinessQuizPage() {
           />
         </div>
       </div>
-
-      <Footer />
     </main>
   )
 }

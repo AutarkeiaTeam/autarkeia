@@ -4,7 +4,6 @@ import { Pillars } from "@/components/pillars"
 import { NewsWatch } from "@/components/news-watch"
 import { RuralCommunities } from "@/components/rural-communities"
 import { HowItWorks } from "@/components/how-it-works"
-import { Footer } from "@/components/footer"
 import Link from "next/link"
 
 export default function Home() {
@@ -23,7 +22,6 @@ export default function Home() {
           </Link>
         </div>
       </section>
-      <Footer />
     </main>
   )
 }

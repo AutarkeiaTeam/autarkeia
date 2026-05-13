@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Poppins } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Navbar } from '@/components/navbar'
+import { Footer } from '@/components/footer'
 import './globals.css'
 
 const poppins = Poppins({
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body className={`${poppins.className} antialiased`}>
         <Navbar />
         {children}
+        <Footer />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

@@ -6,7 +6,8 @@ const freeFeatures = [
   "3 action items for this week only",
   "Public library access",
   "World News Watch headlines",
-  "No account required",
+  "Communities access — register interest, get updates on community development (Free & Paid)",
+  "Free account option — get your results and recommendations emailed, or create account for saved progress.",
 ]
 
 const proFeatures = [
@@ -17,7 +18,6 @@ const proFeatures = [
   "Score history — track improvement over time",
   "Full library — all guides, books, films, courses, apps",
   "World News Watch weekly email briefing every Monday",
-  "Communities access — register interest, get updates on community development",
   "AI chat — ask Claude about your specific situation, location and household",
 ]
 

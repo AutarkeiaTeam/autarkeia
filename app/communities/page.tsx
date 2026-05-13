@@ -1,13 +1,34 @@
 "use client"
 
+import Link from "next/link"
 import { FormEvent, useState } from "react"
 import { Globe } from "lucide-react"
 
 const plans = [
-  { icon: "🏠", title: "Housing & land", desc: "Natural building, earthen methods, timber structures, and straw bale homes." },
-  { icon: "🌾", title: "Food systems", desc: "Communal growing, food forests, regenerative design, and permaculture principles." },
-  { icon: "⚡", title: "Energy & water", desc: "Off-grid solar, wind, rainwater harvesting, and resilient water systems." },
-  { icon: "🤝", title: "Governance", desc: "Transparent co-governance with member participation and democratic decisions." },
+  {
+    href: "/communities/housing-land",
+    icon: "🏠",
+    title: "Housing & land",
+    desc: "Natural building, earthen methods, timber structures, and straw bale homes.",
+  },
+  {
+    href: "/communities/food-systems",
+    icon: "🌾",
+    title: "Food systems",
+    desc: "Communal growing, food forests, regenerative design, and permaculture principles.",
+  },
+  {
+    href: "/communities/energy-water",
+    icon: "⚡",
+    title: "Energy & water",
+    desc: "Off-grid solar, wind, rainwater harvesting, and resilient water systems.",
+  },
+  {
+    href: "/communities/governance",
+    icon: "🤝",
+    title: "Governance",
+    desc: "Transparent co-governance with member participation and democratic decisions.",
+  },
 ]
 
 const models = [
@@ -60,11 +81,16 @@ export default function Communities() {
           <h2 className="text-2xl sm:text-3xl font-light text-[#0d1b2a] mb-8">What we plan to build</h2>
           <div className="grid gap-5 md:grid-cols-2">
             {plans.map((item) => (
-              <article key={item.title} className="rounded-xl border border-[#d4dce8] p-6 bg-[#f5f7fa]">
+              <Link
+                key={item.title}
+                href={item.href}
+                className="group block rounded-xl border border-[#d4dce8] p-6 bg-[#f5f7fa] transition-colors hover:border-[#009b70] hover:shadow-md"
+              >
                 <p className="text-2xl">{item.icon}</p>
-                <h3 className="mt-3 text-lg font-medium text-[#0d1b2a]">{item.title}</h3>
+                <h3 className="mt-3 text-lg font-medium text-[#0d1b2a] group-hover:text-[#009b70]">{item.title}</h3>
                 <p className="mt-2 text-sm text-[#3d5166]">{item.desc}</p>
-              </article>
+                <span className="mt-4 inline-block text-sm font-medium text-[#009b70]">Read more →</span>
+              </Link>
             ))}
           </div>
         </div>
@@ -131,14 +157,70 @@ export default function Communities() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <fieldset className="rounded-xl border border-[#d4dce8] bg-white p-5 space-y-2"><p className="font-medium text-[#0d1b2a]">What type of community?</p>{["Independent family plot","Co-living with friends","Small village 10-30 people","Larger community 30-100 people","Flexible/open"].map((o)=><label key={o} className="flex gap-2 text-sm"><input type="checkbox" /> {o}</label>)}</fieldset>
-              <fieldset className="rounded-xl border border-[#d4dce8] bg-white p-5 space-y-2"><p className="font-medium text-[#0d1b2a]">Type of home</p>{["Self-built natural home","Prefab eco home","Renovated existing building","Flexible"].map((o)=><label key={o} className="flex gap-2 text-sm"><input type="checkbox" /> {o}</label>)}</fieldset>
-              <select className="rounded-lg border border-[#d4dce8] p-3" required><option>Investment capacity</option><option>Under €50k</option><option>€50k-€150k</option><option>€150k-€500k</option><option>€500k-€1M</option><option>Over €1M</option><option>I want to rent not buy</option></select>
-              <select className="rounded-lg border border-[#d4dce8] p-3" required><option>Investor type</option><option>Individual/family</option><option>Group of friends</option><option>Small investor group</option><option>Institutional/fund</option><option>Not sure yet</option></select>
-              <fieldset className="rounded-xl border border-[#d4dce8] bg-white p-5 space-y-2"><p className="font-medium text-[#0d1b2a]">Energy preference</p>{["Solar","Wind","Micro-hydro","Combined off-grid","Connected to grid as backup","Not sure"].map((o)=><label key={o} className="flex gap-2 text-sm"><input type="checkbox" /> {o}</label>)}</fieldset>
-              <select className="rounded-lg border border-[#d4dce8] p-3" required><option>Food production interest</option><option>I want to grow all my own food</option><option>Most of my food</option><option>Some of my food</option><option>I prefer to buy from the community farm</option><option>Not important</option></select>
-              <select className="rounded-lg border border-[#d4dce8] p-3" required><option>When are you thinking of making this move?</option><option>As soon as possible</option><option>1-2 years</option><option>3-5 years</option><option>5+ years</option><option>Just exploring</option></select>
-              <textarea className="rounded-lg border border-[#d4dce8] p-3 sm:col-span-2" rows={4} placeholder="Additional notes" />
+              <fieldset className="rounded-xl border border-[#d4dce8] bg-white p-5 space-y-2">
+                <p className="font-medium text-[#0d1b2a]">What type of community?</p>
+                {["Independent family plot", "Co-living with friends", "Small village 10-30 people", "Larger community 30-100 people", "Flexible/open"].map((o) => (
+                  <label key={o} className="flex gap-2 text-sm">
+                    <input type="checkbox" /> {o}
+                  </label>
+                ))}
+              </fieldset>
+              <fieldset className="rounded-xl border border-[#d4dce8] bg-white p-5 space-y-2">
+                <p className="font-medium text-[#0d1b2a]">Type of home</p>
+                {["Self-built natural home", "Prefab eco home", "Renovated existing building", "Flexible"].map((o) => (
+                  <label key={o} className="flex gap-2 text-sm">
+                    <input type="checkbox" /> {o}
+                  </label>
+                ))}
+              </fieldset>
+              <select className="rounded-lg border border-[#d4dce8] p-3 bg-white" required>
+                <option>Investment capacity</option>
+                <option>Under €50k</option>
+                <option>€50k-€150k</option>
+                <option>€150k-€500k</option>
+                <option>€500k-€1M</option>
+                <option>Over €1M</option>
+                <option>I want to rent not buy</option>
+              </select>
+              <select className="rounded-lg border border-[#d4dce8] p-3 bg-white" required>
+                <option>Investor type</option>
+                <option>Individual/family</option>
+                <option>Group of friends</option>
+                <option>Small investor group</option>
+                <option>Institutional/fund</option>
+                <option>Not sure yet</option>
+              </select>
+              <fieldset className="rounded-xl border border-[#d4dce8] bg-white p-5 space-y-2">
+                <p className="font-medium text-[#0d1b2a]">Energy preference</p>
+                {["Solar", "Wind", "Micro-hydro", "Combined off-grid", "Connected to grid as backup", "Not sure"].map((o) => (
+                  <label key={o} className="flex gap-2 text-sm">
+                    <input type="checkbox" /> {o}
+                  </label>
+                ))}
+              </fieldset>
+              <fieldset className="rounded-xl border border-[#d4dce8] bg-white p-5 space-y-2">
+                <p className="font-medium text-[#0d1b2a]">Food production interest</p>
+                {[
+                  "Grow all my own food",
+                  "Most of my food",
+                  "Some of my food",
+                  "Buy from the community farm",
+                  "Not important",
+                ].map((o) => (
+                  <label key={o} className="flex gap-2 text-sm">
+                    <input type="checkbox" /> {o}
+                  </label>
+                ))}
+              </fieldset>
+              <select className="rounded-lg border border-[#d4dce8] p-3 bg-white sm:col-span-2" required>
+                <option>When are you thinking of making this move?</option>
+                <option>As soon as possible</option>
+                <option>1-2 years</option>
+                <option>3-5 years</option>
+                <option>5+ years</option>
+                <option>Just exploring</option>
+              </select>
+              <textarea className="rounded-lg border border-[#d4dce8] p-3 bg-white sm:col-span-2" rows={4} placeholder="Additional notes" />
             </div>
 
             <button className="rounded-lg bg-[#009b70] px-6 py-3 text-white font-medium hover:bg-[#008060]">Register my interest →</button>
