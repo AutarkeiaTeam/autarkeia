@@ -1,3 +1,7 @@
+"use client"
+
+import { useId } from "react"
+
 const logoShellClass =
   "inline-flex items-center gap-2 font-light tracking-[2px] text-[15px] sm:text-base"
 
@@ -17,23 +21,40 @@ function LogoImage() {
   )
 }
 
-/** PNG white matte × #009b70 → brand green; glyph stays a darker green (same asset as header). */
-function LogoImageFooter() {
+/** White matte in PNG becomes mask holes; fill is flat #009b70 (no square underlay). */
+function LogoMarkFooterSvg() {
+  const safe = useId().replace(/:/g, "")
+  const maskId = `footer-logo-mask-${safe}`
+  const filterId = `footer-logo-inv-${safe}`
+
   return (
-    <span
-      className={`relative isolate inline-block shrink-0 ${logoImgClass}`}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 40 40"
+      width={40}
+      height={40}
+      className={logoImgClass}
       aria-hidden
     >
-      <span className="absolute inset-0 bg-[#009b70]" />
-      <img
-        src="/FAVICON10.png"
-        alt=""
-        width={40}
-        height={40}
-        className="absolute inset-0 h-full w-full object-contain mix-blend-multiply"
-        aria-hidden
-      />
-    </span>
+      <defs>
+        <filter id={filterId} colorInterpolationFilters="sRGB">
+          <feColorMatrix
+            type="matrix"
+            values="-1 0 0 0 1  0 -1 0 0 1  0 0 -1 0 1  0 0 0 1 0"
+          />
+        </filter>
+        <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="40" height="40">
+          <image
+            href="/FAVICON10.png"
+            width="40"
+            height="40"
+            preserveAspectRatio="xMidYMid meet"
+            filter={`url(#${filterId})`}
+          />
+        </mask>
+      </defs>
+      <rect width="40" height="40" fill="#009b70" mask={`url(#${maskId})`} />
+    </svg>
   )
 }
 
@@ -53,7 +74,7 @@ export function Logo({ className = "" }: { className?: string }) {
 export function LogoLight({ className = "" }: { className?: string }) {
   return (
     <div className={`${logoShellClass} ${className}`}>
-      <LogoImageFooter />
+      <LogoMarkFooterSvg />
       <span>
         <span className="text-white">AUT</span>
         <span className="text-[#009b70]">ARK</span>
