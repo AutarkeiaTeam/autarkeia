@@ -1,4 +1,17 @@
-export function Logo({ className = "" }: { className?: string }) {
+const wordmarkClass =
+  "font-light tracking-[2px] text-[15px] sm:text-base"
+
+export type LogoVariant = "header" | "footer"
+
+export function Logo({
+  className = "",
+  variant = "header",
+}: {
+  className?: string
+  variant?: LogoVariant
+}) {
+  const edge =
+    variant === "header" ? "text-[#0d1b2a]" : "text-white"
   return (
     <div
       className={`inline-flex items-center gap-1 font-light tracking-[2px] text-[14px] sm:text-[15px] ${className}`}
@@ -14,22 +27,12 @@ export function Logo({ className = "" }: { className?: string }) {
       <span>
         <span className="text-[#0d1b2a]">AUT</span>
         <span className="text-[#009b70]">ARK</span>
-        <span className="text-[#0d1b2a]">EIA</span>
+        <span className={edge}>EIA</span>
       </span>
-    </div>
+    </>
   )
 }
 
 export function LogoLight({ className = "" }: { className?: string }) {
-  return (
-    <div
-      className={`inline-flex items-center font-light tracking-[3px] text-[13px] ${className}`}
-    >
-      <span>
-        <span className="text-white">AUT</span>
-        <span className="text-[#009b70]">ARK</span>
-        <span className="text-white">EIA</span>
-      </span>
-    </div>
-  )
+  return <Logo variant="footer" className={className} />
 }
