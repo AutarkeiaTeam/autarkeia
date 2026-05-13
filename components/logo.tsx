@@ -11,7 +11,7 @@ export function Logo({
     variant === "header" ? "text-[#0d1b2a]" : "text-white"
   return (
     <div
-      className={`inline-flex items-center gap-1 font-light tracking-[2px] text-[14px] sm:text-[15px] ${className}`}
+      className={`inline-flex items-center gap-6 font-light tracking-[2px] text-[14px] sm:text-[15px] ${className}`}
     >
       <img
         src="/FAVICON10.png"

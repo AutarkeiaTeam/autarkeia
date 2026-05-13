@@ -6,15 +6,7 @@ import { Menu, X } from "lucide-react"
 import { Logo } from "./logo"
 import { Button } from "@/components/ui/button"
 
-/** Desktop center column — evenly spaced, visually centered in the bar. */
-const centerNavLinks = [
-  { href: "/quiz/emergency-readiness", label: "Emergency Readiness" },
-  { href: "/plans#pricing", label: "Pricing" },
-  { href: "/plans", label: "Plans" },
-]
-
-/** Mobile drawer keeps full site navigation. */
-const mobileNavLinks = [
+const navLinks = [
   { href: "/quiz/emergency-readiness", label: "Emergency Readiness" },
   { href: "/quiz/self-sufficiency", label: "Self-Sufficiency" },
   { href: "/communities", label: "Communities" },
@@ -32,7 +24,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-[#d4dce8]" style={{ borderBottomWidth: '0.5px' }}>
-      <nav className="mx-auto flex max-w-7xl flex-nowrap items-center gap-4 px-3 py-3 pr-4 lg:gap-8 lg:px-5 lg:py-4 lg:pr-8">
+      <nav className="mx-auto flex max-w-7xl flex-nowrap items-center gap-x-8 px-8 py-3 lg:gap-x-12 lg:py-4">
         <div className="flex shrink-0 items-center">
           <Link href="/" className="flex items-center">
             <Logo />
@@ -40,18 +32,21 @@ export function Navbar() {
         </div>
 
         <div className="hidden min-w-0 flex-1 items-center justify-center lg:flex">
-          <div className="flex flex-nowrap items-center justify-center gap-x-6 xl:gap-x-10">
-            {centerNavLinks.map((link) => (
-              <Link key={link.href + link.label} href={link.href} className={navLinkClass}>
+          <div className="flex max-w-full flex-nowrap items-center justify-center gap-x-3 xl:gap-x-4">
+            {navLinks.map((link) => (
+              <Link key={link.href} href={link.href} className={navLinkClass}>
                 {link.label}
               </Link>
             ))}
           </div>
         </div>
 
-        <div className="hidden shrink-0 items-center lg:flex">
+        <div className="ml-auto hidden shrink-0 items-center gap-x-2 lg:flex xl:gap-x-3">
           <Button variant="ghost" className="whitespace-nowrap px-2 text-[12px] font-normal text-[#0d1b2a] xl:text-[13px]" asChild>
             <Link href="/login">Sign in</Link>
+          </Button>
+          <Button className="whitespace-nowrap rounded-lg bg-[#009b70] px-3 text-[12px] font-medium text-white hover:bg-[#008060] xl:text-[13px]" asChild>
+            <Link href="/quiz">Get your score</Link>
           </Button>
         </div>
 
@@ -66,8 +61,8 @@ export function Navbar() {
 
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-[#d4dce8] bg-white" style={{ borderTopWidth: '0.5px' }}>
-          <div className="space-y-1 px-4 py-4">
-            {mobileNavLinks.map((link) => (
+          <div className="space-y-1 px-8 py-4">
+            {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
