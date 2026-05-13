@@ -39,7 +39,7 @@ export function LogoLight({ className = "" }: { className?: string }) {
       <img
         src="/FOOTER1.png"
         alt=""
-        className="h-6 w-auto shrink-0 align-middle"
+        className="h-10 w-auto shrink-0 align-middle"
         decoding="async"
         aria-hidden
       />
