@@ -7,25 +7,144 @@ export type NewsStory = {
   summary: string
   why: string
   time: string
-  /** Topic illustration (Unsplash Source API style — deterministic by slug) */
+  /** Topic-matched featured image (Flickr CC via LoremFlickr, deterministic by slug). */
   image: string
   body: string
   sources: { label: string; url: string }[]
 }
 
-/** Picsum image per story for consistent featured art */
-function storyImage(slug: string): string {
-  const seed = slug.replace(/[^a-z0-9]+/gi, "").slice(0, 40) || "news"
-  return `https://picsum.photos/seed/${encodeURIComponent(seed)}/960/540`
+/** Deterministic numeric seed from a string (for stable LoremFlickr image locks). */
+function hashSeed(s: string): number {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0
+  return Math.abs(h) || 1
 }
 
 /**
- * Per-story Google News search URL biased toward the named publisher.
- * Returns coverage of THIS specific story rather than a section landing page.
+ * Topical Flickr tags per story slug. LoremFlickr returns a Creative-Commons
+ * Flickr photo that matches the tags, giving each article a relevant image
+ * instead of a random one.
  */
-function newsSearch(title: string, publisher: string): string {
-  const q = `${title} ${publisher.replace(/\s+(Markets|Energy|Crypto|Sustainability|Asia|Europe|China|South Asia|Middle East|Migration|Health|Environment|Supply Chain|Technology|Commodities|Agriculture|Reports|Pressroom|Press|News|Climate|Water|Economy|Asia-Pacific|Business|News\/Markets)$/i, "")}`
-  return `https://www.google.com/search?q=${encodeURIComponent(q)}&tbm=nws`
+const STORY_KEYWORDS: Record<string, string[]> = {
+  "iran-strait-hormuz-risk": ["oil", "tanker", "ship"],
+  "ukraine-front-logistics-strikes": ["ukraine", "wheat", "field"],
+  "taiwan-strait-shipping-risk": ["taiwan", "container", "ship"],
+  "us-debt-fiscal-stress": ["wall-street", "trading", "finance"],
+  "europe-energy-winter-grid": ["power-lines", "winter", "pylon"],
+  "global-food-prices-shipping": ["wheat", "harvest", "field"],
+  "mediterranean-migration-routes": ["mediterranean", "boat", "sea"],
+  "extreme-weather-multi-region": ["storm", "flood", "lightning"],
+  "supply-chain-rerouting-delays": ["container", "port", "cargo"],
+  "china-slowdown-industrial": ["shanghai", "factory", "skyline"],
+  "india-pakistan-border-alerts": ["border", "fence", "checkpoint"],
+  "ai-infrastructure-centralization-risk": ["data-center", "server", "rack"],
+  "pandemic-preparedness-audits": ["hospital", "mask", "doctor"],
+  "water-scarcity-drought-alerts": ["drought", "cracked-earth", "dry"],
+  "crypto-volatility-systemic-debate": ["bitcoin", "coin", "chart"],
+}
+
+/** Topic-matched image URL (LoremFlickr serves Flickr CC photos for the tags). */
+function topicalImage(slug: string): string {
+  const tags = STORY_KEYWORDS[slug] ?? ["news", "world"]
+  const tagPath = tags
+    .map((t) => t.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-"))
+    .filter(Boolean)
+    .join(",")
+  return `https://loremflickr.com/960/540/${tagPath}?lock=${hashSeed(slug)}`
+}
+
+/** Legacy alias kept for inline references inside the story literals below. */
+function storyImage(slug: string): string {
+  return topicalImage(slug)
+}
+
+/** Normalize a publisher citation label to a known brand key. */
+function publisherKey(label: string): string | null {
+  const l = label.toLowerCase()
+  if (l.includes("reuters")) return "reuters"
+  if (l.includes("bbc")) return "bbc"
+  if (l.startsWith("ap ") || l.startsWith("ap")) return "ap"
+  if (l.includes("ft ") || l.startsWith("ft ")) return "ft"
+  if (l.includes("wsj")) return "wsj"
+  if (l.includes("bloomberg")) return "bloomberg"
+  if (l.startsWith("dw ") || l.includes(" dw ")) return "dw"
+  if (l.includes("euronews")) return "euronews"
+  if (l.includes("iea")) return "iea"
+  if (l.includes("fao")) return "fao"
+  if (l.includes("unhcr")) return "unhcr"
+  if (l.includes("al jazeera") || l.includes("aljazeera")) return "aljazeera"
+  if (l.includes("who ")) return "who"
+  if (l.includes("cdc")) return "cdc"
+  if (l.includes("un water")) return "unwater"
+  if (l.includes("nature")) return "nature"
+  if (l.includes("copernicus")) return "copernicus"
+  if (l.includes("noaa")) return "noaa"
+  if (l.includes("mit tech") || l.includes("technology review")) return "techreview"
+  if (l.includes("wired")) return "wired"
+  if (l.includes("scmp")) return "scmp"
+  if (l.includes("nikkei")) return "nikkei"
+  if (l.includes("lloyd")) return "lloydslist"
+  return null
+}
+
+/**
+ * Build an on-site search URL at the named publisher for the article title.
+ * Each URL lives on the publisher's own domain — not on Google — so clicking a
+ * source jumps to that outlet's own coverage of the specific story.
+ */
+function publisherSearch(title: string, label: string, fallback: string): string {
+  const key = publisherKey(label)
+  const q = encodeURIComponent(title)
+  switch (key) {
+    case "reuters":
+      return `https://www.reuters.com/site-search/?query=${q}&offset=0`
+    case "bbc":
+      return `https://www.bbc.co.uk/search?q=${q}`
+    case "ap":
+      return `https://apnews.com/search?q=${q}`
+    case "ft":
+      return `https://www.ft.com/search?q=${q}`
+    case "wsj":
+      return `https://www.wsj.com/search?query=${q}`
+    case "bloomberg":
+      return `https://www.bloomberg.com/search?query=${q}`
+    case "dw":
+      return `https://www.dw.com/search/en?languageCode=en&item=${q}`
+    case "euronews":
+      return `https://www.euronews.com/search?query=${q}`
+    case "iea":
+      return `https://www.iea.org/search?q=${q}`
+    case "fao":
+      return `https://www.fao.org/search/en/?q=${q}`
+    case "unhcr":
+      return `https://www.unhcr.org/search?query=${q}`
+    case "aljazeera":
+      return `https://www.aljazeera.com/search/${q}`
+    case "who":
+      return `https://www.who.int/home/search?indexCatalogue=genericsearchindex1&searchQuery=${q}`
+    case "cdc":
+      return `https://search.cdc.gov/search/?query=${q}`
+    case "unwater":
+      return `https://www.unwater.org/?s=${q}`
+    case "nature":
+      return `https://www.nature.com/search?q=${q}`
+    case "copernicus":
+      return `https://climate.copernicus.eu/search/site/${q}`
+    case "noaa":
+      return `https://www.climate.gov/search?keyword=${q}`
+    case "techreview":
+      return `https://www.technologyreview.com/?s=${q}`
+    case "wired":
+      return `https://www.wired.com/search/?q=${q}`
+    case "scmp":
+      return `https://www.scmp.com/search/${q}`
+    case "nikkei":
+      return `https://asia.nikkei.com/Search?query=${q}`
+    case "lloydslist":
+      return `https://lloydslist.com/Search?searchText=${q}`
+    default:
+      return fallback
+  }
 }
 
 const rawStories: NewsStory[] = [
@@ -303,9 +422,10 @@ const rawStories: NewsStory[] = [
 
 export const newsStories: NewsStory[] = rawStories.map((story) => ({
   ...story,
+  image: topicalImage(story.slug),
   sources: story.sources.map((src) => ({
     label: src.label,
-    url: newsSearch(story.title, src.label),
+    url: publisherSearch(story.title, src.label, src.url),
   })),
 }))
 

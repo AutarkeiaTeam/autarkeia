@@ -43,20 +43,26 @@ export default function NewsPage() {
                     <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">Why this matters to you</p>
                     <p className="text-xs text-[#0d1b2a] mt-1">{story.why}</p>
                   </div>
-                  <details className="mt-3">
-                    <summary className="cursor-pointer text-sm text-[#71d8be]">Sources</summary>
-                    <ul className="mt-2 flex flex-wrap gap-3">
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-white/50">Read the story at the source</p>
+                    <ul className="mt-2 flex flex-wrap gap-2">
                       {story.sources.map((s) => (
                         <li key={s.url}>
-                          <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-xs text-white/80 underline">
+                          <a
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/15 hover:text-[#71d8be]"
+                          >
                             {s.label}
+                            <span aria-hidden>↗</span>
                           </a>
                         </li>
                       ))}
                     </ul>
-                  </details>
+                  </div>
                   <Link href={`/news/${story.slug}`} className="mt-3 inline-block text-sm font-medium text-[#71d8be] hover:underline">
-                    Read full brief →
+                    Read Autarkeia brief →
                   </Link>
                 </div>
               </div>
