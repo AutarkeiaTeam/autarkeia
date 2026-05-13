@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { LogoLight } from "./logo"
+import { Logo } from "./logo"
 
 export function Footer() {
   return (
@@ -9,9 +9,9 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
-            <div className="mb-4">
+            <div className="mb-4 w-fit rounded-md bg-white">
               <Link href="/" className="flex shrink-0 items-center">
-                <LogoLight />
+                <Logo />
               </Link>
             </div>
             <p className="text-sm text-[#7a8a9e]">

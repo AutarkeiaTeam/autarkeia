@@ -24,16 +24,3 @@ export function Logo({ className = "" }: { className?: string }) {
     </div>
   )
 }
-
-export function LogoLight({ className = "" }: { className?: string }) {
-  return (
-    <div className={`${logoShellClass} ${className}`}>
-      {logoImage}
-      <span>
-        <span className="text-white">AUT</span>
-        <span className="text-[#009b70]">ARK</span>
-        <span className="text-white">EIA</span>
-      </span>
-    </div>
-  )
-}
