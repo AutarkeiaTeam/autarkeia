@@ -26,7 +26,7 @@ export function Navbar() {
           <Logo />
         </Link>
 
-        <div className="hidden min-w-0 flex-1 flex-nowrap items-center justify-start gap-x-2 sm:gap-x-2.5 lg:flex lg:gap-x-3 xl:gap-x-4">
+        <div className="hidden min-w-0 flex-1 flex-nowrap items-center justify-start gap-x-4 sm:gap-x-5 lg:flex lg:gap-x-6 xl:gap-x-8">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -38,7 +38,7 @@ export function Navbar() {
           ))}
         </div>
 
-        <div className="hidden shrink-0 items-center gap-x-2 lg:flex xl:gap-x-3">
+        <div className="hidden shrink-0 items-center gap-x-2 lg:ml-10 lg:flex xl:ml-14 xl:gap-x-3">
           <Button variant="ghost" className="whitespace-nowrap px-2 text-[12px] font-normal text-[#0d1b2a] xl:text-[13px]" asChild>
             <Link href="/login">Sign in</Link>
           </Button>
