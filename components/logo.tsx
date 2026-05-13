@@ -1,6 +1,3 @@
-const wordmarkClass =
-  "font-light tracking-[2px] text-[15px] sm:text-base"
-
 export type LogoVariant = "header" | "footer"
 
 export function Logo({
@@ -25,14 +22,32 @@ export function Logo({
         aria-hidden
       />
       <span>
-        <span className="text-[#0d1b2a]">AUT</span>
+        <span className={edge}>AUT</span>
         <span className="text-[#009b70]">ARK</span>
         <span className={edge}>EIA</span>
       </span>
-    </>
+    </div>
   )
 }
 
+/** Footer brand: FOOTER1 mark + AUTARKEIA (light wordmark). */
 export function LogoLight({ className = "" }: { className?: string }) {
-  return <Logo variant="footer" className={className} />
+  return (
+    <div
+      className={`inline-flex items-center gap-2 font-light tracking-[2px] text-[15px] sm:text-base ${className}`.trim()}
+    >
+      <img
+        src="/FOOTER1.png"
+        alt=""
+        className="h-6 w-auto shrink-0 align-middle mix-blend-multiply"
+        decoding="async"
+        aria-hidden
+      />
+      <span>
+        <span className="text-white">AUT</span>
+        <span className="text-[#009b70]">ARK</span>
+        <span className="text-white">EIA</span>
+      </span>
+    </div>
+  )
 }
