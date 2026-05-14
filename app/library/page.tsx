@@ -23,6 +23,19 @@ export default function Library() {
           A comprehensive emergency readiness and self-sufficiency library with open access to every resource.
         </p>
 
+        <div className="mt-6 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">New collection</p>
+          <p className="mt-1 text-sm font-medium text-[#0d1b2a]">
+            Geopolitics &amp; World Future Podcasts
+          </p>
+          <p className="mt-1 text-sm text-[#3d5166]">
+            70+ specific episodes from Peter Zeihan, John Mearsheimer, Stephen Kotkin, Nate Hagens, Professor Jiang
+            (Predictive History), Thomas Homer-Dixon, Adam Tooze, Lyn Alden, Ray Dalio, Vaclav Smil, Joseph Tainter,
+            Yuval Noah Harari and others. Set type to <span className="font-medium">Podcasts</span> and subject to{" "}
+            <span className="font-medium">Geopolitics</span> to browse.
+          </p>
+        </div>
+
         <div className="mt-8 space-y-4">
           <div className="flex flex-wrap gap-2">
             {typeFilters.map((value) => (
