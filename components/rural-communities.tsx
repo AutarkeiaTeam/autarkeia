@@ -1,91 +1,104 @@
-import { MapPin, Users, Leaf } from "lucide-react"
+import Link from "next/link"
+import { Home, Wheat, Zap, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-const communities = [
+const focusAreas = [
   {
-    name: "Terra Nova Collective",
-    location: "Alentejo, Portugal",
-    members: 23,
-    focus: "Permaculture & Regenerative Agriculture",
-    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=250&fit=crop",
+    icon: Home,
+    title: "Housing & Land",
+    description: "Natural building, earthen methods, timber frames, and straw bale homes.",
+    href: "/communities/housing-land",
   },
   {
-    name: "Alpine Resilience Network",
-    location: "Tyrol, Austria",
-    members: 47,
-    focus: "Off-Grid Living & Energy Independence",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop",
+    icon: Wheat,
+    title: "Food Systems",
+    description: "Communal growing, food forests, regenerative design, and permaculture.",
+    href: "/communities/food-systems",
   },
   {
-    name: "Rewilding Community",
-    location: "Scottish Highlands, UK",
-    members: 31,
-    focus: "Wilderness Skills & Land Stewardship",
-    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=250&fit=crop",
+    icon: Zap,
+    title: "Energy & Water",
+    description: "Off-grid solar, wind, rainwater harvesting, and resilient water systems.",
+    href: "/communities/energy-water",
+  },
+  {
+    icon: Users,
+    title: "Governance",
+    description: "Transparent co-governance, member participation, and clear decision-making.",
+    href: "/communities/governance",
   },
 ]
 
 export function RuralCommunities() {
   return (
-    <section className="bg-gradient-to-b from-[#f5f7fa] to-[#e8ebe5] py-20" id="rural-communities">
+    <section
+      className="bg-gradient-to-b from-[#f5f7fa] to-[#e8ebe5] py-20"
+      id="rural-communities"
+    >
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-2 items-center">
+        <div className="grid gap-12 lg:grid-cols-2 items-start">
           <div>
-            <h2 className="text-3xl font-light text-[#0d1b2a] sm:text-4xl">
-              Find Your <span className="text-[#009b70]">Community</span>
+            <span className="inline-block rounded-full bg-[#009b70]/10 px-3 py-1 text-xs font-medium uppercase tracking-wide text-[#009b70]">
+              Launching soon
+            </span>
+            <h2 className="mt-4 text-3xl font-light text-[#0d1b2a] sm:text-4xl">
+              Communities <span className="text-[#009b70]">Coming Soon</span>
             </h2>
             <p className="mt-4 text-lg font-light text-[#3d5166] leading-relaxed">
-              Connect with intentional communities, eco-villages, and rural properties worldwide. 
-              Whether you&apos;re looking to join an established group or find like-minded neighbors, 
-              we help you build the support network that makes self-sufficiency sustainable.
+              Autarkeia is building a global network of intentional, self-sufficient
+              communities — places where people grow their own food, generate their
+              own energy, build their own homes, and govern themselves transparently.
             </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <div className="flex items-center gap-2 text-sm font-light text-[#3d5166]">
-                <MapPin className="h-5 w-5 text-[#009b70]" />
-                <span>2,400+ locations globally</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm font-light text-[#3d5166]">
-                <Users className="h-5 w-5 text-[#009b70]" />
-                <span>18,000+ active members</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm font-light text-[#3d5166]">
-                <Leaf className="h-5 w-5 text-[#009b70]" />
-                <span>Sustainability verified</span>
-              </div>
+            <p className="mt-4 text-base font-light text-[#3d5166] leading-relaxed">
+              We are in the planning phase. Register your interest through the
+              Communities access in your Plan, tell us where you want to live, and
+              help us demonstrate the demand. Sites will launch in regions where
+              member interest, climate, and conditions line up — starting in Spain
+              and expanding from there.
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button
+                asChild
+                className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg"
+              >
+                <Link href="/communities#register-interest">Explore communities</Link>
+              </Button>
+              <Button
+                asChild
+                variant="ghost"
+                className="font-medium rounded-lg text-[#0d1b2a] hover:bg-white"
+              >
+                <Link href="/plans">See Plans</Link>
+              </Button>
             </div>
-            <Button className="mt-8 bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg">
-              Explore communities
-            </Button>
           </div>
 
-          <div className="space-y-4">
-            {communities.map((community, index) => (
-              <div
-                key={index}
-                className="flex gap-4 rounded-xl bg-white p-4 border border-[#d4dce8]/50"
-                style={{ borderWidth: '0.5px' }}
-              >
-                <img
-                  src={community.image}
-                  alt={community.name}
-                  className="h-20 w-28 rounded-lg object-cover flex-shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-normal text-[#0d1b2a] truncate">{community.name}</h3>
-                  <p className="text-sm font-light text-[#3d5166] flex items-center gap-1 mt-1">
-                    <MapPin className="h-3 w-3" />
-                    {community.location}
-                  </p>
-                  <div className="flex items-center gap-4 mt-2 text-xs font-light text-[#8a9bb0]">
-                    <span className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      {community.members} members
-                    </span>
-                    <span className="text-[#009b70] font-normal">{community.focus}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {focusAreas.map((area) => {
+              const Icon = area.icon
+              return (
+                <Link
+                  key={area.title}
+                  href={area.href}
+                  className="group rounded-xl bg-white p-5 border border-[#d4dce8]/60 transition-colors hover:border-[#009b70]"
+                  style={{ borderWidth: "0.5px" }}
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#009b70]/10 text-[#009b70]">
+                    <Icon className="h-5 w-5" />
                   </div>
-                </div>
-              </div>
-            ))}
+                  <h3 className="mt-4 text-base font-normal text-[#0d1b2a] group-hover:text-[#009b70]">
+                    {area.title}
+                  </h3>
+                  <p className="mt-2 text-sm font-light text-[#3d5166] leading-relaxed">
+                    {area.description}
+                  </p>
+                  <span className="mt-3 inline-block text-xs font-medium text-[#009b70]">
+                    Learn more →
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         </div>
       </div>
