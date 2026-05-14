@@ -15,8 +15,14 @@ export default function Signup() {
     try {
       setIsLoading(true)
       setError("")
-      await signUpWithEmail(email, password)
-      router.push("/quiz")
+      const data = await signUpWithEmail(email, password)
+      const userId = data?.user?.id || data?.user?.email || email
+      if (userId) {
+        const maxAge = 60 * 60 * 24 * 30
+        document.cookie = `autarkeia-user=${encodeURIComponent(userId)}; path=/; max-age=${maxAge}; SameSite=Lax`
+        document.cookie = `autarkeia-tier=free; path=/; max-age=${maxAge}; SameSite=Lax`
+      }
+      router.push("/dashboard")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign up.")
     } finally {

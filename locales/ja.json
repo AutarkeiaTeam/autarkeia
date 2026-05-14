@@ -1,0 +1,43 @@
+{
+  "nav.emergency": "緊急時の備え",
+  "nav.self_sufficiency": "自給自足",
+  "nav.communities": "コミュニティ",
+  "nav.marketplace": "マーケット",
+  "nav.library": "ライブラリー",
+  "nav.news": "世界ニュース",
+  "nav.forums": "フォーラム",
+  "nav.plans": "プラン",
+  "nav.dashboard": "ダッシュボード",
+  "nav.sign_in": "ログイン",
+  "nav.get_score": "スコアを取得",
+
+  "home.tagline": "まずは緊急時の備え。一生続く自給自足を。",
+  "home.hero_title": "備えを整え、より自給自足な暮らしへ。",
+  "home.hero_sub": "クイズに答え、あなた専用のプランを受け取り、これからの10年に冷静に備える世界中のコミュニティに加わりましょう。",
+  "home.cta_quiz": "クイズを受ける",
+  "home.cta_plans": "プランを見る",
+
+  "marketplace.title": "マーケット",
+  "marketplace.intro": "実用的なレジリエンスのために厳選した、緊急時の備えと自給自足の用品・製品。",
+
+  "communities.title": "自給自足の暮らしの未来を、みんなで作る。",
+  "communities.intro": "Autarkeia は、人々が自分の食料を育て、エネルギーを生み出し、自分の家を建て、脆い仕組みに依存せずに暮らせる、自給自足コミュニティの世界的ネットワークを築いています。",
+  "communities.housing": "住まいと土地",
+  "communities.food": "食のシステム",
+  "communities.energy": "エネルギーと水",
+  "communities.governance": "ガバナンス",
+
+  "library.title": "グローバル・レジリエンス・ライブラリー",
+  "library.intro": "緊急時の備えと自給自足に関する総合ライブラリー。Pro 会員はすべて閲覧可能です。",
+
+  "plans.title": "プラン",
+  "plans.sub": "シンプルな2つのプラン:無料とPro(月額7ユーロ)。",
+  "plans.free": "無料",
+  "plans.pro": "Pro",
+  "plans.start_free": "無料ではじめる",
+  "plans.go_pro": "Proにアップグレード",
+
+  "forums.title": "フォーラム",
+  "forums.new_thread": "新しいスレッド",
+  "forums.sign_in_to_post": "スレッドを始めるにはログインしてください。"
+}

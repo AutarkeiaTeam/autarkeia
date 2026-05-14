@@ -1,0 +1,43 @@
+{
+  "nav.emergency": "Préparation aux urgences",
+  "nav.self_sufficiency": "Autosuffisance",
+  "nav.communities": "Communautés",
+  "nav.marketplace": "Marché",
+  "nav.library": "Bibliothèque",
+  "nav.news": "Veille mondiale",
+  "nav.forums": "Forums",
+  "nav.plans": "Forfaits",
+  "nav.dashboard": "Tableau de bord",
+  "nav.sign_in": "Se connecter",
+  "nav.get_score": "Obtenir votre score",
+
+  "home.tagline": "La préparation aux urgences d'abord. L'autosuffisance pour la vie.",
+  "home.hero_title": "Renforcez votre préparation. Vivez plus autonome.",
+  "home.hero_sub": "Faites les questionnaires, obtenez un plan personnalisé et rejoignez un mouvement mondial de personnes qui se préparent à la prochaine décennie avec lucidité.",
+  "home.cta_quiz": "Faire le quiz",
+  "home.cta_plans": "Voir les forfaits",
+
+  "marketplace.title": "Marché",
+  "marketplace.intro": "Équipements et produits de préparation aux urgences et d'autosuffisance, sélectionnés pour une résilience concrète.",
+
+  "communities.title": "L'avenir d'une vie autosuffisante. Construit ensemble.",
+  "communities.intro": "Autarkeia construit un réseau mondial de communautés autosuffisantes — où les habitants cultivent leur nourriture, produisent leur énergie, bâtissent leurs maisons et vivent libérés de la dépendance à des systèmes fragiles.",
+  "communities.housing": "Habitat et terre",
+  "communities.food": "Systèmes alimentaires",
+  "communities.energy": "Énergie et eau",
+  "communities.governance": "Gouvernance",
+
+  "library.title": "Bibliothèque mondiale de résilience",
+  "library.intro": "Une bibliothèque complète sur la préparation aux urgences et l'autosuffisance, en accès libre pour les membres Pro.",
+
+  "plans.title": "Forfaits",
+  "plans.sub": "Deux niveaux simples : Gratuit et Pro (7 €/mois).",
+  "plans.free": "Gratuit",
+  "plans.pro": "Pro",
+  "plans.start_free": "Commencer gratuitement",
+  "plans.go_pro": "Passer au Pro",
+
+  "forums.title": "Forums",
+  "forums.new_thread": "Nouvelle discussion",
+  "forums.sign_in_to_post": "Connectez-vous pour démarrer une discussion."
+}

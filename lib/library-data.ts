@@ -6,6 +6,13 @@ export type LibraryItem = {
   subjects: string[]
   description: string
   link: string
+  /**
+   * When true, the item is gated behind the Pro tier. Free users see a
+   * locked preview card with an "Upgrade to Pro" CTA instead of the link.
+   * Roughly 80% of library content is marked Pro; the remainder is the
+   * Free taster set.
+   */
+  isPro?: boolean
 }
 
 export const subjectFilters = [
@@ -53,8 +60,9 @@ function buildLibraryItems(): LibraryItem[] {
     type: string,
     subjects: string[],
     description: string,
-    link: string
-  ) => items.push({ id: id++, title, author, type, subjects, description, link })
+    link: string,
+    isPro = false
+  ) => items.push({ id: id++, title, author, type, subjects, description, link, isPro })
 
   const curated: Omit<LibraryItem, "id">[] = [
     {
@@ -812,9 +820,17 @@ function buildLibraryItems(): LibraryItem[] {
     },
   ]
 
-  for (const row of curated) {
-    push(row.title, row.author, row.type, row.subjects, row.description, row.link)
-  }
+  // Free taster set: keep the first ~6 curated entries unlocked so new
+  // visitors get a real preview. Everything else from the curated array
+  // (including the 74 geopolitics podcasts) is Pro.
+  curated.forEach((row, idx) => {
+    const isPro = idx >= 6
+    push(row.title, row.author, row.type, row.subjects, row.description, row.link, isPro)
+  })
+
+  // Synthetic content: every 5th item stays free; the rest is Pro.
+  // This yields ~20% free / ~80% Pro across the catalogue.
+  const isProForIndex = (i: number) => i % 5 !== 0
 
   for (let i = 1; i <= 105; i++) {
     const a = SUBJECTS[i % SUBJECTS.length]
@@ -825,7 +841,8 @@ function buildLibraryItems(): LibraryItem[] {
       "Books",
       [a, b],
       `Reference-style guide connecting ${a.toLowerCase()} with ${b.toLowerCase()} for practical household readiness.`,
-      `https://www.amazon.es/s?k=${encodeURIComponent(`preparedness ${a} ${b}`)}&tag=autarkeia-es`
+      `https://www.amazon.es/s?k=${encodeURIComponent(`preparedness ${a} ${b}`)}&tag=autarkeia-es`,
+      isProForIndex(i)
     )
   }
 
@@ -837,7 +854,8 @@ function buildLibraryItems(): LibraryItem[] {
       "Articles",
       [a, "Climate"],
       `Analysis of ${a.toLowerCase()} risks, seasonal stressors, and what households can do this month.`,
-      `https://en.wikipedia.org/wiki/Special:Search?go=Go&search=${encodeURIComponent(`${a} resilience`)}`
+      `https://en.wikipedia.org/wiki/Special:Search?go=Go&search=${encodeURIComponent(`${a} resilience`)}`,
+      isProForIndex(i)
     )
   }
 
@@ -849,7 +867,8 @@ function buildLibraryItems(): LibraryItem[] {
       "Podcasts",
       [a, "Community"],
       `Conversations with practitioners building ${a.toLowerCase()} into daily life and cooperative projects.`,
-      `https://podcasts.apple.com/search?term=${encodeURIComponent(`${a} preparedness resilience`)}`
+      `https://podcasts.apple.com/search?term=${encodeURIComponent(`${a} preparedness resilience`)}`,
+      isProForIndex(i)
     )
   }
 
@@ -861,7 +880,8 @@ function buildLibraryItems(): LibraryItem[] {
       "Courses",
       [a, "Skills"],
       `Structured modules on ${a.toLowerCase()} for homes and small communities, with checklists and drills.`,
-      `https://www.coursera.org/search?query=${encodeURIComponent(`${a} resilience`)}`
+      `https://www.coursera.org/search?query=${encodeURIComponent(`${a} resilience`)}`,
+      isProForIndex(i)
     )
   }
 
@@ -874,7 +894,8 @@ function buildLibraryItems(): LibraryItem[] {
       "YouTube",
       [a, b],
       `Curated video walkthroughs on emergency readiness, self-sufficiency, off-grid living, and ${a.toLowerCase()}.`,
-      `https://www.youtube.com/results?search_query=${encodeURIComponent(`emergency readiness ${a} ${b} off grid`)}`
+      `https://www.youtube.com/results?search_query=${encodeURIComponent(`emergency readiness ${a} ${b} off grid`)}`,
+      isProForIndex(i)
     )
   }
 
@@ -918,7 +939,8 @@ function buildLibraryItems(): LibraryItem[] {
       "Documentaries",
       [a, "Economics"],
       `Explores how households and towns adapt when systems wobble — focus on ${a.toLowerCase()}.`,
-      `https://www.imdb.com/find?q=${encodeURIComponent(docTitles[i])}`
+      `https://www.imdb.com/find?q=${encodeURIComponent(docTitles[i])}`,
+      isProForIndex(i + 1)
     )
   }
 
@@ -942,7 +964,8 @@ function buildLibraryItems(): LibraryItem[] {
       "Films",
       [a, "Psychology"],
       `Narrative film touching on risk, adaptation, and ${a.toLowerCase()} themes.`,
-      `https://www.imdb.com/find?q=${encodeURIComponent(films[i])}`
+      `https://www.imdb.com/find?q=${encodeURIComponent(films[i])}`,
+      isProForIndex(i + 1)
     )
   }
 
@@ -963,7 +986,8 @@ function buildLibraryItems(): LibraryItem[] {
       "Series",
       [a, "Skills"],
       `Series episodes useful for understanding ${a.toLowerCase()} in real-world contexts.`,
-      `https://www.imdb.com/find?q=${encodeURIComponent(series[i])}`
+      `https://www.imdb.com/find?q=${encodeURIComponent(series[i])}`,
+      isProForIndex(i + 1)
     )
   }
 
@@ -975,7 +999,8 @@ function buildLibraryItems(): LibraryItem[] {
       "Apps",
       [a, "Navigation"],
       `Offline-first helpers for logging, checklists, and lightweight sensors related to ${a.toLowerCase()}.`,
-      `https://play.google.com/store/search?q=${encodeURIComponent(`${a} preparedness`)}&c=apps`
+      `https://play.google.com/store/search?q=${encodeURIComponent(`${a} preparedness`)}&c=apps`,
+      isProForIndex(i)
     )
   }
 
@@ -987,7 +1012,8 @@ function buildLibraryItems(): LibraryItem[] {
       "Games",
       [a, "Psychology"],
       `Scenario drills that reward planning and calm decision-making under ${a.toLowerCase()} stress.`,
-      `https://store.steampowered.com/search/?term=${encodeURIComponent(`${a} survival simulation`)}`
+      `https://store.steampowered.com/search/?term=${encodeURIComponent(`${a} survival simulation`)}`,
+      isProForIndex(i)
     )
   }
 

@@ -7,9 +7,10 @@ const freeFeatures = [
   "Both quizzes (Emergency Readiness + Self-Sufficiency)",
   "Basic score — overall percentage only",
   "3 action items for this week only",
+  "Limited Marketplace access (only Amazon)",
   "Limited library access",
   "World News Watch headlines",
-  "Communities access — register interest, get updates on community development",
+  "Autarkeia Communities access — register interest, get updates on community development",
 ]
 
 const proFeatures = [
@@ -18,10 +19,12 @@ const proFeatures = [
   "Complete action plan — this week, 30 days, 1 year",
   "Plan saved to account and updated as you progress",
   "Score history — track improvement over time",
+  "Full Marketplace access (all sellers)",
   "Full library — all guides, books, films, courses, apps",
   "World News Watch weekly email briefing every Monday",
   "AI chat — ask Claude about your specific situation, location and household",
-  "Priority Community Access — register interest, get updates on community development. Paid subscribers get priority selection during high demand.",
+  "Priority Autarkeia Communities access — register interest, get updates on community development. Paid subscribers get priority selection during high demand.",
+  "Monthly Global Report & Newsletter",
 ]
 
 type Tier = "free" | "pro"

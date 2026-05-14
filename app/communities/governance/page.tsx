@@ -1,77 +1,100 @@
-import Link from "next/link"
+import { CommunityDetail } from "@/components/community-detail"
 
 export const metadata = {
   title: "Governance — Communities — Autarkeia",
-  description: "Co-governance, member participation, and democratic decisions for Autarkeia communities.",
+  description:
+    "Transparent co-governance, member participation, and durable democratic decision-making for Autarkeia communities.",
 }
 
 export default function GovernancePage() {
   return (
-    <main className="min-h-screen bg-white">
-      <div className="mx-auto max-w-3xl px-4 py-14 lg:px-8">
-        <Link href="/communities" className="text-sm text-[#009b70] hover:underline">
-          ← Communities
-        </Link>
-        <h1 className="mt-6 text-3xl font-light text-[#0d1b2a]">Governance</h1>
-        <p className="mt-4 text-sm text-[#009b70] font-medium">Transparent rules for shared infrastructure</p>
-
-        <div className="mt-10 space-y-6 text-[#3d5166] leading-relaxed">
-          <p>
-            Infrastructure lasts decades; moods last minutes. Governance is the interface that translates long-horizon
-            stewardship into weekly decisions people can live with. Autarkeia communities experiment with hybrid
-            models—democratic assemblies for values and capital priorities, delegated circles for operations like water
-            quality and energy dispatch, and elected recallable roles for legal signatories—so expertise is honored
-            without ossifying hierarchy.
-          </p>
-          <p>
-            Co-governance begins before anyone moves dirt: constitutions or covenant-lite agreements spell out dispute
-            resolution, exit pathways, and how new members earn voice. We favor documented consent logs for sensitive
-            topics—animal policies, night noise, RF emissions from communications gear—so future neighbors inherit
-            context, not rumors. Participation budgets acknowledge that not everyone can attend every meeting; async
-            summaries, office hours with stewards, and randomized pairing for onboarding reduce clique formation.
-          </p>
-          <p>
-            Democratic decisions work best with bounded agendas and transparent data. Tariff-like internal prices for
-            peak power, water overage, or guest stays should be machine-readable where possible, recalibrated on
-            schedules everyone knows, and debated in daylight rather than invented in crisis. Supermajorities protect
-            minorities on irreversible moves—selling common land, encumbering debt—while simple majorities suffice for
-            revocable experiments like a new compost layout.
-          </p>
-          <p>
-            Member participation extends beyond votes into maintenance rosters, mentorship, and mutual aid drills. We
-            plan tabletop exercises for outage weekends, cyber incidents, and medical surges so governance muscles are
-            trained before adrenaline arrives. Conflict transformation resources—facilitators, ombuds roles, and
-            cooling-off protocols—are budget lines, not afterthoughts.
-          </p>
-          <p>
-            Money is a governance question disguised as a finance question. Membership shares, monthly dues for shared
-            infrastructure, capital calls for replacements, and reserves for legal expenses must all be visible to
-            members at any time, not surfaced only at annual meetings. We document operating budgets and long-range
-            capital plans as living spreadsheets, run open books for at least the prior fiscal year, and require a
-            named treasurer plus a rotating audit pair. Where possible, we use legal vehicles that keep land in
-            community ownership across membership turnover—cooperatives, community land trusts, stewardship
-            foundations—so individual exits do not destabilize the whole.
-          </p>
-
-          <p>
-            Children, elders, and people with disabilities are governance constituencies as much as anyone else. We
-            insist on accessibility audits for shared infrastructure, age-appropriate participation pathways for
-            children, and explicit caregiving accommodations so that domestic labor does not become an invisible
-            subsidy for those without it. New residents are onboarded over months, not days, with a mentor and a
-            living document that explains how decisions were reached on every active topic. Exits are designed with
-            the same care: clear buy-back formulas, mediation steps before legal escalation, and a culture that
-            recognizes a departing member as someone who once carried the community, not as a defector. Relationships
-            with neighboring landowners, municipalities, and emergency services are governance lines too, kept warm in
-            calm seasons so they hold under pressure.
-          </p>
-
-          <p>
-            If you care about procedural fairness, inclusive facilitation, or legal structures for commons-based land
-            tenure, tell us in the Communities interest form. Governance is not bureaucracy for its own sake; it is the
-            practice of keeping promises to future residents who are not yet in the room.
-          </p>
-        </div>
-      </div>
-    </main>
+    <CommunityDetail
+      eyebrow="Governance"
+      title="Decisions made by the people who live with the consequences"
+      tagline="Transparent co-governance, sociocratic decision-making, clear conflict pathways, and rules durable enough to outlast their authors."
+      intro="More intentional communities fail on governance than on infrastructure. Autarkeia communities are designed with explicit decision-making structures, transparent finances, written agreements, and conflict pathways so that disagreements become workable problems rather than slow-motion divorces."
+      hero={{
+        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Community_meeting_circle.jpg/1920px-Community_meeting_circle.jpg",
+        alt: "Community members sitting in a circle for a meeting",
+        credit: "Photo: Wikimedia Commons",
+      }}
+      sections={[
+        {
+          heading: "Sociocracy as the default operating system",
+          body: [
+            "We use sociocratic / consent-based decision-making as the default. Decisions are made within small circles with clear domains; consent (no reasoned objection) is preferred over majority vote for ongoing decisions; one-off operational choices are delegated to those closest to the work.",
+            "Sociocracy is not slow once people have practised it. Most operational decisions resolve in minutes; only genuine value-conflicts take real time, and that time is well spent.",
+          ],
+          images: [
+            {
+              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Sociocracy_circle.jpg/1280px-Sociocracy_circle.jpg",
+              alt: "Sociocratic circle meeting in progress",
+              caption: "Circles with clear domains, not endless plenaries.",
+            },
+            {
+              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Community_hands_raised.jpg/1280px-Community_hands_raised.jpg",
+              alt: "Hands raised in a vote",
+              caption: "Voting reserved for genuine binary choices.",
+            },
+          ],
+        },
+        {
+          heading: "Written agreements and transparent finances",
+          body: [
+            "Verbal agreements drift; written ones can be argued with on the page. Each community maintains a living agreements document — covering membership, capital contributions, governance procedures, exit pathways, and conflict resolution — that any member can propose amendments to.",
+            "Finances are open. Monthly statements, capital reserves, project budgets, and major contracts are visible to all members. Anonymity is reserved for personal data, not for community money.",
+          ],
+          images: [
+            {
+              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Whiteboard_planning_session.jpg/1280px-Whiteboard_planning_session.jpg",
+              alt: "Members planning around a whiteboard",
+              caption: "Plans, budgets, and reserves on the wall.",
+            },
+          ],
+        },
+        {
+          heading: "Conflict pathways and care",
+          body: [
+            "Conflict is not a failure mode; it is the normal cost of living closely with other people. We staff a small rotating mediation circle and pre-agree on a three-step pathway: direct conversation, mediation, and finally facilitated community circle.",
+            "Children, elders, and people with disabilities have explicit standing in governance discussions that affect them — not just in family-only side meetings. Care work is named, counted, and rotated like any other shared task.",
+          ],
+          images: [
+            {
+              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Mediation_session.jpg/1280px-Mediation_session.jpg",
+              alt: "Mediation session between two people",
+              caption: "A clear, pre-agreed conflict pathway.",
+            },
+          ],
+        },
+        {
+          heading: "Neighbours, jurisdictions, and the outside world",
+          body: [
+            "Relationships with neighbouring landowners and local government are part of governance, not separate from it. We register properly, pay taxes properly, participate in local civic life, and over-communicate with neighbours about water use, road maintenance, and fire risk.",
+            "Communities that try to be invisible become suspect; communities that show up at the planning office and the village festival are usually treated as a welcome addition.",
+          ],
+          images: [
+            {
+              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Spanish_village_square.jpg/1280px-Spanish_village_square.jpg",
+              alt: "Spanish village square with neighbours gathered",
+              caption: "Show up at the festival; talk to the mayor.",
+            },
+          ],
+        },
+        {
+          heading: "Getting started",
+          body: [
+            "Good governance is something you practise together long before you sign deeds. We run governance workshops with prospective communities so the habits — agreed agendas, minutes, written agreements, conflict pathways — exist before there is anything to fight about.",
+            "Register your interest and tell us what governance experience you already bring; we are particularly interested in mediators, facilitators, finance-fluent residents, and people with prior intentional-community experience.",
+          ],
+          images: [
+            {
+              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Cohousing_common_house.jpg/1280px-Cohousing_common_house.jpg",
+              alt: "Cohousing common house with a shared meal",
+              caption: "Shared meals carry more agreements than minutes ever do.",
+            },
+          ],
+        },
+      ]}
+    />
   )
 }

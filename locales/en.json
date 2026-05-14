@@ -1,0 +1,43 @@
+{
+  "nav.emergency": "Emergency Readiness",
+  "nav.self_sufficiency": "Self-Sufficiency",
+  "nav.communities": "Communities",
+  "nav.marketplace": "Marketplace",
+  "nav.library": "Library",
+  "nav.news": "World News Watch",
+  "nav.forums": "Forums",
+  "nav.plans": "Plans",
+  "nav.dashboard": "Dashboard",
+  "nav.sign_in": "Sign in",
+  "nav.get_score": "Get your score",
+
+  "home.tagline": "Emergency readiness first. Self-sufficiency for life.",
+  "home.hero_title": "Build your readiness. Live more self-sufficiently.",
+  "home.hero_sub": "Take the quizzes, get a personalised plan, and join a global movement of people preparing for the next decade with clear eyes.",
+  "home.cta_quiz": "Take the quiz",
+  "home.cta_plans": "See plans",
+
+  "marketplace.title": "Marketplace",
+  "marketplace.intro": "Emergency readiness and self-sufficiency gear and products curated for practical resilience.",
+
+  "communities.title": "The future of self-sufficient living. Built together.",
+  "communities.intro": "Autarkeia is building a global network of self-sufficient communities — where people grow their own food, generate their own energy, build their own homes, and live free from dependence on fragile systems.",
+  "communities.housing": "Housing & land",
+  "communities.food": "Food systems",
+  "communities.energy": "Energy & water",
+  "communities.governance": "Governance",
+
+  "library.title": "Global Resilience Library",
+  "library.intro": "A comprehensive emergency readiness and self-sufficiency library with open access for Pro members.",
+
+  "plans.title": "Plans",
+  "plans.sub": "Two simple tiers: Free and Pro (€7/month).",
+  "plans.free": "Free",
+  "plans.pro": "Pro",
+  "plans.start_free": "Start free",
+  "plans.go_pro": "Go Pro",
+
+  "forums.title": "Forums",
+  "forums.new_thread": "New discussion",
+  "forums.sign_in_to_post": "Sign in to start a discussion."
+}

@@ -1,0 +1,43 @@
+{
+  "nav.emergency": "Preparação para Emergências",
+  "nav.self_sufficiency": "Autossuficiência",
+  "nav.communities": "Comunidades",
+  "nav.marketplace": "Mercado",
+  "nav.library": "Biblioteca",
+  "nav.news": "Observatório Mundial",
+  "nav.forums": "Fóruns",
+  "nav.plans": "Planos",
+  "nav.dashboard": "Painel",
+  "nav.sign_in": "Entrar",
+  "nav.get_score": "Obter sua pontuação",
+
+  "home.tagline": "Primeiro a preparação para emergências. A autossuficiência para a vida.",
+  "home.hero_title": "Construa sua preparação. Viva com mais autossuficiência.",
+  "home.hero_sub": "Faça os questionários, receba um plano personalizado e junte-se a um movimento global de pessoas que se preparam para a próxima década com clareza.",
+  "home.cta_quiz": "Fazer o teste",
+  "home.cta_plans": "Ver planos",
+
+  "marketplace.title": "Mercado",
+  "marketplace.intro": "Equipamentos e produtos de preparação para emergências e autossuficiência, selecionados para uma resiliência prática.",
+
+  "communities.title": "O futuro da vida autossuficiente. Construído juntos.",
+  "communities.intro": "A Autarkeia está a construir uma rede global de comunidades autossuficientes — onde as pessoas cultivam o seu próprio alimento, geram a sua própria energia, constroem as suas casas e vivem livres da dependência de sistemas frágeis.",
+  "communities.housing": "Habitação e terra",
+  "communities.food": "Sistemas alimentares",
+  "communities.energy": "Energia e água",
+  "communities.governance": "Governança",
+
+  "library.title": "Biblioteca Global de Resiliência",
+  "library.intro": "Uma biblioteca abrangente sobre preparação para emergências e autossuficiência, com acesso aberto para membros Pro.",
+
+  "plans.title": "Planos",
+  "plans.sub": "Dois níveis simples: Gratuito e Pro (7€/mês).",
+  "plans.free": "Gratuito",
+  "plans.pro": "Pro",
+  "plans.start_free": "Começar grátis",
+  "plans.go_pro": "Ir Pro",
+
+  "forums.title": "Fóruns",
+  "forums.new_thread": "Nova discussão",
+  "forums.sign_in_to_post": "Inicie sessão para começar uma discussão."
+}

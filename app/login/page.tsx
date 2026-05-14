@@ -15,7 +15,15 @@ export default function Login() {
     try {
       setIsLoading(true)
       setError("")
-      await signInWithEmail(email, password)
+      const data = await signInWithEmail(email, password)
+      // Persist a lightweight `autarkeia-user` cookie so the navbar,
+      // dashboard, and forums recognise the session. Real Supabase
+      // session cookies are set by the SDK in a follow-up step.
+      const userId = data?.user?.id || data?.user?.email || email
+      if (userId) {
+        const maxAge = 60 * 60 * 24 * 30
+        document.cookie = `autarkeia-user=${encodeURIComponent(userId)}; path=/; max-age=${maxAge}; SameSite=Lax`
+      }
       router.push("/dashboard")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in.")

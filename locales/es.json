@@ -1,0 +1,43 @@
+{
+  "nav.emergency": "Preparación de Emergencia",
+  "nav.self_sufficiency": "Autosuficiencia",
+  "nav.communities": "Comunidades",
+  "nav.marketplace": "Mercado",
+  "nav.library": "Biblioteca",
+  "nav.news": "Observatorio Mundial",
+  "nav.forums": "Foros",
+  "nav.plans": "Planes",
+  "nav.dashboard": "Panel",
+  "nav.sign_in": "Iniciar sesión",
+  "nav.get_score": "Calcula tu puntuación",
+
+  "home.tagline": "Primero la preparación de emergencia. La autosuficiencia para toda la vida.",
+  "home.hero_title": "Construye tu preparación. Vive con más autosuficiencia.",
+  "home.hero_sub": "Haz los cuestionarios, recibe un plan personalizado y únete a un movimiento global de personas que se preparan para la próxima década con claridad.",
+  "home.cta_quiz": "Hacer el test",
+  "home.cta_plans": "Ver planes",
+
+  "marketplace.title": "Mercado",
+  "marketplace.intro": "Equipamiento y productos de preparación de emergencia y autosuficiencia, seleccionados para una resiliencia práctica.",
+
+  "communities.title": "El futuro de la vida autosuficiente. Construido en común.",
+  "communities.intro": "Autarkeia está construyendo una red global de comunidades autosuficientes — donde las personas cultivan su comida, generan su energía, construyen sus casas y viven libres de la dependencia de sistemas frágiles.",
+  "communities.housing": "Vivienda y tierra",
+  "communities.food": "Sistemas alimentarios",
+  "communities.energy": "Energía y agua",
+  "communities.governance": "Gobernanza",
+
+  "library.title": "Biblioteca Global de Resiliencia",
+  "library.intro": "Una biblioteca integral de preparación de emergencia y autosuficiencia con acceso libre para miembros Pro.",
+
+  "plans.title": "Planes",
+  "plans.sub": "Dos niveles simples: Gratuito y Pro (7€/mes).",
+  "plans.free": "Gratis",
+  "plans.pro": "Pro",
+  "plans.start_free": "Empezar gratis",
+  "plans.go_pro": "Hacerse Pro",
+
+  "forums.title": "Foros",
+  "forums.new_thread": "Nueva discusión",
+  "forums.sign_in_to_post": "Inicia sesión para empezar una discusión."
+}

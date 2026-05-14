@@ -7,6 +7,20 @@ export function Footer() {
   return (
     <footer className="bg-[#0d1b2a] border-t border-[#1a2942]">
       <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
+        <div className="mb-10 max-w-3xl">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-[#71d8be]">About Autarkeia</h3>
+          <p className="mt-3 text-sm leading-relaxed text-[#a8b6c9]">
+            Autarkeia was born from a clear-eyed reading of the times: supply chains tighten, climate stress is
+            no longer abstract, and trust in institutions is thinning. But our deeper conviction is simpler — that
+            living closer to land, food, neighbours, and craft is the natural progression of a human life and,
+            quite likely, the most beautiful existence available to us regardless of what global conditions bring.
+            Preparedness is wise; self-sufficiency is wisdom of a different order. We promote the best, most
+            beautiful way humans can live, not the most fearful. Autarkeia is currently based in Spain and is
+            building first communities here, with an open door to seeding additional communities anywhere in the
+            world where the soil, the climate, and the people line up.
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <Link href="/" className="mb-4 inline-flex items-center">
@@ -15,7 +29,7 @@ export function Footer() {
             <p className="text-sm text-[#7a8a9e]">
               Emergency readiness first. Self-sufficiency for life.
             </p>
-            <p className="text-xs text-[#5a6a7e] mt-4">autarkeia.world</p>
+            <p className="text-xs text-[#5a6a7e] mt-4">autarkeia.world · Spain</p>
           </div>
 
           <div>

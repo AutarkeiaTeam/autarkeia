@@ -14,3 +14,6 @@ next.user-config.*
 node_modules
 .next/
 .DS_Store
+
+# Local-dev data files (forums JSON store when Supabase is not configured)
+.data/
