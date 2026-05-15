@@ -8,25 +8,11 @@ import { useI18n } from "@/components/i18n-provider"
 const FLAG: Record<Locale, string> = {
   en: "🇬🇧",
   es: "🇪🇸",
-  fr: "🇫🇷",
-  pt: "🇵🇹",
-  de: "🇩🇪",
-  it: "🇮🇹",
-  zh: "🇨🇳",
-  ja: "🇯🇵",
-  ko: "🇰🇷",
 }
 
 const LABEL: Record<Locale, string> = {
   en: "English",
   es: "Español",
-  fr: "Français",
-  pt: "Português",
-  de: "Deutsch",
-  it: "Italiano",
-  zh: "中文",
-  ja: "日本語",
-  ko: "한국어",
 }
 
 export function LanguageSwitcher() {

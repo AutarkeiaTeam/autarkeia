@@ -1,14 +1,7 @@
 import en from "@/locales/en.json"
 import es from "@/locales/es.json"
-import fr from "@/locales/fr.json"
-import pt from "@/locales/pt.json"
-import de from "@/locales/de.json"
-import it from "@/locales/it.json"
-import zh from "@/locales/zh.json"
-import ja from "@/locales/ja.json"
-import ko from "@/locales/ko.json"
 
-export const LOCALES = ["en", "es", "fr", "pt", "de", "it", "zh", "ja", "ko"] as const
+export const LOCALES = ["en", "es"] as const
 export type Locale = (typeof LOCALES)[number]
 
 export const LOCALE_COOKIE = "autarkeia-locale"
@@ -16,13 +9,6 @@ export const LOCALE_COOKIE = "autarkeia-locale"
 const DICT: Record<Locale, Record<string, string>> = {
   en: en as Record<string, string>,
   es: es as Record<string, string>,
-  fr: fr as Record<string, string>,
-  pt: pt as Record<string, string>,
-  de: de as Record<string, string>,
-  it: it as Record<string, string>,
-  zh: zh as Record<string, string>,
-  ja: ja as Record<string, string>,
-  ko: ko as Record<string, string>,
 }
 
 export function isLocale(value: string | undefined | null): value is Locale {
