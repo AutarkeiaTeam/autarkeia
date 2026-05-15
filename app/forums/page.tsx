@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Suspense } from "react"
 import { CATEGORIES, listThreads } from "@/lib/forums-store"
 import { isAuthenticated } from "@/lib/auth-server"
 
@@ -33,7 +34,7 @@ const externalForums: ExternalForum[] = [
   { name: "Disboard — permaculture", href: "https://disboard.org/servers/tag/permaculture", platform: "Discord" },
 ]
 
-export default async function ForumsPage() {
+async function ForumsPageContent() {
   const [threads, authed] = await Promise.all([listThreads(), isAuthenticated()])
   const counts = CATEGORIES.reduce<Record<string, number>>((acc, c) => {
     acc[c.id] = threads.filter((t) => t.category === c.id).length
@@ -161,5 +162,13 @@ export default async function ForumsPage() {
         </section>
       </div>
     </main>
+  )
+}
+
+export default function ForumsPage() {
+  return (
+    <Suspense fallback={<div>Loading forums...</div>}>
+      <ForumsPageContent />
+    </Suspense>
   )
 }
