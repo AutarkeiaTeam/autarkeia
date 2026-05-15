@@ -44,7 +44,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-[#d4dce8]" style={{ borderBottomWidth: "0.5px" }}>
-      <nav className="mx-auto flex max-w-7xl flex-nowrap items-center gap-x-8 px-8 py-3 lg:gap-x-12 lg:py-4">
+      <nav className="mx-auto flex max-w-7xl flex-nowrap items-center gap-x-6 py-3 pl-8 pr-4 sm:pr-5 lg:gap-x-8 lg:py-4 lg:pr-5 xl:gap-x-10 xl:pr-6">
         <div className="flex shrink-0 items-center">
           <Link href="/" className="flex items-center">
             <Logo />
@@ -66,7 +66,7 @@ export function Navbar() {
           </div>
         </div>
 
-        <div className="ml-auto hidden shrink-0 flex-nowrap items-center gap-x-2 lg:flex xl:gap-x-3">
+        <div className="ml-auto hidden shrink-0 flex-nowrap items-center gap-x-2 border-l border-[#d4dce8] pl-6 lg:flex lg:pl-10 xl:gap-x-3 xl:pl-12">
           {authed ? (
             <>
               <Button
