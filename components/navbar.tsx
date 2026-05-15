@@ -61,7 +61,7 @@ export function Navbar() {
           </div>
         </div>
 
-        <div className="ml-auto hidden shrink-0 flex flex-nowrap items-center justify-end gap-x-2 border-l border-[#d4dce8] pl-8 lg:flex lg:pl-12 xl:gap-x-3 xl:pl-16">
+        <div className="ml-auto hidden shrink-0 flex flex-nowrap items-center justify-end gap-x-2 pl-8 lg:flex lg:pl-12 xl:gap-x-3 xl:pl-16">
           {authed ? (
             <>
               <Button
