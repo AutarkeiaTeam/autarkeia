@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent, Suspense, useEffect, useState } from "react"
 
 const CATEGORIES = [
   { id: "housing-land", name: "Housing & Land" },
@@ -12,7 +12,7 @@ const CATEGORIES = [
   { id: "general", name: "General" },
 ]
 
-export default function NewThreadPage() {
+function NewThreadPageInner() {
   const router = useRouter()
   const params = useSearchParams()
   const presetCategory = params.get("category") ?? "general"
@@ -28,6 +28,10 @@ export default function NewThreadPage() {
     if (typeof document === "undefined") return
     setAuthed(document.cookie.split("; ").some((row) => row.startsWith("autarkeia-user=")))
   }, [])
+
+  useEffect(() => {
+    setCategory(presetCategory)
+  }, [presetCategory])
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -55,7 +59,9 @@ export default function NewThreadPage() {
     return (
       <main className="min-h-screen bg-[#f5f7fa]">
         <div className="mx-auto max-w-2xl px-4 py-20 lg:px-8">
-          <Link href="/forums" className="text-sm text-[#009b70]">← Forums</Link>
+          <Link href="/forums" className="text-sm text-[#009b70]">
+            ← Forums
+          </Link>
           <h1 className="mt-6 text-3xl font-light text-[#0d1b2a]">Sign in to start a discussion</h1>
           <p className="mt-3 text-sm text-[#3d5166]">
             Reading is open to everyone; posting requires an account so threads can be moderated.
@@ -74,7 +80,9 @@ export default function NewThreadPage() {
   return (
     <main className="min-h-screen bg-[#f5f7fa]">
       <div className="mx-auto max-w-2xl px-4 py-14 lg:px-8">
-        <Link href="/forums" className="text-sm text-[#009b70]">← Forums</Link>
+        <Link href="/forums" className="text-sm text-[#009b70]">
+          ← Forums
+        </Link>
         <h1 className="mt-6 text-3xl font-light text-[#0d1b2a]">New discussion</h1>
 
         <form onSubmit={submit} className="mt-8 space-y-5 rounded-2xl border border-[#d4dce8] bg-white p-6">
@@ -137,5 +145,13 @@ export default function NewThreadPage() {
         </form>
       </div>
     </main>
+  )
+}
+
+export default function NewThreadPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <NewThreadPageInner />
+    </Suspense>
   )
 }
