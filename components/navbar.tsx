@@ -59,17 +59,20 @@ export function Navbar() {
           </div>
         </div>
 
-        <div className="ml-auto hidden shrink-0 items-center gap-x-2 lg:flex xl:gap-x-3">
-          <LanguageSwitcher />
+        <div className="ml-auto hidden shrink-0 flex-nowrap items-center gap-x-2 lg:flex xl:gap-x-3">
           {authed ? (
-            <Button className="whitespace-nowrap rounded-lg bg-[#009b70] px-3 text-[12px] font-medium text-white hover:bg-[#008060] xl:text-[13px]" asChild>
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
+            <>
+              <LanguageSwitcher />
+              <Button className="whitespace-nowrap rounded-lg bg-[#009b70] px-3 text-[12px] font-medium text-white hover:bg-[#008060] xl:text-[13px]" asChild>
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" className="whitespace-nowrap px-2 text-[12px] font-normal text-[#0d1b2a] xl:text-[13px]" asChild>
                 <Link href="/login">Sign in</Link>
               </Button>
+              <LanguageSwitcher />
               <Button className="whitespace-nowrap rounded-lg bg-[#009b70] px-3 text-[12px] font-medium text-white hover:bg-[#008060] xl:text-[13px]" asChild>
                 <Link href="/quiz">Get your score</Link>
               </Button>
@@ -109,18 +112,23 @@ export function Navbar() {
               </Link>
             )}
             <div className="flex flex-col gap-2 pt-4 border-t border-[#d4dce8]" style={{ borderTopWidth: '0.5px' }}>
-              <div className="px-1">
-                <LanguageSwitcher />
-              </div>
               {authed ? (
-                <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg" asChild>
-                  <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-                </Button>
+                <>
+                  <div className="px-1">
+                    <LanguageSwitcher />
+                  </div>
+                  <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg" asChild>
+                    <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button variant="ghost" className="justify-start text-[13px] font-normal text-[#0d1b2a]" asChild>
                     <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Sign in</Link>
                   </Button>
+                  <div className="px-1">
+                    <LanguageSwitcher />
+                  </div>
                   <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg" asChild>
                     <Link href="/quiz" onClick={() => setMobileMenuOpen(false)}>Get your score</Link>
                   </Button>

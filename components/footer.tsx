@@ -7,15 +7,6 @@ export function Footer() {
   return (
     <footer className="bg-[#0d1b2a] border-t border-[#1a2942]">
       <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
-        <div className="mb-10 flex flex-col gap-2">
-          <Link href="/about" className="text-sm text-[#7a8a9e] hover:text-[#009b70] w-fit">
-            About
-          </Link>
-          <Link href="/contact" className="text-sm text-[#7a8a9e] hover:text-[#009b70] w-fit">
-            Contact
-          </Link>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <Link href="/" className="mb-4 inline-flex items-center">
@@ -49,6 +40,8 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-white mb-4">Company</h3>
             <ul className="space-y-2">
+              <li><Link href="/about" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">About</Link></li>
+              <li><Link href="/contact" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">Contact</Link></li>
               <li><Link href="/privacy" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">Privacy Policy</Link></li>
               <li><Link href="/terms" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">Terms of Service</Link></li>
             </ul>
