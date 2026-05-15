@@ -44,7 +44,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-[#d4dce8]" style={{ borderBottomWidth: "0.5px" }}>
-      <nav className="mx-auto flex max-w-7xl flex-nowrap items-center gap-x-6 py-3 pl-8 pr-4 sm:pr-5 lg:gap-x-8 lg:py-4 lg:pr-5 xl:gap-x-10 xl:pr-6">
+      <nav className="mx-auto flex max-w-7xl flex-nowrap items-center gap-x-6 py-3 pl-8 pr-4 sm:pr-5 lg:gap-x-8 lg:py-4 lg:pr-3 xl:gap-x-10 xl:pr-3">
         <div className="flex shrink-0 items-center">
           <Link href="/" className="flex items-center">
             <Logo />
@@ -58,15 +58,10 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {authed && (
-              <Link href="/dashboard" className={navLinkClass}>
-                {t("nav.dashboard")}
-              </Link>
-            )}
           </div>
         </div>
 
-        <div className="ml-auto hidden shrink-0 flex-nowrap items-center gap-x-2 border-l border-[#d4dce8] pl-6 lg:flex lg:pl-10 xl:gap-x-3 xl:pl-12">
+        <div className="ml-auto hidden shrink-0 flex flex-nowrap items-center justify-end gap-x-2 border-l border-[#d4dce8] pl-8 lg:flex lg:pl-12 xl:gap-x-3 xl:pl-16">
           {authed ? (
             <>
               <Button
@@ -115,15 +110,6 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {authed && (
-              <Link
-                href="/dashboard"
-                className="block py-2 text-[13px] font-medium text-[#009b70]"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {t("nav.dashboard")}
-              </Link>
-            )}
             <div className="flex flex-col gap-2 pt-4 border-t border-[#d4dce8]" style={{ borderTopWidth: "0.5px" }}>
               {authed ? (
                 <>
