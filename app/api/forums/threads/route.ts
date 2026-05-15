@@ -3,9 +3,15 @@ import { CATEGORIES, createThread, listThreads } from "@/lib/forums-store"
 import { getUserId } from "@/lib/auth-server"
 
 export async function GET(req: NextRequest) {
-  const category = req.nextUrl.searchParams.get("category") ?? undefined
-  const threads = await listThreads(category)
-  return NextResponse.json({ threads })
+  try {
+    const category = req.nextUrl.searchParams.get("category") ?? undefined
+    const threads = await listThreads(category)
+    return NextResponse.json({ threads })
+  } catch (err) {
+    console.error("[GET /api/forums/threads]", err)
+    const message = err instanceof Error ? err.message : "Failed to list threads"
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {
