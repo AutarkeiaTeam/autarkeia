@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useState } from "react"
+import { useI18n } from "@/components/i18n-provider"
 
 const freeFeatures = [
   "Both quizzes (Emergency Readiness + Self-Sufficiency)",
@@ -30,6 +31,7 @@ const proFeatures = [
 type Tier = "free" | "pro"
 
 export default function PlansPage() {
+  const { t } = useI18n()
   const [active, setActive] = useState<Tier>("pro")
 
   const cardClass = (tier: Tier) =>
@@ -42,8 +44,8 @@ export default function PlansPage() {
   return (
     <main className="min-h-screen bg-[#f5f7fa]">
       <div className="mx-auto max-w-6xl px-4 lg:px-8 py-14">
-        <h1 className="text-3xl font-light text-[#0d1b2a]">Plans</h1>
-        <p className="mt-3 text-sm text-[#3d5166]">Two simple tiers: Free and Pro (€7/month).</p>
+        <h1 className="text-3xl font-light text-[#0d1b2a]">{t("plans.title")}</h1>
+        <p className="mt-3 text-sm text-[#3d5166]">{t("plans.sub")}</p>
 
         <div id="pricing" className="mt-10 grid gap-6 md:grid-cols-2">
           <section
@@ -51,7 +53,7 @@ export default function PlansPage() {
             onMouseEnter={() => setActive("free")}
             onFocus={() => setActive("free")}
           >
-            <h2 className="text-xl font-medium text-[#0d1b2a]">Free</h2>
+            <h2 className="text-xl font-medium text-[#0d1b2a]">{t("plans.free")}</h2>
             <p className="mt-2 text-3xl font-semibold text-[#0d1b2a]">€0</p>
             <ul className="mt-4 space-y-2 text-sm text-[#3d5166]">
               {freeFeatures.map((feature) => <li key={feature}>• {feature}</li>)}
@@ -64,7 +66,7 @@ export default function PlansPage() {
             onMouseEnter={() => setActive("pro")}
             onFocus={() => setActive("pro")}
           >
-            <h2 className="text-xl font-medium text-[#0d1b2a]">Pro</h2>
+            <h2 className="text-xl font-medium text-[#0d1b2a]">{t("plans.pro")}</h2>
             <div className="mt-2">
               <p className="text-3xl font-semibold text-[#0d1b2a]">€7<span className="text-base font-normal text-[#3d5166]">/month</span></p>
               <p className="text-sm text-[#009b70] font-medium">€59/year (save 2 months)</p>
@@ -72,7 +74,9 @@ export default function PlansPage() {
             <ul className="mt-4 space-y-2 text-sm text-[#3d5166]">
               {proFeatures.map((feature) => <li key={feature}>• {feature}</li>)}
             </ul>
-            <Link href="/signup" className="mt-6 inline-block rounded-lg bg-[#009b70] px-5 py-2.5 text-sm font-medium text-white">Go Pro →</Link>
+            <Link href="/signup" className="mt-6 inline-block rounded-lg bg-[#009b70] px-5 py-2.5 text-sm font-medium text-white">
+              {t("plans.go_pro")} →
+            </Link>
           </section>
         </div>
       </div>

@@ -21,6 +21,7 @@ import {
   type MarketplaceCategory,
   type MarketplaceProduct,
 } from "@/lib/marketplace-data"
+import { useI18n } from "@/components/i18n-provider"
 
 const categoryMeta: Record<
   MarketplaceCategory,
@@ -39,6 +40,7 @@ const categoryMeta: Record<
 }
 
 export default function Marketplace() {
+  const { t } = useI18n()
   const [active, setActive] = useState<MarketplaceCategory | "All">("All")
 
   const filteredProducts = useMemo(() => {
@@ -49,10 +51,8 @@ export default function Marketplace() {
   return (
     <main className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto px-4 lg:px-8 py-12">
-        <h1 className="text-3xl font-light text-[#0d1b2a]">Marketplace</h1>
-        <p className="mt-3 text-sm text-[#3d5166] max-w-2xl">
-          Emergency readiness and self-sufficiency gear and products curated for practical resilience.
-        </p>
+        <h1 className="text-3xl font-light text-[#0d1b2a]">{t("marketplace.title")}</h1>
+        <p className="mt-3 text-sm text-[#3d5166] max-w-2xl">{t("marketplace.intro")}</p>
 
         <section className="mt-8 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#8a9bb0] mb-3">Browse by category</p>

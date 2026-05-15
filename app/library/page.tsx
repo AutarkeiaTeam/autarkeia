@@ -5,8 +5,10 @@ import { useMemo, useState } from "react"
 import { Lock } from "lucide-react"
 import { libraryItems, subjectFilters, typeFilters } from "@/lib/library-data"
 import { useTier } from "@/lib/use-tier"
+import { useI18n } from "@/components/i18n-provider"
 
 export default function Library() {
+  const { t } = useI18n()
   const [type, setType] = useState("All")
   const [subject, setSubject] = useState("All")
   const { tier } = useTier()
@@ -25,11 +27,8 @@ export default function Library() {
   return (
     <main className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto px-4 lg:px-8 py-12">
-        <h1 className="text-3xl font-light text-[#0d1b2a]">Global Resilience Library</h1>
-        <p className="mt-3 text-sm text-[#3d5166] max-w-2xl">
-          A comprehensive emergency readiness and self-sufficiency library. Free members preview a curated taster
-          set; Pro members unlock the full catalogue across all languages.
-        </p>
+        <h1 className="text-3xl font-light text-[#0d1b2a]">{t("library.title")}</h1>
+        <p className="mt-3 text-sm text-[#3d5166] max-w-2xl">{t("library.intro")}</p>
 
         <div className="mt-6 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">New collection</p>

@@ -3,30 +3,31 @@
 import Link from "next/link"
 import { FormEvent, useState } from "react"
 import { Globe } from "lucide-react"
+import { useI18n } from "@/components/i18n-provider"
 
 const plans = [
   {
     href: "/communities/housing-land",
     icon: "🏠",
-    title: "Housing & land",
+    titleKey: "communities.housing" as const,
     desc: "Natural building, earthen methods, timber structures, and straw bale homes.",
   },
   {
     href: "/communities/food-systems",
     icon: "🌾",
-    title: "Food systems",
+    titleKey: "communities.food" as const,
     desc: "Communal growing, food forests, regenerative design, and permaculture principles.",
   },
   {
     href: "/communities/energy-water",
     icon: "⚡",
-    title: "Energy & water",
+    titleKey: "communities.energy" as const,
     desc: "Off-grid solar, wind, rainwater harvesting, and resilient water systems.",
   },
   {
     href: "/communities/governance",
     icon: "🤝",
-    title: "Governance",
+    titleKey: "communities.governance" as const,
     desc: "Transparent co-governance with member participation and democratic decisions.",
   },
 ]
@@ -41,6 +42,7 @@ const models = [
 ]
 
 export default function Communities() {
+  const { t } = useI18n()
   const [locations, setLocations] = useState<string[]>([])
   const [draftLocation, setDraftLocation] = useState("")
   const [submitted, setSubmitted] = useState(false)
@@ -64,14 +66,15 @@ export default function Communities() {
     <main className="min-h-screen bg-white">
       <section className="bg-[#0d1b2a] text-white py-16 sm:py-24">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
-          <h1 className="text-4xl sm:text-5xl font-light tracking-tight max-w-3xl">The future of self-sufficient living. Built together.</h1>
-          <p className="mt-6 text-white/75 max-w-3xl leading-relaxed">
-            Autarkeia is building a global network of self-sufficient communities — where people grow their own food, generate their own energy,
-            build their own homes, and live free from dependence on fragile systems. We are in the planning phase and looking for people who share this vision.
-          </p>
+          <h1 className="text-4xl sm:text-5xl font-light tracking-tight max-w-3xl">{t("communities.title")}</h1>
+          <p className="mt-6 text-white/75 max-w-3xl leading-relaxed">{t("communities.intro")}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#register-interest" className="rounded-lg bg-[#009b70] px-5 py-3 text-sm font-medium hover:bg-[#008060]">Register your interest</a>
-            <a href="#vision" className="rounded-lg border border-white/30 px-5 py-3 text-sm font-medium hover:bg-white/10">Learn about our vision</a>
+            <a href="#register-interest" className="rounded-lg bg-[#009b70] px-5 py-3 text-sm font-medium hover:bg-[#008060]">
+              {t("communities.cta_register")}
+            </a>
+            <a href="#vision" className="rounded-lg border border-white/30 px-5 py-3 text-sm font-medium hover:bg-white/10">
+              {t("communities.cta_learn")}
+            </a>
           </div>
         </div>
       </section>
@@ -82,12 +85,12 @@ export default function Communities() {
           <div className="grid gap-5 md:grid-cols-2">
             {plans.map((item) => (
               <Link
-                key={item.title}
+                key={item.href}
                 href={item.href}
                 className="group block rounded-xl border border-[#d4dce8] p-6 bg-[#f5f7fa] transition-colors hover:border-[#009b70] hover:shadow-md"
               >
                 <p className="text-2xl">{item.icon}</p>
-                <h3 className="mt-3 text-lg font-medium text-[#0d1b2a] group-hover:text-[#009b70]">{item.title}</h3>
+                <h3 className="mt-3 text-lg font-medium text-[#0d1b2a] group-hover:text-[#009b70]">{t(item.titleKey)}</h3>
                 <p className="mt-2 text-sm text-[#3d5166]">{item.desc}</p>
                 <span className="mt-4 inline-block text-sm font-medium text-[#009b70]">Read more →</span>
               </Link>

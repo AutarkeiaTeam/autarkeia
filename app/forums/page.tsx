@@ -2,6 +2,8 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { CATEGORIES, listThreads } from "@/lib/forums-store"
 import { isAuthenticated } from "@/lib/auth-server"
+import { getLocale } from "@/lib/i18n-server"
+import { translate } from "@/lib/i18n-core"
 
 export const metadata = {
   title: "Forums — Autarkeia",
@@ -35,9 +37,13 @@ const externalForums: ExternalForum[] = [
 ]
 
 async function ForumsPageContent() {
+  const locale = await getLocale()
+  const t = (key: string) => translate(locale, key)
   const [threads, authed] = await Promise.all([listThreads(), isAuthenticated()])
+  const dateFmt = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : locale, { dateStyle: "medium" })
+
   const counts = CATEGORIES.reduce<Record<string, number>>((acc, c) => {
-    acc[c.id] = threads.filter((t) => t.category === c.id).length
+    acc[c.id] = threads.filter((th) => th.category === c.id).length
     return acc
   }, {})
 
@@ -46,31 +52,28 @@ async function ForumsPageContent() {
       <div className="mx-auto max-w-5xl px-4 py-14 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-light text-[#0d1b2a]">Autarkeia Forums</h1>
-            <p className="mt-3 max-w-3xl text-sm text-[#3d5166]">
-              Threaded discussions for the practical work of building resilient households and communities. Sign
-              in to post; reading is open to everyone.
-            </p>
+            <h1 className="text-3xl font-light text-[#0d1b2a]">{t("forums.heading")}</h1>
+            <p className="mt-3 max-w-3xl text-sm text-[#3d5166]">{t("forums.intro")}</p>
           </div>
           {authed ? (
             <Link
               href="/forums/new"
               className="rounded-lg bg-[#009b70] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#007a58]"
             >
-              New discussion
+              {t("forums.new_thread")}
             </Link>
           ) : (
             <Link
               href="/login"
               className="rounded-lg bg-[#0d1b2a] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1a2942]"
             >
-              Sign in to post
+              {t("forums.sign_in_to_post")}
             </Link>
           )}
         </div>
 
         <section className="mt-10">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[#009b70]">Categories</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[#009b70]">{t("forums.categories")}</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {CATEGORIES.map((c) => (
               <Link
@@ -80,7 +83,9 @@ async function ForumsPageContent() {
               >
                 <div className="flex items-baseline justify-between">
                   <p className="text-sm font-medium text-[#0d1b2a]">{c.name}</p>
-                  <span className="text-xs text-[#8a9bb0]">{counts[c.id] ?? 0} threads</span>
+                  <span className="text-xs text-[#8a9bb0]">
+                    {counts[c.id] ?? 0} {t("forums.threads")}
+                  </span>
                 </div>
                 <p className="mt-1 text-xs text-[#3d5166]">{c.description}</p>
               </Link>
@@ -89,43 +94,43 @@ async function ForumsPageContent() {
         </section>
 
         {CATEGORIES.map((c) => {
-          const list = threads.filter((t) => t.category === c.id)
+          const list = threads.filter((th) => th.category === c.id)
           return (
             <section key={c.id} id={`category-${c.id}`} className="mt-12">
               <div className="flex items-baseline justify-between">
                 <h2 className="text-lg font-medium text-[#0d1b2a]">{c.name}</h2>
-                <span className="text-xs text-[#8a9bb0]">{list.length} threads</span>
+                <span className="text-xs text-[#8a9bb0]">
+                  {list.length} {t("forums.threads")}
+                </span>
               </div>
               {list.length === 0 ? (
                 <p className="mt-3 rounded-xl border border-dashed border-[#d4dce8] p-4 text-sm text-[#8a9bb0]">
-                  No discussions yet.{" "}
+                  {t("forums.no_threads")}{" "}
                   {authed ? (
                     <Link href={`/forums/new?category=${c.id}`} className="font-medium text-[#009b70]">
-                      Start the first one →
+                      {t("forums.start_first")}
                     </Link>
                   ) : (
                     <>
                       <Link href="/login" className="font-medium text-[#009b70]">
-                        Sign in
+                        {t("forums.sign_in")}
                       </Link>{" "}
-                      to start the first one.
+                      {t("forums.sign_in_suffix")}
                     </>
                   )}
                 </p>
               ) : (
                 <ul className="mt-3 space-y-2">
-                  {list.map((t) => (
-                    <li key={t.id}>
+                  {list.map((th) => (
+                    <li key={th.id}>
                       <Link
-                        href={`/forums/${t.id}`}
+                        href={`/forums/${th.id}`}
                         className="block rounded-xl border border-[#d4dce8] p-4 transition-colors hover:border-[#009b70]"
                       >
-                        <p className="text-sm font-medium text-[#0d1b2a]">{t.title}</p>
-                        {t.description && (
-                          <p className="mt-1 text-xs text-[#3d5166]">{t.description}</p>
-                        )}
+                        <p className="text-sm font-medium text-[#0d1b2a]">{th.title}</p>
+                        {th.description && <p className="mt-1 text-xs text-[#3d5166]">{th.description}</p>}
                         <p className="mt-2 text-[11px] text-[#8a9bb0]">
-                          Updated {new Date(t.updated_at).toLocaleDateString()}
+                          {t("forums.updated")} {dateFmt.format(new Date(th.updated_at))}
                         </p>
                       </Link>
                     </li>
@@ -137,10 +142,8 @@ async function ForumsPageContent() {
         })}
 
         <section className="mt-16 border-t border-[#d4dce8] pt-12">
-          <h2 className="text-xl font-light text-[#0d1b2a]">External communities</h2>
-          <p className="mt-2 text-sm text-[#8a9bb0]">
-            Autarkeia does not operate these spaces — review each community&apos;s rules and privacy expectations.
-          </p>
+          <h2 className="text-xl font-light text-[#0d1b2a]">{t("forums.external_heading")}</h2>
+          <p className="mt-2 text-sm text-[#8a9bb0]">{t("forums.external_note")}</p>
           <ul className="mt-6 grid gap-3 sm:grid-cols-2">
             {externalForums.map((f) => (
               <li key={`${f.platform}-${f.name}-${f.href}`}>
@@ -150,9 +153,7 @@ async function ForumsPageContent() {
                   rel="noopener noreferrer"
                   className="flex flex-col rounded-xl border border-[#d4dce8] bg-white p-4 transition-colors hover:border-[#009b70]"
                 >
-                  <span className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
-                    {f.platform}
-                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">{f.platform}</span>
                   <span className="mt-1 text-sm font-medium text-[#0d1b2a]">{f.name}</span>
                   <span className="mt-1 truncate text-xs text-[#8a9bb0]">{f.href}</span>
                 </a>
@@ -165,9 +166,18 @@ async function ForumsPageContent() {
   )
 }
 
-export default function ForumsPage() {
+export default async function ForumsPage() {
+  const locale = await getLocale()
+  const loading = translate(locale, "forums.loading")
+
   return (
-    <Suspense fallback={<div>Loading forums...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-[40vh] items-center justify-center bg-white px-4 text-sm text-[#3d5166]">
+          {loading}
+        </div>
+      }
+    >
       <ForumsPageContent />
     </Suspense>
   )

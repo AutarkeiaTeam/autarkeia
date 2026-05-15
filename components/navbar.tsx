@@ -1,22 +1,23 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { Logo } from "./logo"
 import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "./language-switcher"
+import { useI18n } from "@/components/i18n-provider"
 
-const navLinks = [
-  { href: "/quiz/emergency-readiness", label: "Emergency Readiness" },
-  { href: "/quiz/self-sufficiency", label: "Self-Sufficiency" },
-  { href: "/communities", label: "Communities" },
-  { href: "/marketplace", label: "Marketplace" },
-  { href: "/library", label: "Library" },
-  { href: "/news", label: "World News Watch" },
-  { href: "/forums", label: "Forums" },
-  { href: "/plans", label: "Plans" },
-]
+const NAV_DEFS = [
+  { href: "/quiz/emergency-readiness", key: "nav.emergency" },
+  { href: "/quiz/self-sufficiency", key: "nav.self_sufficiency" },
+  { href: "/communities", key: "nav.communities" },
+  { href: "/marketplace", key: "nav.marketplace" },
+  { href: "/library", key: "nav.library" },
+  { href: "/news", key: "nav.news" },
+  { href: "/forums", key: "nav.forums" },
+  { href: "/plans", key: "nav.plans" },
+] as const
 
 function useIsAuthed() {
   const [authed, setAuthed] = useState(false)
@@ -32,11 +33,17 @@ const navLinkClass =
   "shrink-0 whitespace-nowrap text-[12px] font-normal text-[#3d5166] transition-colors hover:text-[#009b70] xl:text-[13px]"
 
 export function Navbar() {
+  const { t } = useI18n()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const authed = useIsAuthed()
 
+  const navLinks = useMemo(
+    () => NAV_DEFS.map((d) => ({ href: d.href, label: t(d.key) })),
+    [t]
+  )
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-[#d4dce8]" style={{ borderBottomWidth: '0.5px' }}>
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-[#d4dce8]" style={{ borderBottomWidth: "0.5px" }}>
       <nav className="mx-auto flex max-w-7xl flex-nowrap items-center gap-x-8 px-8 py-3 lg:gap-x-12 lg:py-4">
         <div className="flex shrink-0 items-center">
           <Link href="/" className="flex items-center">
@@ -53,7 +60,7 @@ export function Navbar() {
             ))}
             {authed && (
               <Link href="/dashboard" className={navLinkClass}>
-                Dashboard
+                {t("nav.dashboard")}
               </Link>
             )}
           </div>
@@ -63,18 +70,24 @@ export function Navbar() {
           {authed ? (
             <>
               <LanguageSwitcher />
-              <Button className="whitespace-nowrap rounded-lg bg-[#009b70] px-3 text-[12px] font-medium text-white hover:bg-[#008060] xl:text-[13px]" asChild>
-                <Link href="/dashboard">Dashboard</Link>
+              <Button
+                className="whitespace-nowrap rounded-lg bg-[#009b70] px-3 text-[12px] font-medium text-white hover:bg-[#008060] xl:text-[13px]"
+                asChild
+              >
+                <Link href="/dashboard">{t("nav.dashboard")}</Link>
               </Button>
             </>
           ) : (
             <>
               <Button variant="ghost" className="whitespace-nowrap px-2 text-[12px] font-normal text-[#0d1b2a] xl:text-[13px]" asChild>
-                <Link href="/login">Sign in</Link>
+                <Link href="/login">{t("nav.sign_in")}</Link>
               </Button>
               <LanguageSwitcher />
-              <Button className="whitespace-nowrap rounded-lg bg-[#009b70] px-3 text-[12px] font-medium text-white hover:bg-[#008060] xl:text-[13px]" asChild>
-                <Link href="/quiz">Get your score</Link>
+              <Button
+                className="whitespace-nowrap rounded-lg bg-[#009b70] px-3 text-[12px] font-medium text-white hover:bg-[#008060] xl:text-[13px]"
+                asChild
+              >
+                <Link href="/quiz">{t("nav.get_score")}</Link>
               </Button>
             </>
           )}
@@ -90,7 +103,7 @@ export function Navbar() {
       </nav>
 
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#d4dce8] bg-white" style={{ borderTopWidth: '0.5px' }}>
+        <div className="lg:hidden border-t border-[#d4dce8] bg-white" style={{ borderTopWidth: "0.5px" }}>
           <div className="space-y-1 px-8 py-4">
             {navLinks.map((link) => (
               <Link
@@ -108,29 +121,35 @@ export function Navbar() {
                 className="block py-2 text-[13px] font-medium text-[#009b70]"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Dashboard
+                {t("nav.dashboard")}
               </Link>
             )}
-            <div className="flex flex-col gap-2 pt-4 border-t border-[#d4dce8]" style={{ borderTopWidth: '0.5px' }}>
+            <div className="flex flex-col gap-2 pt-4 border-t border-[#d4dce8]" style={{ borderTopWidth: "0.5px" }}>
               {authed ? (
                 <>
                   <div className="px-1">
                     <LanguageSwitcher />
                   </div>
                   <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg" asChild>
-                    <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+                    <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                      {t("nav.dashboard")}
+                    </Link>
                   </Button>
                 </>
               ) : (
                 <>
                   <Button variant="ghost" className="justify-start text-[13px] font-normal text-[#0d1b2a]" asChild>
-                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Sign in</Link>
+                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                      {t("nav.sign_in")}
+                    </Link>
                   </Button>
                   <div className="px-1">
                     <LanguageSwitcher />
                   </div>
                   <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg" asChild>
-                    <Link href="/quiz" onClick={() => setMobileMenuOpen(false)}>Get your score</Link>
+                    <Link href="/quiz" onClick={() => setMobileMenuOpen(false)}>
+                      {t("nav.get_score")}
+                    </Link>
                   </Button>
                 </>
               )}

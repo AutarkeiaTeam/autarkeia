@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { ChevronDown } from "lucide-react"
-import { LOCALES, getCurrentLocale, setLocale, type Locale } from "@/lib/i18n"
+import { LOCALES, setLocale, type Locale } from "@/lib/i18n-client"
+import { useI18n } from "@/components/i18n-provider"
 
 const FLAG: Record<Locale, string> = {
   en: "🇬🇧",
@@ -28,25 +29,13 @@ const LABEL: Record<Locale, string> = {
   ko: "한국어",
 }
 
-/**
- * Lightweight language switcher backed by a cookie that the `useT` hook
- * reads on the client. URL prefix routing (`/en/...`, `/es/...`) is
- * documented in the i18n setup and can be enabled with a Next.js
- * middleware once translations are reviewed.
- */
 export function LanguageSwitcher() {
-  const [locale, setLocaleState] = useState<Locale>("en")
+  const { locale } = useI18n()
   const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    setLocaleState(getCurrentLocale())
-  }, [])
 
   const pick = (l: Locale) => {
     setLocale(l)
-    setLocaleState(l)
     setOpen(false)
-    // Reload so server-rendered translations pick up immediately.
     if (typeof window !== "undefined") window.location.reload()
   }
 
