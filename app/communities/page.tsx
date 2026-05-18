@@ -90,58 +90,6 @@ export default function Communities() {
         </div>
       </section>
 
-      <section className="py-14">
-        <div className="mx-auto max-w-6xl px-4 lg:px-8">
-          <h2 className="text-2xl sm:text-3xl font-light text-[#0d1b2a]">Where in the world?</h2>
-          <p className="mt-4 text-[#3d5166] max-w-3xl">
-            We are open to building anywhere there is enough interest and the right conditions. While we are initially exploring locations in
-            southern Europe and beyond, we are genuinely global in our ambition. Tell us where you want to be.
-          </p>
-          <div className="mt-6 overflow-hidden rounded-2xl border border-[#d4dce8] bg-white shadow-sm">
-            <div className="p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">Currently Building</p>
-              <h3 className="mt-1 text-2xl font-light text-[#0d1b2a]">Currently Building in Spain</h3>
-              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[#3d5166]">
-                Right now, we&apos;re focusing our community development efforts in Spain. As we grow and conditions align, we&apos;ll expand to other regions worldwide.
-              </p>
-            </div>
-
-            <div className="border-t border-[#d4dce8] bg-[#f5f7fa] p-4 sm:p-8">
-              <svg
-                viewBox="0 0 1000 520"
-                role="img"
-                aria-label="Static world map with Spain highlighted in green"
-                className="mx-auto h-auto max-h-[500px] w-full max-w-5xl"
-              >
-                <rect width="1000" height="520" rx="24" fill="#eef3f8" />
-                <g fill="#c6d0dc" stroke="#ffffff" strokeWidth="2">
-                  <path d="M134 148 211 116 302 125 354 167 326 230 242 245 172 215 103 196Z" />
-                  <path d="M220 258 307 253 350 310 321 398 252 451 193 412 166 329Z" />
-                  <path d="M400 132 487 97 584 112 652 166 620 237 527 247 456 214 389 190Z" />
-                  <path d="M459 264 531 274 584 333 558 427 484 465 426 401 415 315Z" />
-                  <path d="M644 139 762 109 886 152 911 232 831 291 711 266 623 205Z" />
-                  <path d="M722 302 842 321 899 394 856 454 744 441 690 371Z" />
-                </g>
-                <path
-                  d="M465 199 503 190 535 202 540 229 518 250 477 246 449 226Z"
-                  fill="#009b70"
-                  stroke="#007a58"
-                  strokeWidth="3"
-                />
-                <circle cx="496" cy="220" r="7" fill="#0d1b2a" stroke="#e8f8f3" strokeWidth="4" />
-                <line x1="496" y1="220" x2="575" y2="165" stroke="#009b70" strokeDasharray="5 5" strokeWidth="2" />
-                <g transform="translate(575 126)">
-                  <rect width="245" height="78" rx="14" fill="#ffffff" stroke="#d4dce8" />
-                  <circle cx="24" cy="26" r="8" fill="#009b70" />
-                  <text x="42" y="31" fill="#0d1b2a" fontSize="16" fontWeight="600">Spain</text>
-                  <text x="24" y="56" fill="#3d5166" fontSize="13">Community Development in Progress</text>
-                </g>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section id="register-interest" className="scroll-mt-28 py-14 bg-[#f5f7fa]">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
           <h2 className="text-2xl sm:text-3xl font-light text-[#0d1b2a] mb-8">Register your interest</h2>
