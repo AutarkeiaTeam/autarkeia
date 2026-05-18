@@ -108,7 +108,7 @@ export default function Communities() {
         </div>
       </section>
 
-      <section id="register-interest" className="py-14 bg-[#f5f7fa]">
+      <section id="register-interest" className="scroll-mt-28 py-14 bg-[#f5f7fa]">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
           <h2 className="text-2xl sm:text-3xl font-light text-[#0d1b2a] mb-8">Register your interest</h2>
           <form onSubmit={onSubmit} className="space-y-8">
