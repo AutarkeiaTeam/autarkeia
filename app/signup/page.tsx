@@ -58,6 +58,7 @@ export default function Signup() {
       if (data?.access_token) {
         window.localStorage.setItem("supabase.auth.token", data.access_token)
       }
+      window.dispatchEvent(new Event("autarkeia-auth-change"))
       router.push("/dashboard")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign up.")
@@ -116,7 +117,7 @@ export default function Signup() {
               </div>
 
               <button type="submit" className="w-full bg-[#009b70] text-white text-sm font-medium py-2.5 rounded-lg hover:bg-[#007a58] transition-colors mb-2">
-                Continue
+                Continue to basic info
               </button>
             </form>
           </>
@@ -126,11 +127,11 @@ export default function Signup() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="text-xs font-medium text-[#3d5166] mb-1.5 block">First name</label>
-                  <input value={firstName} onChange={e => setFirstName(e.target.value)} className="w-full border border-[#d4dce8] rounded-lg px-4 py-2.5 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70] transition-colors" placeholder="Jane" />
+                  <input required value={firstName} onChange={e => setFirstName(e.target.value)} className="w-full border border-[#d4dce8] rounded-lg px-4 py-2.5 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70] transition-colors" placeholder="Jane" />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-[#3d5166] mb-1.5 block">Last name</label>
-                  <input value={lastName} onChange={e => setLastName(e.target.value)} className="w-full border border-[#d4dce8] rounded-lg px-4 py-2.5 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70] transition-colors" placeholder="Smith" />
+                  <input required value={lastName} onChange={e => setLastName(e.target.value)} className="w-full border border-[#d4dce8] rounded-lg px-4 py-2.5 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70] transition-colors" placeholder="Smith" />
                 </div>
               </div>
               <div>

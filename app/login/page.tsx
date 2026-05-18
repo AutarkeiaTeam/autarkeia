@@ -23,6 +23,7 @@ export default function Login() {
       if (userId) {
         const maxAge = 60 * 60 * 24 * 30
         document.cookie = `autarkeia-user=${encodeURIComponent(userId)}; path=/; max-age=${maxAge}; SameSite=Lax`
+        window.dispatchEvent(new Event("autarkeia-auth-change"))
       }
       router.push("/dashboard")
     } catch (err) {

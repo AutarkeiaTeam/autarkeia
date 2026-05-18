@@ -23,8 +23,19 @@ function useIsAuthed() {
   const [authed, setAuthed] = useState(false)
   useEffect(() => {
     if (typeof document === "undefined") return
-    const has = document.cookie.split("; ").some((row) => row.startsWith("autarkeia-user="))
-    setAuthed(has)
+    const syncAuthState = () => {
+      const has = document.cookie.split("; ").some((row) => row.startsWith("autarkeia-user="))
+      setAuthed(has)
+    }
+
+    syncAuthState()
+    window.addEventListener("autarkeia-auth-change", syncAuthState)
+    window.addEventListener("focus", syncAuthState)
+
+    return () => {
+      window.removeEventListener("autarkeia-auth-change", syncAuthState)
+      window.removeEventListener("focus", syncAuthState)
+    }
   }, [])
   return authed
 }
@@ -44,15 +55,15 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-[#d4dce8]" style={{ borderBottomWidth: "0.5px" }}>
-      <nav className="mx-auto flex max-w-7xl flex-nowrap items-center gap-x-6 py-3 pl-8 pr-4 sm:pr-5 lg:gap-x-8 lg:py-4 lg:pr-3 xl:gap-x-10 xl:pr-3">
+      <nav className="mx-auto flex max-w-7xl flex-nowrap items-center gap-x-8 py-3 pl-8 pr-4 sm:pr-5 lg:py-4 lg:pr-3 xl:gap-x-12 xl:pr-3">
         <div className="flex shrink-0 items-center">
           <Link href="/" className="flex items-center">
             <Logo className="gap-2 text-[13px] sm:text-[14px]" />
           </Link>
         </div>
 
-        <div className="hidden min-w-0 flex-1 items-center justify-center xl:flex">
-          <div className="flex max-w-full flex-nowrap items-center justify-center gap-x-3 xl:gap-x-4">
+        <div className="hidden min-w-0 flex-1 items-center justify-start pl-10 xl:flex 2xl:pl-14">
+          <div className="flex max-w-full flex-nowrap items-center justify-start gap-x-3 xl:gap-x-4">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href} className={navLinkClass}>
                 {link.label}

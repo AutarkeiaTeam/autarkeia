@@ -103,6 +103,7 @@ export default function DashboardPage() {
     const maxAge = 60 * 60 * 24 * 30
     document.cookie = `autarkeia-user=demo-${asTier}; path=/; max-age=${maxAge}; SameSite=Lax`
     setUserId(`demo-${asTier}`)
+    window.dispatchEvent(new Event("autarkeia-auth-change"))
     writeCookie(asTier)
     setTier(asTier)
   }
@@ -121,6 +122,7 @@ export default function DashboardPage() {
       await supabaseClient.auth.signOut()
       document.cookie = "autarkeia-user=; path=/; max-age=0; SameSite=Lax"
       document.cookie = "autarkeia-tier=; path=/; max-age=0; SameSite=Lax"
+      window.dispatchEvent(new Event("autarkeia-auth-change"))
       setUserId(null)
       router.push("/")
       router.refresh()
