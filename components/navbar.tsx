@@ -41,7 +41,7 @@ function useIsAuthed() {
 }
 
 const navLinkClass =
-  "shrink-0 whitespace-nowrap text-[11px] font-normal text-[#3d5166] transition-colors hover:text-[#009b70] 2xl:text-[13px]"
+  "shrink-0 whitespace-nowrap text-[13px] font-normal text-[#3d5166] transition-colors hover:text-[#009b70] 2xl:text-sm"
 
 export function Navbar() {
   const { t } = useI18n()
@@ -55,15 +55,15 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-[#d4dce8]" style={{ borderBottomWidth: "0.5px" }}>
-      <nav className="mx-auto flex max-w-7xl flex-nowrap items-center gap-x-6 py-3 pl-8 pr-4 sm:pr-5 lg:py-4 lg:pr-3 xl:gap-x-8 xl:pr-3">
+      <nav className="flex w-full flex-nowrap items-center gap-x-6 py-3 pl-4 pr-3 sm:pl-5 lg:py-4 xl:gap-x-8">
         <div className="flex shrink-0 items-center">
           <Link href="/" className="flex items-center">
             <Logo className="gap-2 text-[13px] sm:text-[14px]" />
           </Link>
         </div>
 
-        <div className="hidden min-w-0 flex-1 items-center justify-start pl-8 xl:flex 2xl:pl-12">
-          <div className="flex max-w-full flex-nowrap items-center justify-start gap-x-2 2xl:gap-x-4">
+        <div className="hidden min-w-0 flex-1 items-center justify-start pl-10 xl:flex 2xl:pl-14">
+          <div className="flex max-w-full flex-nowrap items-center justify-start gap-x-3 2xl:gap-x-5">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href} className={navLinkClass}>
                 {link.label}
@@ -72,7 +72,7 @@ export function Navbar() {
           </div>
         </div>
 
-        <div className="ml-auto hidden shrink-0 flex flex-nowrap items-center justify-end gap-x-2 pl-10 xl:flex xl:gap-x-3 xl:pl-14 2xl:pl-16">
+        <div className="ml-auto hidden shrink-0 flex flex-nowrap items-center justify-end gap-x-2 pl-12 xl:flex xl:gap-x-3 xl:pl-16 2xl:pl-20">
           {authed ? (
             <>
               <Button
