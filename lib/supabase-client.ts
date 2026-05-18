@@ -61,7 +61,7 @@ export const supabaseClient = {
     admin: {
       async deleteUser(userId: string): Promise<{ error: Error | null }> {
         try {
-          const response = await fetch("/api/account/delete", {
+          const response = await fetch("/api/delete-account", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

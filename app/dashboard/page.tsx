@@ -146,9 +146,10 @@ export default function DashboardPage() {
       setDeleteError("")
       setDeleteMessage("")
 
-      const { error } = await supabaseClient.auth.admin.deleteUser(userId)
-      if (error) {
-        setDeleteError(`Failed to delete account: ${error.message}`)
+      const res = await fetch("/api/delete-account", { method: "POST" })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        setDeleteError(`Failed to delete account: ${data?.error || "Unknown error"}`)
         return
       }
 
