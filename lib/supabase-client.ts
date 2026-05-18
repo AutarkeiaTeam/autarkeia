@@ -26,6 +26,35 @@ function getStoredAccessToken() {
   return null
 }
 
+function readCookie(name: string) {
+  if (typeof document === "undefined") return null
+  const match = document.cookie.split("; ").find((row) => row.startsWith(`${name}=`))
+  const value = match?.split("=")[1]
+  if (!value) return null
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
+function decodeJwtPayload(token: string) {
+  try {
+    const payload = token.split(".")[1]
+    if (!payload) return null
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/")
+    const decoded = window.atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "="))
+    return JSON.parse(decoded) as {
+      sub?: string
+      email?: string
+      user_metadata?: Record<string, unknown>
+      app_metadata?: Record<string, unknown>
+    }
+  } catch {
+    return null
+  }
+}
+
 function storeAccessTokenFromUrl() {
   if (typeof window === "undefined") return null
 
@@ -58,6 +87,27 @@ function clearStoredAuth() {
 
 export const supabaseClient = {
   auth: {
+    user() {
+      if (typeof window === "undefined") return null
+
+      const accessToken = getStoredAccessToken()
+      const tokenPayload = accessToken ? decodeJwtPayload(accessToken) : null
+      const cookieUser = readCookie("autarkeia-user")
+      const tier = readCookie("autarkeia-tier")
+      const userId = tokenPayload?.sub ?? cookieUser
+
+      if (!userId) return null
+
+      return {
+        id: userId,
+        email: tokenPayload?.email ?? (cookieUser?.includes("@") ? cookieUser : undefined),
+        user_metadata: {
+          ...(tokenPayload?.user_metadata || {}),
+          ...(tier ? { tier } : {}),
+        },
+        app_metadata: tokenPayload?.app_metadata || {},
+      }
+    },
     admin: {
       async deleteUser(userId: string): Promise<{ error: Error | null }> {
         try {

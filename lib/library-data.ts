@@ -7,10 +7,8 @@ export type LibraryItem = {
   description: string
   link: string
   /**
-   * When true, the item is gated behind the Pro tier. Free users see a
-   * locked preview card with an "Upgrade to Pro" CTA instead of the link.
-   * Roughly 80% of library content is marked Pro; the remainder is the
-   * Free taster set.
+   * When true, the item is only visible to Pro members. Free users and
+   * visitors see only the remaining taster set, with no locked placeholders.
    */
   isPro?: boolean
 }
