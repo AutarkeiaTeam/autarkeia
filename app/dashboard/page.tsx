@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   CheckCircle2,
   Circle,
@@ -14,6 +15,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react"
+import { supabaseClient } from "@/lib/supabase-client"
 import { useTier, writeCookie } from "@/lib/use-tier"
 
 type ActionItem = { id: string; label: string; done: boolean }
@@ -65,10 +67,13 @@ const newsHeadlines = [
 ]
 
 export default function DashboardPage() {
+  const router = useRouter()
   const { tier, setTier } = useTier()
   const [userId, setUserId] = useState<string | null>(null)
   const [plan, setPlan] = useState(initialPlan)
   const [chatInput, setChatInput] = useState("")
+  const [signOutError, setSignOutError] = useState("")
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const [chatLog, setChatLog] = useState<{ role: "user" | "assistant"; text: string }[]>([
     {
       role: "assistant",
@@ -98,6 +103,23 @@ export default function DashboardPage() {
       ...prev,
       [bucket]: prev[bucket].map((item) => (item.id === id ? { ...item, done: !item.done } : item)),
     }))
+  }
+
+  const handleSignOut = async () => {
+    try {
+      setIsSigningOut(true)
+      setSignOutError("")
+      await supabaseClient.auth.signOut()
+      document.cookie = "autarkeia-user=; path=/; max-age=0; SameSite=Lax"
+      document.cookie = "autarkeia-tier=; path=/; max-age=0; SameSite=Lax"
+      setUserId(null)
+      router.push("/")
+      router.refresh()
+    } catch (err) {
+      setSignOutError(err instanceof Error ? err.message : "Unable to sign out.")
+    } finally {
+      setIsSigningOut(false)
+    }
   }
 
   const sendChat = async () => {
@@ -180,26 +202,37 @@ export default function DashboardPage() {
               </span>
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-[#8a9bb0]">Switch tier (demo):</span>
+          <div className="flex flex-col items-start gap-2 sm:items-end">
             <button
               type="button"
-              onClick={() => setTier("free")}
-              className={`rounded-full px-3 py-1 text-xs font-medium ${
-                tier === "free" ? "bg-[#0d1b2a] text-white" : "bg-white text-[#3d5166] border border-[#d4dce8]"
-              }`}
+              onClick={handleSignOut}
+              disabled={isSigningOut}
+              className="rounded-lg border border-[#d4dce8] bg-white px-4 py-2 text-xs font-medium text-[#9f1d1d] hover:border-[#c43a3a] hover:bg-[#fff5f5] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Free
+              {isSigningOut ? "Signing out..." : "Sign Out"}
             </button>
-            <button
-              type="button"
-              onClick={() => setTier("pro")}
-              className={`rounded-full px-3 py-1 text-xs font-medium ${
-                tier === "pro" ? "bg-[#009b70] text-white" : "bg-white text-[#3d5166] border border-[#d4dce8]"
-              }`}
-            >
-              Pro
-            </button>
+            {signOutError && <p className="max-w-xs text-right text-xs text-red-600">{signOutError}</p>}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[#8a9bb0]">Switch tier (demo):</span>
+              <button
+                type="button"
+                onClick={() => setTier("free")}
+                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                  tier === "free" ? "bg-[#0d1b2a] text-white" : "bg-white text-[#3d5166] border border-[#d4dce8]"
+                }`}
+              >
+                Free
+              </button>
+              <button
+                type="button"
+                onClick={() => setTier("pro")}
+                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                  tier === "pro" ? "bg-[#009b70] text-white" : "bg-white text-[#3d5166] border border-[#d4dce8]"
+                }`}
+              >
+                Pro
+              </button>
+            </div>
           </div>
         </header>
 
