@@ -84,7 +84,6 @@ export default function DashboardPage() {
   const [signOutError, setSignOutError] = useState("")
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [deleteConfirmation, setDeleteConfirmation] = useState("")
   const [deleteMessage, setDeleteMessage] = useState("")
   const [deleteError, setDeleteError] = useState("")
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
@@ -139,7 +138,7 @@ export default function DashboardPage() {
   }
 
   const deleteAccount = async () => {
-    if (!userId || deleteConfirmation !== "DELETE") return
+    if (!userId) return
 
     try {
       setIsDeletingAccount(true)
@@ -561,7 +560,6 @@ export default function DashboardPage() {
               type="button"
               onClick={() => {
                 setDeleteDialogOpen(true)
-                setDeleteConfirmation("")
                 setDeleteError("")
                 setDeleteMessage("")
               }}
@@ -576,21 +574,10 @@ export default function DashboardPage() {
       {deleteDialogOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0d1b2a]/60 px-4">
           <div className="w-full max-w-md rounded-2xl border border-[#d4dce8] bg-white p-6 shadow-xl">
-            <h2 className="text-xl font-medium text-[#0d1b2a]">Delete account?</h2>
+            <h2 className="text-xl font-medium text-[#0d1b2a]">Delete Account</h2>
             <p className="mt-2 text-sm text-[#3d5166]">
-              This permanently deletes your Autarkeia account. Type <span className="font-semibold">DELETE</span> to
-              confirm.
+              Are you sure you want to delete your account? This cannot be undone.
             </p>
-            <label className="mt-5 block text-xs font-medium text-[#3d5166]">
-              Type "DELETE" to confirm
-              <input
-                value={deleteConfirmation}
-                onChange={(event) => setDeleteConfirmation(event.target.value)}
-                disabled={isDeletingAccount || !!deleteMessage}
-                className="mt-2 w-full rounded-lg border border-[#d4dce8] px-4 py-2.5 text-sm text-[#0d1b2a] outline-none focus:border-[#c43a3a]"
-                placeholder="DELETE"
-              />
-            </label>
             {deleteMessage && <p className="mt-3 text-sm font-medium text-[#009b70]">{deleteMessage}</p>}
             {deleteError && <p className="mt-3 text-sm text-red-600">{deleteError}</p>}
             <div className="mt-6 flex justify-end gap-2">
@@ -605,10 +592,10 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={deleteAccount}
-                disabled={deleteConfirmation !== "DELETE" || isDeletingAccount || !!deleteMessage}
+                disabled={isDeletingAccount || !!deleteMessage}
                 className="rounded-lg bg-[#9f1d1d] px-4 py-2 text-sm font-medium text-white hover:bg-[#7f1717] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isDeletingAccount ? "Deleting..." : "Confirm Delete"}
+                {isDeletingAccount ? "Deleting..." : "Delete Account"}
               </button>
             </div>
           </div>
