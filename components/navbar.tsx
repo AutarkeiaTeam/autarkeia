@@ -47,11 +47,11 @@ export function Navbar() {
       <nav className="mx-auto flex max-w-7xl flex-nowrap items-center gap-x-6 py-3 pl-8 pr-4 sm:pr-5 lg:gap-x-8 lg:py-4 lg:pr-3 xl:gap-x-10 xl:pr-3">
         <div className="flex shrink-0 items-center">
           <Link href="/" className="flex items-center">
-            <Logo />
+            <Logo className="gap-2 text-[13px] sm:text-[14px]" />
           </Link>
         </div>
 
-        <div className="hidden min-w-0 flex-1 items-center justify-center lg:flex">
+        <div className="hidden min-w-0 flex-1 items-center justify-center xl:flex">
           <div className="flex max-w-full flex-nowrap items-center justify-center gap-x-3 xl:gap-x-4">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href} className={navLinkClass}>
@@ -61,7 +61,7 @@ export function Navbar() {
           </div>
         </div>
 
-        <div className="ml-auto hidden shrink-0 flex flex-nowrap items-center justify-end gap-x-2 pl-8 lg:flex lg:pl-12 xl:gap-x-3 xl:pl-16">
+        <div className="ml-auto hidden shrink-0 flex flex-nowrap items-center justify-end gap-x-2 pl-8 xl:flex xl:gap-x-3 xl:pl-12">
           {authed ? (
             <>
               <Button
@@ -90,7 +90,7 @@ export function Navbar() {
 
         <button
           type="button"
-          className="ml-auto flex shrink-0 p-2 text-[#0d1b2a] lg:hidden"
+          className="ml-auto flex shrink-0 p-2 text-[#0d1b2a] xl:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -98,7 +98,7 @@ export function Navbar() {
       </nav>
 
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#d4dce8] bg-white" style={{ borderTopWidth: "0.5px" }}>
+        <div className="xl:hidden border-t border-[#d4dce8] bg-white" style={{ borderTopWidth: "0.5px" }}>
           <div className="space-y-1 px-8 py-4">
             {navLinks.map((link) => (
               <Link

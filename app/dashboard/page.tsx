@@ -66,6 +66,15 @@ const newsHeadlines = [
   { title: "Permian basin oil output rolls over for second quarter", href: "/news" },
 ]
 
+function decodeUserId(value: string | undefined) {
+  if (!value) return null
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const { tier, setTier } = useTier()
@@ -84,7 +93,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (typeof document === "undefined") return
     const match = document.cookie.split("; ").find((row) => row.startsWith("autarkeia-user="))
-    setUserId(match?.split("=")[1] ?? null)
+    setUserId(decodeUserId(match?.split("=")[1]))
   }, [])
 
   // Demo helper: when the user doesn't have an `autarkeia-user` cookie

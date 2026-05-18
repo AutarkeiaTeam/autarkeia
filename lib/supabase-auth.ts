@@ -7,7 +7,14 @@ function ensureConfig() {
   }
 }
 
-export async function signUpWithEmail(email: string, password: string) {
+export type SignupMetadata = {
+  first_name: string
+  last_name: string
+  age?: number
+  location?: string
+}
+
+export async function signUpWithEmail(email: string, password: string, metadata?: SignupMetadata) {
   ensureConfig()
   const response = await fetch(`${supabaseUrl}/auth/v1/signup`, {
     method: "POST",
@@ -16,7 +23,7 @@ export async function signUpWithEmail(email: string, password: string) {
       apikey: supabaseAnonKey!,
       Authorization: `Bearer ${supabaseAnonKey}`,
     },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, data: metadata }),
   })
 
   const data = await response.json()
