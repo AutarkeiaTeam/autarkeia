@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { FormEvent, useState } from "react"
-import { MapPin, Minus, Plus } from "lucide-react"
 import { useI18n } from "@/components/i18n-provider"
 
 const livingOptions = [
@@ -30,7 +29,6 @@ export default function Communities() {
   const [locations, setLocations] = useState<string[]>([])
   const [draftLocation, setDraftLocation] = useState("")
   const [submitted, setSubmitted] = useState(false)
-  const [mapZoom, setMapZoom] = useState(1)
 
   const addLocation = () => {
     if (locations.length >= 10 || !draftLocation.trim()) return
@@ -99,113 +97,44 @@ export default function Communities() {
             We are open to building anywhere there is enough interest and the right conditions. While we are initially exploring locations in
             southern Europe and beyond, we are genuinely global in our ambition. Tell us where you want to be.
           </p>
-          <div className="mt-6 overflow-hidden rounded-2xl border border-[#d4dce8] bg-[#0d1b2a] text-white">
-            <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/10 p-6">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">Current Focus</p>
-                <h3 className="mt-1 text-2xl font-light">Current Focus: Spain</h3>
-                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/70">
-                  Community development is currently in progress across Spain. Expanding to other regions globally as demand and conditions align.
-                </p>
-              </div>
-              <div className="flex rounded-lg border border-white/15 bg-white/5">
-                <button
-                  type="button"
-                  onClick={() => setMapZoom((zoom) => Math.max(0.85, Number((zoom - 0.15).toFixed(2))))}
-                  className="border-r border-white/15 p-2 text-white/80 hover:text-white"
-                  aria-label="Zoom out"
-                >
-                  <Minus className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMapZoom((zoom) => Math.min(1.35, Number((zoom + 0.15).toFixed(2))))}
-                  className="p-2 text-white/80 hover:text-white"
-                  aria-label="Zoom in"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-              </div>
+          <div className="mt-6 overflow-hidden rounded-2xl border border-[#d4dce8] bg-white shadow-sm">
+            <div className="p-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">Currently Building</p>
+              <h3 className="mt-1 text-2xl font-light text-[#0d1b2a]">Currently Building in Spain</h3>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[#3d5166]">
+                Right now, we&apos;re focusing our community development efforts in Spain. As we grow and conditions align, we&apos;ll expand to other regions worldwide.
+              </p>
             </div>
 
-            <div className="relative h-[420px] w-full bg-[#0b1724]">
+            <div className="border-t border-[#d4dce8] bg-[#f5f7fa] p-4 sm:p-8">
               <svg
-                viewBox="0 0 900 520"
+                viewBox="0 0 1000 520"
                 role="img"
-                aria-label="Interactive map centered on Spain with community development marker"
-                className="h-full w-full"
+                aria-label="Static world map with Spain highlighted in green"
+                className="mx-auto h-auto max-h-[500px] w-full max-w-5xl"
               >
-                <defs>
-                  <radialGradient id="mapGlow" cx="50%" cy="50%" r="60%">
-                    <stop offset="0%" stopColor="#12314a" />
-                    <stop offset="100%" stopColor="#0b1724" />
-                  </radialGradient>
-                  <filter id="spainGlow" x="-30%" y="-30%" width="160%" height="160%">
-                    <feGaussianBlur stdDeviation="6" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-                <rect width="900" height="520" fill="url(#mapGlow)" />
-                <g transform={`translate(450 260) scale(${mapZoom}) translate(-450 -260)`}>
-                  <path
-                    d="M420 55 517 48 608 78 655 134 646 206 604 251 612 319 571 380 487 411 399 391 358 324 302 295 272 228 310 149Z"
-                    fill="#24384d"
-                    stroke="#3b5268"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="M250 78 322 62 375 101 357 169 292 177 230 143Z"
-                    fill="#24384d"
-                    stroke="#3b5268"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="M540 182 608 201 634 254 603 303 535 285 505 229Z"
-                    fill="#24384d"
-                    stroke="#3b5268"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="M130 355 241 331 337 360 405 432 386 495 219 500 109 453Z"
-                    fill="#1f3446"
-                    stroke="#334b60"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="M651 252 755 229 816 280 798 361 694 384 626 326Z"
-                    fill="#1f3446"
-                    stroke="#334b60"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="M340 221 409 203 466 227 478 278 438 316 370 308 321 270Z"
-                    fill="#009b70"
-                    filter="url(#spainGlow)"
-                    stroke="#8ff0d4"
-                    strokeWidth="3"
-                  />
-                  <path
-                    d="M470 303 500 310 506 341 476 350 454 329Z"
-                    fill="#007a58"
-                    stroke="#8ff0d4"
-                    strokeWidth="2"
-                  />
-                  <line x1="410" y1="244" x2="520" y2="158" stroke="#8ff0d4" strokeDasharray="4 5" strokeWidth="2" />
-                  <circle cx="410" cy="244" r="7" fill="#e8f8f3" stroke="#009b70" strokeWidth="4" />
-                  <foreignObject x="520" y="112" width="250" height="92">
-                    <div className="rounded-xl border border-[#009b70]/40 bg-[#0d1b2a]/90 p-3 text-white shadow-lg">
-                      <div className="flex items-start gap-2">
-                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#009b70]" />
-                        <div>
-                          <p className="text-sm font-medium">Spain</p>
-                          <p className="mt-1 text-xs text-white/70">Community Development in Progress</p>
-                        </div>
-                      </div>
-                    </div>
-                  </foreignObject>
+                <rect width="1000" height="520" rx="24" fill="#eef3f8" />
+                <g fill="#c6d0dc" stroke="#ffffff" strokeWidth="2">
+                  <path d="M134 148 211 116 302 125 354 167 326 230 242 245 172 215 103 196Z" />
+                  <path d="M220 258 307 253 350 310 321 398 252 451 193 412 166 329Z" />
+                  <path d="M400 132 487 97 584 112 652 166 620 237 527 247 456 214 389 190Z" />
+                  <path d="M459 264 531 274 584 333 558 427 484 465 426 401 415 315Z" />
+                  <path d="M644 139 762 109 886 152 911 232 831 291 711 266 623 205Z" />
+                  <path d="M722 302 842 321 899 394 856 454 744 441 690 371Z" />
+                </g>
+                <path
+                  d="M465 199 503 190 535 202 540 229 518 250 477 246 449 226Z"
+                  fill="#009b70"
+                  stroke="#007a58"
+                  strokeWidth="3"
+                />
+                <circle cx="496" cy="220" r="7" fill="#0d1b2a" stroke="#e8f8f3" strokeWidth="4" />
+                <line x1="496" y1="220" x2="575" y2="165" stroke="#009b70" strokeDasharray="5 5" strokeWidth="2" />
+                <g transform="translate(575 126)">
+                  <rect width="245" height="78" rx="14" fill="#ffffff" stroke="#d4dce8" />
+                  <circle cx="24" cy="26" r="8" fill="#009b70" />
+                  <text x="42" y="31" fill="#0d1b2a" fontSize="16" fontWeight="600">Spain</text>
+                  <text x="24" y="56" fill="#3d5166" fontSize="13">Community Development in Progress</text>
                 </g>
               </svg>
             </div>
