@@ -62,7 +62,7 @@ export function Navbar() {
           </Link>
         </div>
 
-        <div className="hidden min-w-0 flex-1 items-center justify-start pl-10 xl:flex 2xl:pl-14">
+        <div className="hidden min-w-0 flex-1 items-center justify-start overflow-hidden pl-10 pr-16 xl:flex 2xl:pl-14 2xl:pr-24">
           <div className="flex max-w-full flex-nowrap items-center justify-start gap-x-3 xl:gap-x-4">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href} className={navLinkClass}>
@@ -72,7 +72,7 @@ export function Navbar() {
           </div>
         </div>
 
-        <div className="ml-auto hidden shrink-0 flex flex-nowrap items-center justify-end gap-x-2 pl-8 xl:flex xl:gap-x-3 xl:pl-12">
+        <div className="ml-auto hidden shrink-0 flex flex-nowrap items-center justify-end gap-x-2 pl-12 xl:flex xl:gap-x-3 xl:pl-16 2xl:pl-20">
           {authed ? (
             <>
               <Button
