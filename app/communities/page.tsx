@@ -5,30 +5,14 @@ import { FormEvent, useState } from "react"
 import { Globe } from "lucide-react"
 import { useI18n } from "@/components/i18n-provider"
 
-const plans = [
+const livingOptions = [
   {
-    href: "/communities/housing-land",
-    icon: "🏠",
-    titleKey: "communities.housing" as const,
-    desc: "Natural building, earthen methods, timber structures, and straw bale homes.",
+    title: "Individual or Family Home",
+    desc: "Build your own self-sufficient home on your own land. Design and develop your property according to your vision.",
   },
   {
-    href: "/communities/food-systems",
-    icon: "🌾",
-    titleKey: "communities.food" as const,
-    desc: "Communal growing, food forests, regenerative design, and permaculture principles.",
-  },
-  {
-    href: "/communities/energy-water",
-    icon: "⚡",
-    titleKey: "communities.energy" as const,
-    desc: "Off-grid solar, wind, rainwater harvesting, and resilient water systems.",
-  },
-  {
-    href: "/communities/governance",
-    icon: "🤝",
-    titleKey: "communities.governance" as const,
-    desc: "Transparent co-governance with member participation and democratic decisions.",
+    title: "Co-living Community",
+    desc: "Join a group of people building and sharing a house together. Co-own, share resources, and build community while maintaining individual autonomy.",
   },
 ]
 
@@ -72,28 +56,25 @@ export default function Communities() {
             <a href="#register-interest" className="rounded-lg bg-[#009b70] px-5 py-3 text-sm font-medium hover:bg-[#008060]">
               {t("communities.cta_register")}
             </a>
-            <a href="#vision" className="rounded-lg border border-white/30 px-5 py-3 text-sm font-medium hover:bg-white/10">
-              {t("communities.cta_learn")}
-            </a>
           </div>
         </div>
       </section>
 
       <section id="vision" className="py-14 sm:py-16">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
-          <h2 className="text-2xl sm:text-3xl font-light text-[#0d1b2a] mb-8">What we plan to build</h2>
+          <h2 className="text-2xl sm:text-3xl font-light text-[#0d1b2a] mb-8">Choose your path</h2>
           <div className="grid gap-5 md:grid-cols-2">
-            {plans.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="group block rounded-xl border border-[#d4dce8] p-6 bg-[#f5f7fa] transition-colors hover:border-[#009b70] hover:shadow-md"
+            {livingOptions.map((item) => (
+              <article
+                key={item.title}
+                className="rounded-2xl border border-[#d4dce8] bg-white p-6 shadow-sm transition-colors hover:border-[#009b70]"
               >
-                <p className="text-2xl">{item.icon}</p>
-                <h3 className="mt-3 text-lg font-medium text-[#0d1b2a] group-hover:text-[#009b70]">{t(item.titleKey)}</h3>
-                <p className="mt-2 text-sm text-[#3d5166]">{item.desc}</p>
-                <span className="mt-4 inline-block text-sm font-medium text-[#009b70]">Read more →</span>
-              </Link>
+                <h3 className="text-xl font-medium text-[#0d1b2a]">{item.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-[#3d5166]">{item.desc}</p>
+                <a href="#register-interest" className="mt-6 inline-block text-sm font-medium text-[#009b70] hover:text-[#007a58]">
+                  Explore this option →
+                </a>
+              </article>
             ))}
           </div>
         </div>
