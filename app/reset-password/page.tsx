@@ -1,0 +1,107 @@
+"use client"
+
+import { FormEvent, useEffect, useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { supabaseClient } from "@/lib/supabase-client"
+
+export default function ResetPasswordPage() {
+  const router = useRouter()
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""))
+    const accessToken = params.get("access_token")
+    if (accessToken) {
+      window.localStorage.setItem("supabase.auth.token", accessToken)
+      window.history.replaceState(null, "", window.location.pathname)
+    }
+  }, [])
+
+  const resetPasswordHandler = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setMessage("")
+    setError("")
+
+    if (!newPassword || !confirmPassword) {
+      setError("Enter and confirm your new password.")
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match.")
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const { error: updateError } = await supabaseClient.auth.updateUser({ password: newPassword })
+      if (updateError) {
+        setError(updateError.message)
+        return
+      }
+
+      setMessage("Password reset successfully")
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      router.push("/login")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#f5f7fa] px-4">
+      <div className="w-full max-w-md rounded-2xl border border-[#d4dce8] bg-white p-8">
+        <div className="mb-8 text-center">
+          <Link href="/" className="inline-block">
+            <p className="mb-1 text-xl font-light tracking-[3px] text-[#0d1b2a]">
+              AUT<span className="text-[#009b70]">ARK</span>EIA
+            </p>
+          </Link>
+          <h1 className="mt-4 text-2xl font-light text-[#0d1b2a]">Choose a new password</h1>
+          <p className="mt-2 text-sm text-[#8a9bb0]">Enter your new password below.</p>
+        </div>
+
+        <form onSubmit={resetPasswordHandler} className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-[#3d5166]">New Password</label>
+            <input
+              type="password"
+              required
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              className="w-full rounded-lg border border-[#d4dce8] px-4 py-2.5 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70]"
+              placeholder="New password"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-[#3d5166]">Confirm Password</label>
+            <input
+              type="password"
+              required
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              className="w-full rounded-lg border border-[#d4dce8] px-4 py-2.5 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70]"
+              placeholder="Confirm password"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full rounded-lg bg-[#009b70] py-2.5 text-sm font-medium text-white hover:bg-[#007a58] disabled:opacity-60"
+          >
+            {isLoading ? "Resetting..." : "Reset Password"}
+          </button>
+        </form>
+
+        {message && <p className="mt-4 text-sm font-medium text-[#009b70]">{message}</p>}
+        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      </div>
+    </div>
+  )
+}

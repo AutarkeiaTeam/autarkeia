@@ -26,6 +26,24 @@ function getStoredAccessToken() {
   return null
 }
 
+function storeAccessTokenFromUrl() {
+  if (typeof window === "undefined") return null
+
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
+  const queryParams = new URLSearchParams(window.location.search)
+  const accessToken = hashParams.get("access_token") ?? queryParams.get("access_token")
+  if (!accessToken) return null
+
+  window.localStorage.setItem("supabase.auth.token", accessToken)
+  return accessToken
+}
+
+function ensureConfig() {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.")
+  }
+}
+
 function clearStoredAuth() {
   if (typeof window === "undefined") return
 
@@ -61,6 +79,62 @@ export const supabaseClient = {
           return { error: err instanceof Error ? err : new Error("Account deletion failed") }
         }
       },
+    },
+    async resetPasswordForEmail(email: string): Promise<{ error: Error | null }> {
+      try {
+        ensureConfig()
+        const redirectTo =
+          typeof window !== "undefined"
+            ? `${window.location.origin}/reset-password`
+            : `${process.env.NEXT_PUBLIC_SITE_URL || "https://autarkeia.world"}/reset-password`
+
+        const response = await fetch(`${supabaseUrl}/auth/v1/recover`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: supabaseAnonKey!,
+            Authorization: `Bearer ${supabaseAnonKey}`,
+          },
+          body: JSON.stringify({ email, redirect_to: redirectTo }),
+        })
+
+        const data = await response.json().catch(() => null)
+        if (!response.ok) {
+          return { error: new Error(data?.msg || data?.error_description || data?.error || "Password reset failed") }
+        }
+
+        return { error: null }
+      } catch (err) {
+        return { error: err instanceof Error ? err : new Error("Password reset failed") }
+      }
+    },
+    async updateUser({ password }: { password: string }): Promise<{ error: Error | null }> {
+      try {
+        ensureConfig()
+        const accessToken = storeAccessTokenFromUrl() ?? getStoredAccessToken()
+        if (!accessToken) {
+          return { error: new Error("Password reset session is missing or expired. Please request a new reset link.") }
+        }
+
+        const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: supabaseAnonKey!,
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ password }),
+        })
+
+        const data = await response.json().catch(() => null)
+        if (!response.ok) {
+          return { error: new Error(data?.msg || data?.error_description || data?.error || "Password update failed") }
+        }
+
+        return { error: null }
+      } catch (err) {
+        return { error: err instanceof Error ? err : new Error("Password update failed") }
+      }
     },
     async signOut() {
       const accessToken = getStoredAccessToken()

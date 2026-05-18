@@ -55,7 +55,9 @@ export default function Login() {
           <div>
             <div className="flex justify-between mb-1.5">
               <label className="text-xs font-medium text-[#3d5166]">Password</label>
-              <a href="#" className="text-xs text-[#009b70]">Forgot password?</a>
+              <Link href="/forgot-password" className="text-xs text-[#009b70]">
+                Forgot password?
+              </Link>
             </div>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border border-[#d4dce8] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#009b70]" placeholder="••••••••" />
           </div>
