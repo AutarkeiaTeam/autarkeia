@@ -26,11 +26,16 @@ export const MARKETPLACE_FILTER_CATEGORIES: MarketplaceCategory[] = [
 export type MarketplaceProduct = {
   id: number
   category: MarketplaceCategory
+  seller: MarketplaceSeller
   name: string
   description: string
   price: string
   affiliate: string
 }
+
+export type MarketplaceSeller = "Amazon"
+
+export const MARKETPLACE_SELLERS: MarketplaceSeller[] = ["Amazon"]
 
 export type MarketplaceBundle = {
   name: string
@@ -487,6 +492,7 @@ function buildProducts(): MarketplaceProduct[] {
       out.push({
         id: id++,
         category: cat,
+        seller: "Amazon",
         name,
         description,
         price,

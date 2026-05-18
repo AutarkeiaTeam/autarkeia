@@ -16,12 +16,15 @@ import {
 import type { LucideIcon } from "lucide-react"
 import {
   MARKETPLACE_FILTER_CATEGORIES,
+  MARKETPLACE_SELLERS,
   marketplaceBundles,
   marketplaceProducts,
   type MarketplaceCategory,
   type MarketplaceProduct,
+  type MarketplaceSeller,
 } from "@/lib/marketplace-data"
 import { useI18n } from "@/components/i18n-provider"
+import { useTier } from "@/lib/use-tier"
 
 const categoryMeta: Record<
   MarketplaceCategory,
@@ -41,12 +44,19 @@ const categoryMeta: Record<
 
 export default function Marketplace() {
   const { t } = useI18n()
+  const { tier } = useTier()
   const [active, setActive] = useState<MarketplaceCategory | "All">("All")
+  const [activeSeller, setActiveSeller] = useState<MarketplaceSeller | "All">("All")
+
+  const visibleSellers = tier === "pro" ? MARKETPLACE_SELLERS : MARKETPLACE_SELLERS.filter((seller) => seller === "Amazon")
 
   const filteredProducts = useMemo(() => {
-    if (active === "All") return marketplaceProducts
-    return marketplaceProducts.filter((p) => p.category === active)
-  }, [active])
+    return marketplaceProducts.filter((p) => {
+      const categoryMatch = active === "All" || p.category === active
+      const sellerMatch = activeSeller === "All" || p.seller === activeSeller
+      return categoryMatch && sellerMatch
+    })
+  }, [active, activeSeller])
 
   return (
     <main className="min-h-screen bg-white">
@@ -83,6 +93,40 @@ export default function Marketplace() {
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="mt-4 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">Browse by seller</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveSeller("All")}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                activeSeller === "All"
+                  ? "border-[#009b70] bg-white text-[#009b70]"
+                  : "border-[#d4dce8] bg-white text-[#3d5166] hover:border-[#009b70]/50"
+              }`}
+            >
+              All
+            </button>
+            {visibleSellers.map((seller) => (
+              <button
+                key={seller}
+                type="button"
+                onClick={() => setActiveSeller(seller)}
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                  activeSeller === seller
+                    ? "border-[#009b70] bg-white text-[#009b70]"
+                    : "border-[#d4dce8] bg-white text-[#3d5166] hover:border-[#009b70]/50"
+                }`}
+              >
+                {seller}
+              </button>
+            ))}
+          </div>
+          {tier !== "pro" && (
+            <p className="mt-3 text-xs text-[#8a9bb0]">Unlock more sellers by upgrading to Pro.</p>
+          )}
         </section>
 
         <section className="mt-10">
@@ -129,6 +173,7 @@ export default function Marketplace() {
                   </div>
                   <p className="mt-3 text-xs font-semibold tracking-wide text-[#8a9bb0] uppercase">{p.category}</p>
                   <h3 className="mt-1 text-sm font-medium text-[#0d1b2a]">{p.name}</h3>
+                  <p className="mt-1 text-[11px] font-medium text-[#8a9bb0]">{p.seller}</p>
                   <p className="mt-2 text-xs text-[#3d5166]">{p.description}</p>
                   <div className="mt-3 flex items-center justify-between">
                     <span className="font-semibold text-[#0d1b2a]">{p.price}</span>
