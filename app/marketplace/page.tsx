@@ -187,7 +187,7 @@ export default function Marketplace() {
             className="flex w-full items-center justify-between rounded-xl border border-[#d4dce8] bg-white px-5 py-4 text-left transition-colors hover:border-[#009b70]"
             aria-expanded={bundlesOpen}
           >
-            <span className="text-2xl font-light text-[#0d1b2a]">Bundles</span>
+            <span className="text-2xl font-light text-[#0d1b2a]">Bundles ({marketplaceBundles.length})</span>
             <ChevronDown className={`h-5 w-5 text-[#3d5166] transition-transform ${bundlesOpen ? "rotate-180" : ""}`} />
           </button>
           {bundlesOpen && (
