@@ -40,6 +40,28 @@ function clearStoredAuth() {
 
 export const supabaseClient = {
   auth: {
+    admin: {
+      async deleteUser(userId: string): Promise<{ error: Error | null }> {
+        try {
+          const response = await fetch("/api/account/delete", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userId }),
+          })
+
+          const data = await response.json().catch(() => null)
+          if (!response.ok) {
+            return { error: new Error(data?.error || "Account deletion failed") }
+          }
+
+          return { error: null }
+        } catch (err) {
+          return { error: err instanceof Error ? err : new Error("Account deletion failed") }
+        }
+      },
+    },
     async signOut() {
       const accessToken = getStoredAccessToken()
 

@@ -83,6 +83,11 @@ export default function DashboardPage() {
   const [chatInput, setChatInput] = useState("")
   const [signOutError, setSignOutError] = useState("")
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState("")
+  const [deleteMessage, setDeleteMessage] = useState("")
+  const [deleteError, setDeleteError] = useState("")
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
   const [chatLog, setChatLog] = useState<{ role: "user" | "assistant"; text: string }[]>([
     {
       role: "assistant",
@@ -130,6 +135,36 @@ export default function DashboardPage() {
       setSignOutError(err instanceof Error ? err.message : "Unable to sign out.")
     } finally {
       setIsSigningOut(false)
+    }
+  }
+
+  const deleteAccount = async () => {
+    if (!userId || deleteConfirmation !== "DELETE") return
+
+    try {
+      setIsDeletingAccount(true)
+      setDeleteError("")
+      setDeleteMessage("")
+
+      const { error } = await supabaseClient.auth.admin.deleteUser(userId)
+      if (error) {
+        setDeleteError(`Failed to delete account: ${error.message}`)
+        return
+      }
+
+      setDeleteMessage("Account deleted successfully")
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await supabaseClient.auth.signOut().catch(() => undefined)
+      document.cookie = "autarkeia-user=; path=/; max-age=0; SameSite=Lax"
+      document.cookie = "autarkeia-tier=; path=/; max-age=0; SameSite=Lax"
+      window.dispatchEvent(new Event("autarkeia-auth-change"))
+      setUserId(null)
+      router.push("/")
+      router.refresh()
+    } catch (err) {
+      setDeleteError(`Failed to delete account: ${err instanceof Error ? err.message : "Unknown error"}`)
+    } finally {
+      setIsDeletingAccount(false)
     }
   }
 
@@ -511,7 +546,73 @@ export default function DashboardPage() {
             </ul>
           </section>
         )}
+
+        <section className="mt-6 rounded-2xl border border-[#f0c6c6] bg-white p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#9f1d1d]">Danger zone</p>
+              <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">Delete account</h2>
+              <p className="mt-1 max-w-2xl text-sm text-[#3d5166]">
+                Permanently delete your Autarkeia account and sign out. This action cannot be undone.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteDialogOpen(true)
+                setDeleteConfirmation("")
+                setDeleteError("")
+                setDeleteMessage("")
+              }}
+              className="rounded-lg border border-[#e5a5a5] px-4 py-2 text-sm font-medium text-[#9f1d1d] hover:border-[#c43a3a] hover:bg-[#fff5f5]"
+            >
+              Delete Account
+            </button>
+          </div>
+        </section>
       </div>
+
+      {deleteDialogOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0d1b2a]/60 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-[#d4dce8] bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-medium text-[#0d1b2a]">Delete account?</h2>
+            <p className="mt-2 text-sm text-[#3d5166]">
+              This permanently deletes your Autarkeia account. Type <span className="font-semibold">DELETE</span> to
+              confirm.
+            </p>
+            <label className="mt-5 block text-xs font-medium text-[#3d5166]">
+              Type "DELETE" to confirm
+              <input
+                value={deleteConfirmation}
+                onChange={(event) => setDeleteConfirmation(event.target.value)}
+                disabled={isDeletingAccount || !!deleteMessage}
+                className="mt-2 w-full rounded-lg border border-[#d4dce8] px-4 py-2.5 text-sm text-[#0d1b2a] outline-none focus:border-[#c43a3a]"
+                placeholder="DELETE"
+              />
+            </label>
+            {deleteMessage && <p className="mt-3 text-sm font-medium text-[#009b70]">{deleteMessage}</p>}
+            {deleteError && <p className="mt-3 text-sm text-red-600">{deleteError}</p>}
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isDeletingAccount || !!deleteMessage}
+                className="rounded-lg border border-[#d4dce8] px-4 py-2 text-sm text-[#3d5166] hover:bg-[#f5f7fa] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={deleteAccount}
+                disabled={deleteConfirmation !== "DELETE" || isDeletingAccount || !!deleteMessage}
+                className="rounded-lg bg-[#9f1d1d] px-4 py-2 text-sm font-medium text-white hover:bg-[#7f1717] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isDeletingAccount ? "Deleting..." : "Confirm Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
