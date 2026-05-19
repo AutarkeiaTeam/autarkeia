@@ -133,7 +133,7 @@ export const newsStories: NewsStory[] = [
     why: "Backup power and heating contingency can protect households from short disruptions.",
     time: "12h ago",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Electricity_grid_simple-_North_America.svg/960px-Electricity_grid_simple-_North_America.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Feldberg-_Vereiste_Starkstromdr%C3%A4hte_-_LABW_-_Staatsarchiv_Freiburg_W_134_Nr._019596a.jpeg/960px-Feldberg-_Vereiste_Starkstromdr%C3%A4hte_-_LABW_-_Staatsarchiv_Freiburg_W_134_Nr._019596a.jpeg",
     body: `Weather-normalized storage and interconnect capacity vary widely across regions. Households should validate heating contingencies, insulate thermal envelopes where possible, and test backup power safely. Community-level load sharing and demand flexibility become force multipliers when grids approach limits.`,
     sources: [
       {
@@ -574,7 +574,7 @@ export const newsStories: NewsStory[] = [
     why: "Open-pollinated, locally adapted seeds give independence from commercial seed cycles and shipping disruptions.",
     time: "18h ago",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Logo_Svalbard_Global_Seed_Vault.png/960px-Logo_Svalbard_Global_Seed_Vault.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Svalbard_Global_Seed_Vault_%2823273281972%29.jpg/960px-Svalbard_Global_Seed_Vault_%2823273281972%29.jpg",
     body: `Heirloom and landrace varieties carry genetic diversity that commercial hybrids often lack. Growing them out and saving seed builds local resilience and reduces dependence on a few global suppliers. The Svalbard Global Seed Vault provides one layer of backup, but the working repository is the network of growers who keep varieties alive each season. Beginners can start with self-pollinating crops like beans, tomatoes, and lettuce before tackling cross-pollinated families that require isolation.`,
     sources: [
       {
@@ -815,7 +815,7 @@ export const newsStories: NewsStory[] = [
     why: "Neighborhood networks deliver help in the hours before formal response arrives, when speed saves lives.",
     time: "2d ago",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Irish-stew_dinners_for_the_poor._Wellcome_L0003267.jpg/960px-Irish-stew_dinners_for_the_poor._Wellcome_L0003267.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/FEMA_-_40527_-_A_Red_Cross_volunteer_delivers_food_and_supplies_to_a_shelter_in_North_Dakota.jpg/960px-FEMA_-_40527_-_A_Red_Cross_volunteer_delivers_food_and_supplies_to_a_shelter_in_North_Dakota.jpg",
     body: `The most important resource in a disaster is a neighbor who knows where you keep your emergency kit and how to reach you. Mutual-aid networks turn that intuition into structured, repeatable practice: shared maps of vulnerable residents, tool libraries, and rotating check-in rosters. Formalization helps with funding and coordination but should not erase the bottom-up culture that makes these networks fast and flexible. New groups can start small with a single block and grow outward.`,
     sources: [
       {
