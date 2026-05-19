@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
 import { supabaseClient } from "@/lib/supabase-client"
 import { useTier, writeCookie } from "@/lib/use-tier"
 
@@ -96,13 +97,22 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (typeof document === "undefined") return
-    const match = document.cookie.split("; ").find((row) => row.startsWith("autarkeia-user="))
-    const fromCookie = decodeUserId(match?.split("=")[1])
+    const emailCookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("autarkeia-email="))
+      ?.split("=")[1]
+    const userCookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("autarkeia-user="))
+      ?.split("=")[1]
     const fromSession = supabaseClient.auth.user()
-    const resolved =
-      fromCookie ?? fromSession?.email ?? (fromSession?.id ? String(fromSession.id) : null)
-    if (resolved) {
-      setUserId(resolved)
+    const display =
+      decodeUserId(emailCookie) ??
+      fromSession?.email ??
+      decodeUserId(userCookie) ??
+      (fromSession?.id ? String(fromSession.id) : null)
+    if (display) {
+      setUserId(display)
       window.dispatchEvent(new Event("autarkeia-auth-change"))
     }
   }, [])
@@ -132,6 +142,7 @@ export default function DashboardPage() {
       setSignOutError("")
       await supabaseClient.auth.signOut()
       document.cookie = "autarkeia-user=; path=/; max-age=0; SameSite=Lax"
+      document.cookie = "autarkeia-email=; path=/; max-age=0; SameSite=Lax"
       document.cookie = "autarkeia-tier=; path=/; max-age=0; SameSite=Lax"
       window.dispatchEvent(new Event("autarkeia-auth-change"))
       setUserId(null)
@@ -163,6 +174,7 @@ export default function DashboardPage() {
       await new Promise((resolve) => setTimeout(resolve, 2000))
       await supabaseClient.auth.signOut().catch(() => undefined)
       document.cookie = "autarkeia-user=; path=/; max-age=0; SameSite=Lax"
+      document.cookie = "autarkeia-email=; path=/; max-age=0; SameSite=Lax"
       document.cookie = "autarkeia-tier=; path=/; max-age=0; SameSite=Lax"
       window.dispatchEvent(new Event("autarkeia-auth-change"))
       setUserId(null)

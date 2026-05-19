@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { setAutarkeiaSessionCookies } from "@/lib/auth-session"
 import { signInWithEmail, signInWithGoogle } from "@/lib/supabase-auth"
 
 export default function Login() {
@@ -24,11 +25,12 @@ export default function Login() {
       // Persist a lightweight `autarkeia-user` cookie so the navbar,
       // dashboard, and forums recognise the session. Real Supabase
       // session cookies are set by the SDK in a follow-up step.
-      const userId = data?.user?.id || data?.user?.email || email
-      if (userId) {
-        const maxAge = 60 * 60 * 24 * 30
-        document.cookie = `autarkeia-user=${encodeURIComponent(userId)}; path=/; max-age=${maxAge}; SameSite=Lax`
-        window.dispatchEvent(new Event("autarkeia-auth-change"))
+      if (data?.user?.id) {
+        setAutarkeiaSessionCookies({
+          id: data.user.id,
+          email: data.user.email ?? email,
+          user_metadata: data.user.user_metadata,
+        })
       }
       router.push("/dashboard")
     } catch (err) {

@@ -92,15 +92,16 @@ export const supabaseClient = {
 
       const accessToken = getStoredAccessToken()
       const tokenPayload = accessToken ? decodeJwtPayload(accessToken) : null
-      const cookieUser = readCookie("autarkeia-user")
+      const cookieUserId = readCookie("autarkeia-user")
+      const cookieEmail = readCookie("autarkeia-email")
       const tier = readCookie("autarkeia-tier")
-      const userId = tokenPayload?.sub ?? cookieUser
+      const userId = tokenPayload?.sub ?? cookieUserId
 
       if (!userId) return null
 
       return {
         id: userId,
-        email: tokenPayload?.email ?? (cookieUser?.includes("@") ? cookieUser : undefined),
+        email: tokenPayload?.email ?? cookieEmail ?? undefined,
         user_metadata: {
           ...(tokenPayload?.user_metadata || {}),
           ...(tier ? { tier } : {}),
@@ -109,14 +110,10 @@ export const supabaseClient = {
       }
     },
     admin: {
-      async deleteUser(userId: string): Promise<{ error: Error | null }> {
+      async deleteUser(): Promise<{ error: Error | null }> {
         try {
           const response = await fetch("/api/delete-account", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId }),
           })
 
           const data = await response.json().catch(() => null)

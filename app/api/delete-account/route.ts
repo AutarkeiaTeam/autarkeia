@@ -1,40 +1,32 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
 
-function decodeCookieValue(value: string | undefined) {
-  if (!value) return ""
+export async function POST() {
   try {
-    return decodeURIComponent(value)
-  } catch {
-    return value
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+      return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
+    }
+
+    const admin = createAdminClient()
+    const { error: deleteError } = await admin.auth.admin.deleteUser(user.id)
+
+    if (deleteError) {
+      return NextResponse.json({ error: deleteError.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Account deletion failed"
+    if (message.includes("not configured")) {
+      return NextResponse.json({ error: message }, { status: 500 })
+    }
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-}
-
-export async function POST(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    return NextResponse.json({ error: "Supabase admin deletion is not configured." }, { status: 500 })
-  }
-
-  const userId = decodeCookieValue(request.cookies.get("autarkeia-user")?.value)
-  if (!userId) {
-    return NextResponse.json({ error: "No signed-in user found." }, { status: 401 })
-  }
-
-  const response = await fetch(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
-    method: "DELETE",
-    headers: {
-      apikey: serviceRoleKey,
-      Authorization: `Bearer ${serviceRoleKey}`,
-    },
-  })
-
-  if (!response.ok) {
-    const body = await response.json().catch(async () => ({ error: await response.text().catch(() => "") }))
-    const message = body?.msg || body?.error_description || body?.error || `Supabase returned ${response.status}.`
-    return NextResponse.json({ error: message }, { status: response.status })
-  }
-
-  return NextResponse.json({ success: true })
 }

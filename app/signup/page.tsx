@@ -2,6 +2,7 @@
 import { FormEvent, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { setAutarkeiaSessionCookies } from "@/lib/auth-session"
 import { signInWithGoogle, signUpWithEmail, type SignupMetadata } from "@/lib/supabase-auth"
 
 export default function Signup() {
@@ -49,10 +50,13 @@ export default function Signup() {
         ...(location.trim() ? { location: location.trim() } : {}),
       }
       const data = await signUpWithEmail(email, password, metadata)
-      const userId = data?.user?.id || data?.user?.email || email
-      if (userId) {
+      if (data?.user?.id) {
+        setAutarkeiaSessionCookies({
+          id: data.user.id,
+          email: data.user.email ?? email,
+          user_metadata: data.user.user_metadata,
+        })
         const maxAge = 60 * 60 * 24 * 30
-        document.cookie = `autarkeia-user=${encodeURIComponent(userId)}; path=/; max-age=${maxAge}; SameSite=Lax`
         document.cookie = `autarkeia-tier=free; path=/; max-age=${maxAge}; SameSite=Lax`
       }
       if (data?.access_token) {
