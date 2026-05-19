@@ -16,6 +16,8 @@ In **Authentication** → **Providers** → **Google**:
 
 ## Expected flow
 
-`Google` → `/auth/callback?code=...` → `/dashboard` (no `#access_token` in the URL).
+`Google` → `/auth/callback?code=...` (server exchanges code using PKCE cookie) → `/dashboard` (no hash in the URL).
 
-If users land on `/dashboard#access_token=...`, the app forwards them to `/auth/callback` to finish sign-in, but the dashboard redirect URL in Supabase should still be corrected so PKCE is used.
+PKCE code verifiers are stored in cookies via `@supabase/ssr` on both the browser client (`lib/supabase/client.ts`) and the server callback (`app/auth/callback/route.ts`).
+
+Legacy `#access_token` redirects are handled at `/auth/callback/hash` (client-only).

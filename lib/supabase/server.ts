@@ -21,7 +21,7 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             })
           } catch {
-            // setAll can be called from a Server Component where cookies are read-only.
+            // Called from a Server Component where cookies are read-only.
           }
         },
       },

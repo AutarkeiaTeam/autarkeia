@@ -15,7 +15,7 @@ export function OAuthHashRedirect() {
     if (pathname === "/auth/callback") return
     if (!window.location.hash.includes("access_token")) return
 
-    const target = `/auth/callback${window.location.search}${window.location.hash}`
+    const target = `/auth/callback/hash${window.location.search}${window.location.hash}`
     window.location.replace(target)
   }, [pathname])
 
