@@ -331,7 +331,7 @@ export const newsStories: NewsStory[] = [
     why: "Personal medical readiness reduces dependence on strained services during spikes.",
     time: "2d ago",
     image:
-      "https://images.unsplash.com/photo-1648224394463-4589e018f2c3?w=960&q=80",
+      "https://images.unsplash.com/photo-1574353789332-24f54431557d?w=960&q=80",
     body: `Audits highlight workforce burnout and supply chain fragility for basics like gloves and antivirals. Households should maintain rational medical caches with expiration discipline, coordinate with clinicians for chronic conditions, and support local public health funding rather than panic buying.`,
     sources: [
       {
