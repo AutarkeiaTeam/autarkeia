@@ -7,6 +7,10 @@ export function createClient() {
     {
       auth: {
         flowType: "pkce",
+        persistSession: true,
+        autoRefreshToken: true,
+        // Only /auth/callback should parse OAuth tokens from the URL.
+        detectSessionInUrl: false,
       },
     }
   )

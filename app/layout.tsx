@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { OAuthHashRedirect } from "@/components/auth/oauth-hash-redirect"
 import { I18nProvider } from "@/components/i18n-provider"
 import { getLocale } from "@/lib/i18n-server"
 import { getMessages } from "@/lib/i18n-core"
@@ -43,6 +44,7 @@ export default async function RootLayout({
       </head>
       <body className={`${poppins.className} antialiased`}>
         <I18nProvider locale={locale} messages={messages}>
+          <OAuthHashRedirect />
           <Navbar />
           {children}
           <Footer />
