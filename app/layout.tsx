@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Script from "next/script"
 import { Poppins } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Navbar } from "@/components/navbar"
@@ -41,6 +42,13 @@ export default async function RootLayout({
       <head>
         <link rel="icon" href="/FOOTER1.png" type="image/png" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
+        <Script
+          id="supabase-oauth-hash-redirect"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var p=location.pathname;if(p.indexOf("/auth/callback")===0)return;if(location.hash.indexOf("access_token")===-1)return;location.replace("/auth/callback/hash"+location.search+location.hash)})();`,
+          }}
+        />
       </head>
       <body className={`${poppins.className} antialiased`}>
         <I18nProvider locale={locale} messages={messages}>

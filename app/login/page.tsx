@@ -33,6 +33,7 @@ export default function Login() {
         })
       }
       router.push("/dashboard")
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in.")
     } finally {

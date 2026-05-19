@@ -25,12 +25,14 @@ export function writeCookie(tier: Tier) {
  * we wire up the real auth flow. Until Supabase is configured this is
  * also how the demo dashboard toggles between Free and Pro views.
  */
-export function useTier(): { tier: Tier; setTier: (t: Tier) => void } {
-  const [tier, setTierState] = useState<Tier>("free")
+export function useTier(initialTier?: Tier): { tier: Tier; setTier: (t: Tier) => void } {
+  const [tier, setTierState] = useState<Tier>(initialTier ?? "free")
 
   useEffect(() => {
-    setTierState(readCookie())
-  }, [])
+    if (initialTier === undefined) {
+      setTierState(readCookie())
+    }
+  }, [initialTier])
 
   const setTier = (t: Tier) => {
     writeCookie(t)
