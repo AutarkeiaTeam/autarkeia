@@ -3,7 +3,8 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { setAutarkeiaSessionCookies } from "@/lib/auth-session"
-import { signInWithEmail, signInWithGoogle } from "@/lib/supabase-auth"
+import { createClient } from "@/lib/supabase/client"
+import { signInWithGoogle } from "@/lib/supabase-auth"
 
 export default function Login() {
   const router = useRouter()
@@ -21,19 +22,23 @@ export default function Login() {
     try {
       setIsLoading(true)
       setError("")
-      const data = await signInWithEmail(email, password)
-      // Persist a lightweight `autarkeia-user` cookie so the navbar,
-      // dashboard, and forums recognise the session. Real Supabase
-      // session cookies are set by the SDK in a follow-up step.
-      if (data?.user?.id) {
+      const supabase = createClient()
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
+      if (error) throw error
+
+      if (data.user?.id) {
         setAutarkeiaSessionCookies({
           id: data.user.id,
           email: data.user.email ?? email,
           user_metadata: data.user.user_metadata,
         })
       }
-      router.push("/dashboard")
+
       router.refresh()
+      router.push("/dashboard")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in.")
     } finally {

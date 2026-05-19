@@ -25,20 +25,16 @@ export type SignupMetadata = {
 
 export async function signUpWithEmail(email: string, password: string, metadata?: SignupMetadata) {
   ensureConfig()
-  const response = await fetch(`${supabaseUrl}/auth/v1/signup`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: supabaseAnonKey!,
-      Authorization: `Bearer ${supabaseAnonKey}`,
-    },
-    body: JSON.stringify({ email, password, data: metadata }),
+  const { createClient } = await import("@/lib/supabase/client")
+  const supabase = createClient()
+
+  const { data, error } = await supabase.auth.signUp({
+    email: email.trim(),
+    password,
+    options: { data: metadata },
   })
 
-  const data = await response.json()
-  if (!response.ok) {
-    throw new Error(data.msg || data.error_description || data.error || "Signup failed")
-  }
+  if (error) throw error
 
   return data
 }

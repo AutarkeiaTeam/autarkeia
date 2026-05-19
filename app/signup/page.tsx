@@ -50,19 +50,38 @@ export default function Signup() {
         ...(location.trim() ? { location: location.trim() } : {}),
       }
       const data = await signUpWithEmail(email, password, metadata)
-      if (data?.user?.id) {
+      if (data.user?.id) {
         setAutarkeiaSessionCookies({
           id: data.user.id,
           email: data.user.email ?? email,
           user_metadata: data.user.user_metadata,
         })
-        const maxAge = 60 * 60 * 24 * 30
-        document.cookie = `autarkeia-tier=free; path=/; max-age=${maxAge}; SameSite=Lax`
       }
-      if (data?.access_token) {
-        window.localStorage.setItem("supabase.auth.token", data.access_token)
+
+      if (data.session) {
+        router.refresh()
+        router.push("/dashboard")
+        return
       }
-      window.dispatchEvent(new Event("autarkeia-auth-change"))
+
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
+      if (signInError) {
+        setError("Account created. Check your email to confirm, then sign in.")
+        return
+      }
+      if (signInData.user?.id) {
+        setAutarkeiaSessionCookies({
+          id: signInData.user.id,
+          email: signInData.user.email ?? email,
+          user_metadata: signInData.user.user_metadata,
+        })
+      }
+      router.refresh()
       router.push("/dashboard")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign up.")
