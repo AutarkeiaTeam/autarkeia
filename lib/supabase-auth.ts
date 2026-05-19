@@ -54,8 +54,25 @@ export async function signInWithEmail(email: string, password: string) {
   return data
 }
 
+/** @deprecated Use signInWithGoogle() for PKCE OAuth. */
 export function getGoogleAuthUrl(redirectTo: string) {
   if (!supabaseUrl) return "#"
   const params = new URLSearchParams({ provider: "google", redirect_to: redirectTo })
   return `${supabaseUrl}/auth/v1/authorize?${params.toString()}`
+}
+
+export async function signInWithGoogle() {
+  const { createClient } = await import("@/lib/supabase/client")
+  const supabase = createClient()
+  const redirectTo =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/auth/callback`
+      : `${process.env.NEXT_PUBLIC_SITE_URL || "https://autarkeia.world"}/auth/callback`
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo },
+  })
+
+  if (error) throw error
 }

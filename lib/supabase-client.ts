@@ -187,20 +187,26 @@ export const supabaseClient = {
       }
     },
     async signOut() {
-      const accessToken = getStoredAccessToken()
+      try {
+        const { createClient } = await import("@/lib/supabase/client")
+        const supabase = createClient()
+        const { error } = await supabase.auth.signOut()
+        if (error) throw error
+      } catch {
+        const accessToken = getStoredAccessToken()
+        if (supabaseUrl && supabaseAnonKey && accessToken) {
+          const response = await fetch(`${supabaseUrl}/auth/v1/logout`, {
+            method: "POST",
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: `Bearer ${accessToken}`,
+            },
+          })
 
-      if (supabaseUrl && supabaseAnonKey && accessToken) {
-        const response = await fetch(`${supabaseUrl}/auth/v1/logout`, {
-          method: "POST",
-          headers: {
-            apikey: supabaseAnonKey,
-            Authorization: `Bearer ${accessToken}`,
-          },
-        })
-
-        if (!response.ok) {
-          const data = await response.json().catch(() => null)
-          throw new Error(data?.msg || data?.error_description || data?.error || "Sign out failed")
+          if (!response.ok) {
+            const data = await response.json().catch(() => null)
+            throw new Error(data?.msg || data?.error_description || data?.error || "Sign out failed")
+          }
         }
       }
 

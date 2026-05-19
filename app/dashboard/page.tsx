@@ -97,7 +97,14 @@ export default function DashboardPage() {
   useEffect(() => {
     if (typeof document === "undefined") return
     const match = document.cookie.split("; ").find((row) => row.startsWith("autarkeia-user="))
-    setUserId(decodeUserId(match?.split("=")[1]))
+    const fromCookie = decodeUserId(match?.split("=")[1])
+    const fromSession = supabaseClient.auth.user()
+    const resolved =
+      fromCookie ?? fromSession?.email ?? (fromSession?.id ? String(fromSession.id) : null)
+    if (resolved) {
+      setUserId(resolved)
+      window.dispatchEvent(new Event("autarkeia-auth-change"))
+    }
   }, [])
 
   // Demo helper: when the user doesn't have an `autarkeia-user` cookie
