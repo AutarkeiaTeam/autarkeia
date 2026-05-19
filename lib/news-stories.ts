@@ -600,7 +600,7 @@ export const newsStories: NewsStory[] = [
     why: "A modest solar-plus-battery system keeps refrigeration, communications, and lighting running through long outages.",
     time: "20h ago",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Our_Hut_-_Flickr_-_brewbooks_b.jpg/960px-Our_Hut_-_Flickr_-_brewbooks_b.jpg",
+      "https://images.unsplash.com/photo-1745187946672-2c1d8cf26a2b?w=960&q=80",
     body: `The economics of off-grid solar shifted once lithium-iron-phosphate batteries matured and inverter costs fell. A typical 5-kilowatt array paired with a 10-kilowatt-hour battery can support critical loads through multiple cloudy days. The catch remains skilled installation and code compliance: bonding, grounding, and rapid-shutdown standards exist for good reason. Households should size for the loads they actually need during an outage rather than full-house autonomy, which costs disproportionately more.`,
     sources: [
       {
