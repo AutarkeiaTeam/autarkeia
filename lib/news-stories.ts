@@ -8,9 +8,7 @@ export type NewsStory = {
   why: string
   time: string
   /**
-   * Direct image URL on Wikimedia Commons / Wikipedia. Each image is the
-   * encyclopedia's own topical photograph for the article cited in `sources`,
-   * served from the stable `upload.wikimedia.org` CDN.
+   * Hero image URL (Wikimedia Commons or Unsplash), typically 960px wide.
    */
   image: string
   body: string
@@ -133,7 +131,7 @@ export const newsStories: NewsStory[] = [
     why: "Backup power and heating contingency can protect households from short disruptions.",
     time: "12h ago",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Feldberg-_Vereiste_Starkstromdr%C3%A4hte_-_LABW_-_Staatsarchiv_Freiburg_W_134_Nr._019596a.jpeg/960px-Feldberg-_Vereiste_Starkstromdr%C3%A4hte_-_LABW_-_Staatsarchiv_Freiburg_W_134_Nr._019596a.jpeg",
+      "https://images.unsplash.com/photo-1769107439527-57e8682ff19a?w=960&q=80",
     body: `Weather-normalized storage and interconnect capacity vary widely across regions. Households should validate heating contingencies, insulate thermal envelopes where possible, and test backup power safely. Community-level load sharing and demand flexibility become force multipliers when grids approach limits.`,
     sources: [
       {
@@ -333,7 +331,7 @@ export const newsStories: NewsStory[] = [
     why: "Personal medical readiness reduces dependence on strained services during spikes.",
     time: "2d ago",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Smallpox_vaccine.jpg/960px-Smallpox_vaccine.jpg",
+      "https://images.unsplash.com/photo-1648224394463-4589e018f2c3?w=960&q=80",
     body: `Audits highlight workforce burnout and supply chain fragility for basics like gloves and antivirals. Households should maintain rational medical caches with expiration discipline, coordinate with clinicians for chronic conditions, and support local public health funding rather than panic buying.`,
     sources: [
       {
@@ -493,7 +491,7 @@ export const newsStories: NewsStory[] = [
     why: "Household earthquake kits and shelter-in-place drills protect families when public infrastructure response is delayed.",
     time: "10h ago",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Quake_epicenters_1963-98.png/960px-Quake_epicenters_1963-98.png",
+      "https://images.unsplash.com/photo-1761251947432-0ad734f43697?w=960&q=80",
     body: `A magnitude-6.5 quake in a developed region can sever water, gas, and communications for days. Drop-cover-hold drills become muscle memory only with repetition. Fasten bookshelves and water heaters, store closed-toe shoes and a flashlight at every bed, and keep at least two weeks of water for each person. Recovery hinges on neighborhood capacity: knowing who has gas shutoff tools, who is medically vulnerable, and who has skilled first-aid training matters as much as personal stockpiles.`,
     sources: [
       {
@@ -546,7 +544,7 @@ export const newsStories: NewsStory[] = [
     why: "Even small cisterns offset outdoor demand, protect plants during restrictions, and reduce stormwater runoff.",
     time: "15h ago",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/RWH-image.jpg/960px-RWH-image.jpg",
+      "https://images.unsplash.com/photo-1759062761071-29fd6a608b21?w=960&q=80",
     body: `A 1,000-square-foot roof captures roughly 600 gallons per inch of rain. Once permitting and first-flush diverters are handled, a basic system pays for itself in landscape water within a few seasons. Larger pressurized systems with treatment can serve flushing and laundry, lowering bills further. The harder problems are winter freeze protection and shading stored water to prevent algal growth. Homeowners associations increasingly approve cisterns once they understand the runoff and flood co-benefits.`,
     sources: [
       {
@@ -762,7 +760,7 @@ export const newsStories: NewsStory[] = [
     why: "Local supply chains stay running when long-haul logistics stumble, and dollars circulate regionally.",
     time: "2d ago",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Marylebone_Farmers_Market_2005.jpg/960px-Marylebone_Farmers_Market_2005.jpg",
+      "https://images.unsplash.com/photo-1749229964730-a5438ec7ae73?w=960&q=80",
     body: `Direct-to-eater channels cushion both farmer income and household spending against commodity-market volatility. Building habits around seasonal eating reduces dependence on long supply chains for fresh produce. Preserving—canning, freezing, dehydrating, lacto-fermenting—turns peak-season abundance into shelf-stable storage. Beyond resilience, local sourcing creates feedback loops that improve farming practices: customers and growers see each other regularly and adjust quickly.`,
     sources: [
       {
