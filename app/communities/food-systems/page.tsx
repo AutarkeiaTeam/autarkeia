@@ -3,99 +3,81 @@ import { CommunityDetail } from "@/components/community-detail"
 export const metadata = {
   title: "Food Systems — Communities — Autarkeia",
   description:
-    "Communal growing, food forests, regenerative design, and permaculture principles for resilient Autarkeia communities.",
+    "Communal and household food production, regenerative agriculture, preservation, and storage for Autarkeia communities.",
 }
+
+const HERO =
+  "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=5000&q=85"
 
 export default function FoodSystemsPage() {
   return (
     <CommunityDetail
       eyebrow="Food Systems"
-      title="A farm shared between households, not a job for one"
-      tagline="Communal growing, food forests, regenerative design, and the slow work of building soil that feeds your grandchildren."
-      intro="Food is where resilience either becomes real or stays theoretical. Autarkeia communities are designed around shared growing systems — perennial food forests, annual market gardens, livestock kept at the right scale — so that no single household has to be a full-time farmer, and no shock at the supermarket determines whether your family eats well."
+      title="Food that fits your climate, labour, and appetite for sharing"
+      tagline="From communal orchards to household kitchens — design systems so no single farm has to carry everyone alone."
+      intro="Food is where self-sufficiency becomes daily practice. Autarkeia communities blend shared growing infrastructure with private plots so households can choose how much they grow, how much they preserve, and how much they buy from neighbours. The aim is redundancy: if one crop fails or one gardener burns out, tables still stay steady because systems overlap instead of collapsing into a single hero plot."
       hero={{
-        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Food_forest_layout.jpg/1920px-Food_forest_layout.jpg",
-        alt: "Food forest with layered planting",
-        credit: "Photo: Wikimedia Commons",
+        src: HERO,
+        alt: "Hands harvesting fresh vegetables from rich garden soil",
+        credit: "Photo: Unsplash",
       }}
       sections={[
         {
-          heading: "Food forests and perennial layers",
+          heading: "Introduction — communal vs individual growing",
           body: [
-            "A mature food forest is several harvests stacked into one piece of land: a canopy of nut and fruit trees, an understorey of berries and leguminous shrubs, a herbaceous layer of perennial vegetables, a root layer, ground covers, and climbers. Once established it produces calories with a fraction of the annual labour of a vegetable garden.",
-            "We design food forests using observation first: water flow, frost pockets, wind exposure, and sun arc. Then we plant in guilds — combinations of species that fix nitrogen, attract pollinators, repel pests, and produce food for humans simultaneously.",
+            "Communal growing shines for perennials, orchards, toolsheds, irrigation mains, and skills you only need occasionally — soil testing, tractor days, grafting workshops. Individual beds and greenhouses shine for dietary preferences, cultural crops, and the quiet therapy of tending your own row without a committee vote on every tomato.",
+            "Most resilient communities mix both: a shared market garden and food forest for staples and learning, plus private courtyards for herbs, berries, and experiments. The balance shifts with member capacity: early phases lean communal to amortise costs; mature phases often add more private growing as confidence grows.",
+            "The emotional dimension matters too. Some people recharge alone in a garden; others recharge in a harvest circle. Designing paths, gates, and schedules so both temperaments thrive is part of good food governance, not an afterthought.",
+          ],
+        },
+        {
+          heading: "Regenerative agriculture — permaculture, food forests",
+          body: [
+            "Regenerative agriculture is less a brand than a bundle of practices: minimise tillage where it makes sense, keep living roots in soil as much of the year as possible, integrate animals at appropriate scale, and design water flow before planting layout. Permaculture adds pattern literacy — zones, sectors, guilds — so energy and attention are spent closest to the kitchen first.",
+            "Food forests stack canopy, understory, shrubs, herbs, roots, and climbers so one piece of land yields nuts, fruit, greens, and pollinator habitat with decreasing annual labour as the system matures. They are patient capital: five quiet years, then decades of caloric and medicinal diversity if water is honest.",
           ],
           images: [
             {
-              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Forest_garden_-_geograph.org.uk_-_991108.jpg/1280px-Forest_garden_-_geograph.org.uk_-_991108.jpg",
-              alt: "Established forest garden in the UK",
-              caption: "Robert Hart-style forest garden after 20 years.",
-            },
-            {
-              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Permaculture_zones.jpg/1280px-Permaculture_zones.jpg",
-              alt: "Permaculture zones diagram",
-              caption: "Permaculture zoning — most-visited beds closest to the home.",
+              src: "https://images.pexels.com/photos/2132171/pexels-photo-2132171.jpeg?auto=compress&cs=tinysrgb&w=2400",
+              alt: "Rows of young crops in a cultivated field under open sky",
+              caption: "Regenerative layouts start with water, soil organic matter, and perennial structure — then annuals fill the niches.",
             },
           ],
         },
         {
-          heading: "Market gardens and annual beds",
+          heading: "Crop & livestock options — what grows in different climates",
           body: [
-            "Perennials carry the long game; annual market gardens carry the salad, tomatoes, and brassicas. We use small-scale intensive methods — Jean-Martin Fortier-style beds, broadforks, drip irrigation, and minimal tillage — to keep one or two paid growers feeding a community of fifty.",
-            "Soil is the long-term asset. Cover crops, compost made from on-site biomass, animal integration, and avoiding synthetic chemistry build organic matter year after year. Soil tests are run annually and shared openly so residents see exactly what their land is doing.",
+            "Mediterranean dry summers favour olives, grapes, figs, legumes, and drought-tempered perennials with mulched basins and greywater where legal. Temperate oceanic climates favour apples, pears, brassicas, and grass-fed ruminants if pasture is managed rotationally. Cold continental climates push you toward root cellars, greenhouse season extension, and hay for winter feed.",
+            "Livestock is optional but powerful: poultry for eggs and pest cycles, small ruminants for milk and brush clearing, pigs for tillage on new ground — always matched to land carrying capacity and neighbour tolerance. Autarkeia encourages transparent manure plans and quiet rooster policies before anyone buys chicks as a group bonding exercise.",
+            "Seed sovereignty is practical: save varieties that taste like home, swap with neighbours, and keep a printed catalogue of what actually yielded in your microclimate, not what Instagram promised.",
+          ],
+        },
+        {
+          heading: "Food preservation & storage — managing harvest",
+          body: [
+            "Abundance without storage is waste and pest pressure. Root cellars, fermentation, dehydration, freezing on surplus solar, and pressure canning each have climates where they shine. Communities benefit from a shared processing kitchen with good ventilation, stainless surfaces, and clear booking so glut weekends do not collide.",
+            "Labelling, inventory rotation, and allergen discipline turn a pantry into infrastructure instead of archaeology. Teaching preservation as a seasonal rhythm — June berries, September tomatoes — spreads skills across households so no single person becomes the unofficial sauerkraut department forever.",
           ],
           images: [
             {
-              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Market_garden_-_geograph.org.uk_-_175019.jpg/1280px-Market_garden_-_geograph.org.uk_-_175019.jpg",
-              alt: "Small-scale market garden with raised beds",
-              caption: "30-inch raised beds, broadforks instead of tractors.",
-            },
-            {
-              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Compost_heap.jpg/1280px-Compost_heap.jpg",
-              alt: "Compost heap with kitchen and garden waste",
-              caption: "On-site compost closes the nutrient loop.",
+              src: "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=2400&q=85",
+              alt: "Glass jars of preserved vegetables on a wooden shelf",
+              caption: "Jars on shelves: harvest stretched across seasons without freezer dependence.",
             },
           ],
         },
         {
-          heading: "Animals at the right scale",
+          heading: "Getting started — seeds, planning, tools",
           body: [
-            "Animals enter the conversation deliberately, not by default. Hens for eggs and pest control, a few dairy goats or a small cow for milk, pigs to clear and till new ground, and bees for pollination and honey. Numbers are matched to land carrying capacity so manure is always an input, never a pollution problem.",
-            "Animal welfare and human capacity are equal constraints. Communities decide together whether they want livestock at all, and rotate the caring roles so no single household is trapped in a 365-day commitment.",
+            "Begin with a three-year crop plan even if year one is modest: where perennials will live, where annuals will rotate, where compost will cure, where children can run through without crushing delicate seedlings. Order soil tests; map sun in winter solstice, not just summer.",
+            "Tool libraries beat duplicate rototillers: one good broadfork, one good wheel hoe, shared irrigation parts. Buy once, maintain together, log repairs so the next steward knows which bearing squeaks.",
+            "Register interest with Autarkeia to connect with others forming regional cohorts — we use aggregated demand to prioritise workshops, nursery partnerships, and cold-chain experiments where members already live.",
           ],
           images: [
             {
-              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Free_range_chickens.jpg/1280px-Free_range_chickens.jpg",
-              alt: "Free-range hens foraging in pasture",
-              caption: "Hens following grazers in rotational systems.",
-            },
-          ],
-        },
-        {
-          heading: "Storage, preservation, and the off-season",
-          body: [
-            "A community that grows brilliantly in August but starves in February has not built food security. Root cellars, fermentation rooms, dehydrators, freezers powered by surplus solar, and pressure-canning kitchens turn glut into pantry.",
-            "We teach preservation as a regular workshop calendar through the harvest year so the skills live in many hands. Surpluses we cannot store are traded with neighbouring farms and homesteads.",
-          ],
-          images: [
-            {
-              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Root_cellar_interior.jpg/1280px-Root_cellar_interior.jpg",
-              alt: "Stocked root cellar with winter vegetables",
-              caption: "Root cellars do the work of a freezer with no power.",
-            },
-          ],
-        },
-        {
-          heading: "Getting started",
-          body: [
-            "Tell us what climate you want to grow in, what you already know, and how much of your food you would like to produce yourself versus buy from the community farm.",
-            "Register your interest and we will sequence food-system pilots — communal orchards, a market garden cooperative, a shared dairy — wherever we have a serious cohort of households committed to the long view.",
-          ],
-          images: [
-            {
-              src: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Permaculture_garden.jpg/1280px-Permaculture_garden.jpg",
-              alt: "Diverse permaculture garden in full season",
-              caption: "Plant for ten years out, eat from this season.",
+              src: "https://images.pexels.com/photos/256381/pexels-photo-256381.jpeg?auto=compress&cs=tinysrgb&w=2400",
+              alt: "Farm field with irrigation equipment and crops in neat rows",
+              caption: "Tools, irrigation, and compost piles are shared logistics — schedule them like any other commons.",
             },
           ],
         },
