@@ -46,7 +46,7 @@ export default async function RootLayout({
           id="supabase-oauth-hash-redirect"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
-            __html: `(function(){var p=location.pathname;if(p.indexOf("/auth/callback")===0)return;if(location.hash.indexOf("access_token")===-1)return;location.replace("/auth/callback/hash"+location.search+location.hash)})();`,
+            __html: `(function(){var p=location.pathname;if(p.indexOf("/auth/callback")===0)return;if(location.hash.indexOf("access_token")===-1)return;if(location.hash.indexOf("type=recovery")!==-1){if(p!=="/reset-password")location.replace("/reset-password"+location.search+location.hash);return}location.replace("/auth/callback/hash"+location.search+location.hash)})();`,
           }}
         />
       </head>

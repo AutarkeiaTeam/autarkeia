@@ -3,18 +3,10 @@
 import { FormEvent, useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { supabaseClient } from "@/lib/supabase-client"
+import { setAutarkeiaSessionCookies } from "@/lib/auth-session"
+import { createClient } from "@/lib/supabase/client"
 
-function getResetParams() {
-  if (typeof window === "undefined") return { accessToken: null, type: null }
-
-  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
-  const queryParams = new URLSearchParams(window.location.search)
-  return {
-    accessToken: hashParams.get("access_token") ?? queryParams.get("access_token"),
-    type: hashParams.get("type") ?? queryParams.get("type"),
-  }
-}
+const MIN_PASSWORD_LENGTH = 8
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -23,36 +15,95 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [hasCheckedResetLink, setHasCheckedResetLink] = useState(false)
-  const [isValidResetLink, setIsValidResetLink] = useState(false)
+  const [sessionReady, setSessionReady] = useState(false)
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
 
   useEffect(() => {
-    const { accessToken, type } = getResetParams()
-    if (!accessToken || type !== "recovery") {
-      setError("Invalid or expired reset link")
-      setIsValidResetLink(false)
-      setHasCheckedResetLink(true)
-      return
+    let cancelled = false
+
+    async function establishRecoverySession() {
+      const supabase = createClient()
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
+      const queryParams = new URLSearchParams(window.location.search)
+
+      const code = queryParams.get("code")
+      const token_hash = queryParams.get("token_hash")
+      const type = hashParams.get("type") ?? queryParams.get("type")
+      const access_token = hashParams.get("access_token")
+      const refresh_token = hashParams.get("refresh_token")
+
+      try {
+        if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+          if (exchangeError) throw exchangeError
+        } else if (token_hash && type === "recovery") {
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash,
+            type: "recovery",
+          })
+          if (verifyError) throw verifyError
+        } else if (access_token && refresh_token && type === "recovery") {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token,
+            refresh_token,
+          })
+          if (sessionError) throw sessionError
+        }
+
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession()
+
+        if (sessionError) throw sessionError
+        if (!session) {
+          if (!cancelled) {
+            setError("Invalid or expired reset link. Request a new one below.")
+            setSessionReady(false)
+          }
+          return
+        }
+
+        if (!cancelled) {
+          setSessionReady(true)
+          setError("")
+        }
+
+        window.history.replaceState(null, "", "/reset-password")
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Invalid or expired reset link.")
+          setSessionReady(false)
+        }
+      } finally {
+        if (!cancelled) setIsCheckingSession(false)
+      }
     }
 
-    window.localStorage.setItem("supabase.auth.token", accessToken)
-    setIsValidResetLink(true)
-    setHasCheckedResetLink(true)
-    window.history.replaceState(null, "", window.location.pathname)
+    void establishRecoverySession()
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  const resetPasswordHandler = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setMessage("")
     setError("")
+
+    if (!sessionReady) {
+      setError("Invalid or expired reset link.")
+      return
+    }
 
     if (!newPassword || !confirmPassword) {
       setError("Enter and confirm your new password.")
       return
     }
 
-    if (newPassword.length < 8) {
-      setError("Password must be at least 8 characters.")
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`)
       return
     }
 
@@ -63,15 +114,23 @@ export default function ResetPasswordPage() {
 
     try {
       setIsLoading(true)
-      const { error: updateError } = await supabaseClient.auth.updateUser({ password: newPassword })
-      if (updateError) {
-        setError(updateError.message)
-        return
+      const supabase = createClient()
+      const { data, error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      })
+
+      if (updateError) throw updateError
+
+      if (data.user) {
+        setAutarkeiaSessionCookies(data.user)
       }
 
-      setMessage("Password reset successful - redirecting to login")
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      router.push("/login")
+      setMessage("Password updated")
+      router.refresh()
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+      router.push("/dashboard")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update password.")
     } finally {
       setIsLoading(false)
     }
@@ -88,37 +147,42 @@ export default function ResetPasswordPage() {
           </Link>
           <h1 className="mt-4 text-2xl font-light text-[#0d1b2a]">Choose a new password</h1>
           <p className="mt-2 text-sm text-[#8a9bb0]">
-            {!hasCheckedResetLink
-              ? "Checking your reset link..."
-              : isValidResetLink
+            {isCheckingSession
+              ? "Verifying your reset link…"
+              : sessionReady
                 ? "Enter your new password below."
                 : "Use the latest reset link from your email."}
           </p>
         </div>
 
-        {isValidResetLink && (
-          <form onSubmit={resetPasswordHandler} className="space-y-4">
+        {sessionReady && (
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-[#3d5166]">New Password</label>
+              <label className="mb-1.5 block text-xs font-medium text-[#3d5166]">New password</label>
               <input
                 type="password"
                 required
-                minLength={8}
+                minLength={MIN_PASSWORD_LENGTH}
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
                 className="w-full rounded-lg border border-[#d4dce8] px-4 py-2.5 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70]"
                 placeholder="At least 8 characters"
+                autoComplete="new-password"
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-[#3d5166]">Confirm Password</label>
+              <label className="mb-1.5 block text-xs font-medium text-[#3d5166]">
+                Confirm new password
+              </label>
               <input
                 type="password"
                 required
+                minLength={MIN_PASSWORD_LENGTH}
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 className="w-full rounded-lg border border-[#d4dce8] px-4 py-2.5 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70]"
                 placeholder="Confirm password"
+                autoComplete="new-password"
               />
             </div>
             <button
@@ -126,14 +190,15 @@ export default function ResetPasswordPage() {
               disabled={isLoading}
               className="w-full rounded-lg bg-[#009b70] py-2.5 text-sm font-medium text-white hover:bg-[#007a58] disabled:opacity-60"
             >
-              {isLoading ? "Resetting..." : "Reset Password"}
+              {isLoading ? "Updating…" : "Update password"}
             </button>
           </form>
         )}
 
         {message && <p className="mt-4 text-sm font-medium text-[#009b70]">{message}</p>}
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-        {hasCheckedResetLink && !isValidResetLink && (
+
+        {!isCheckingSession && !sessionReady && (
           <p className="mt-6 text-center text-xs text-[#8a9bb0]">
             <Link href="/forgot-password" className="font-medium text-[#009b70] hover:underline">
               Request a new reset link

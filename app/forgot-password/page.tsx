@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react"
 import Link from "next/link"
-import { supabaseClient } from "@/lib/supabase-client"
+import { createClient } from "@/lib/supabase/client"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -23,12 +23,21 @@ export default function ForgotPasswordPage() {
 
     try {
       setIsLoading(true)
-      const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(trimmedEmail)
+      const supabase = createClient()
+      const redirectTo = `${window.location.origin}/reset-password`
+
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+        redirectTo,
+      })
+
       if (resetError) {
         setError(resetError.message)
         return
       }
-      setMessage("Check your email for reset link")
+
+      setMessage("Check your email for a link to reset your password.")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to send reset email.")
     } finally {
       setIsLoading(false)
     }
@@ -63,7 +72,7 @@ export default function ForgotPasswordPage() {
             disabled={isLoading}
             className="mt-4 w-full rounded-lg bg-[#009b70] py-2.5 text-sm font-medium text-white hover:bg-[#007a58] disabled:opacity-60"
           >
-            {isLoading ? "Sending..." : "Send Reset Link"}
+            {isLoading ? "Sending…" : "Send reset link"}
           </button>
         </form>
 

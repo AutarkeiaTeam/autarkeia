@@ -17,6 +17,13 @@ export default function AuthCallbackHashPage() {
     const completeAuth = async () => {
       const supabase = createClient()
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
+      const type = hashParams.get("type")
+
+      if (type === "recovery") {
+        router.replace(`/reset-password${window.location.search}${window.location.hash}`)
+        return
+      }
+
       const access_token = hashParams.get("access_token")
       const refresh_token = hashParams.get("refresh_token")
 

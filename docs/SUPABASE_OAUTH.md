@@ -5,9 +5,13 @@
 In [Supabase](https://supabase.com/dashboard) → **Authentication** → **URL configuration**:
 
 1. **Site URL**: `https://autarkeia.world` (no `/dashboard` path).
-2. **Redirect URLs** (add both):
+2. **Redirect URLs** (add all):
    - `https://autarkeia.world/auth/callback`
+   - `https://autarkeia.world/reset-password`
    - `http://localhost:3000/auth/callback`
+   - `http://localhost:3000/reset-password`
+
+   See also [SUPABASE_PASSWORD_RESET.md](./SUPABASE_PASSWORD_RESET.md).
 
 In **Authentication** → **Providers** → **Google**:
 
