@@ -11,26 +11,36 @@ In [Supabase](https://supabase.com/dashboard) → **Authentication** → **URL c
    - `http://localhost:3000/auth/callback`
    - `http://localhost:3000/reset-password`
 
-## Reset password email template
+## Reset password email template (hash / implicit flow)
 
-In **Authentication** → **Email templates** → **Reset password**, ensure the link sends users to your app’s reset page. The app requests recovery with:
+Password recovery **does not use PKCE**. Email links must deliver session tokens in the URL **hash**, for example:
+
+`/reset-password#access_token=...&refresh_token=...&type=recovery`
+
+In **Authentication** → **Email templates** → **Reset password**:
+
+- Use `{{ .ConfirmationURL }}` so Supabase redirects to your `redirectTo` (`/reset-password`).
+- Do **not** rely on `?code=` PKCE links for recovery; those fail when the user opens the email in a new browser (“PKCE code verifier not found”).
+
+The app calls:
 
 ```ts
-redirectTo: `${window.location.origin}/reset-password`
+await supabase.auth.resetPasswordForEmail(email, {
+  redirectTo: `${window.location.origin}/reset-password`,
+})
 ```
-
-So the effective redirect after the user clicks the email should be:
-
-- Production: `https://autarkeia.world/reset-password`
-- Local: `http://localhost:3000/reset-password`
-
-If you customize the template, use `{{ .ConfirmationURL }}` or equivalent so Supabase still appends the recovery token/code to that URL.
 
 ## Expected flow
 
-1. User submits email on `/forgot-password` → `resetPasswordForEmail(email, { redirectTo })`.
-2. User clicks the email link → lands on `/reset-password` with a recovery session (PKCE `?code=`, `?token_hash=`, or legacy `#access_token` + `type=recovery`).
-3. User sets a new password → `updateUser({ password })` → “Password updated” → `/dashboard`.
-4. Sign out and sign in again with the new password to confirm it was saved in `auth.users`.
+1. User submits email on `/forgot-password` → `resetPasswordForEmail` with `redirectTo` above.
+2. User clicks the email link → lands on `/reset-password#access_token=...&type=recovery` (or `?token_hash=` for some templates).
+3. The page calls `setSession` from hash tokens (no `exchangeCodeForSession`).
+4. User sets a new password → `updateUser({ password })` → “Password updated” → `/dashboard`.
+5. Sign out and sign in with the new password to confirm it was saved.
 
-Recovery links with `type=recovery` in the hash must **not** go through `/auth/callback/hash` (that route is for sign-in only).
+Recovery hashes must **not** go through `/auth/callback/hash` (sign-in only). The layout script and `OAuthHashRedirect` send `type=recovery` links to `/reset-password`.
+
+## OAuth vs recovery
+
+- **Google sign-in**: PKCE via `/auth/callback?code=...` (verifier stored in cookies — see `lib/supabase/client.ts`).
+- **Password reset**: hash tokens on `/reset-password` only.

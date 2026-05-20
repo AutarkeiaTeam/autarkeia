@@ -8,6 +8,59 @@ import { createClient } from "@/lib/supabase/client"
 
 const MIN_PASSWORD_LENGTH = 8
 
+function parseHashParams() {
+  if (typeof window === "undefined") return new URLSearchParams()
+  return new URLSearchParams(window.location.hash.replace(/^#/, ""))
+}
+
+/**
+ * Password recovery uses implicit/hash tokens from the email link
+ * (#access_token=...&refresh_token=...&type=recovery). PKCE code exchange is
+ * not used here because the email opens in a fresh browser context without the
+ * original PKCE verifier.
+ */
+async function establishRecoverySessionFromHash() {
+  const supabase = createClient()
+  const hashParams = parseHashParams()
+  const queryParams = new URLSearchParams(window.location.search)
+
+  const access_token = hashParams.get("access_token")
+  const refresh_token = hashParams.get("refresh_token")
+  const type = hashParams.get("type") ?? queryParams.get("type")
+  const token_hash = queryParams.get("token_hash")
+
+  if (access_token && refresh_token) {
+    if (type && type !== "recovery") {
+      throw new Error("This link is not a password reset link.")
+    }
+    const { error } = await supabase.auth.setSession({ access_token, refresh_token })
+    if (error) throw error
+    return supabase
+  }
+
+  if (token_hash && type === "recovery") {
+    const { error } = await supabase.auth.verifyOtp({ token_hash, type: "recovery" })
+    if (error) throw error
+    return supabase
+  }
+
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession()
+
+  if (sessionError) throw sessionError
+  if (session) return supabase
+
+  if (queryParams.get("code")) {
+    throw new Error(
+      "This reset link uses a sign-in code that is not valid in a new browser. Request a new reset email and open the link from that message."
+    )
+  }
+
+  throw new Error("Invalid or expired reset link. Request a new one below.")
+}
+
 export default function ResetPasswordPage() {
   const router = useRouter()
   const [newPassword, setNewPassword] = useState("")
@@ -21,54 +74,13 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     let cancelled = false
 
-    async function establishRecoverySession() {
-      const supabase = createClient()
-      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
-      const queryParams = new URLSearchParams(window.location.search)
-
-      const code = queryParams.get("code")
-      const token_hash = queryParams.get("token_hash")
-      const type = hashParams.get("type") ?? queryParams.get("type")
-      const access_token = hashParams.get("access_token")
-      const refresh_token = hashParams.get("refresh_token")
-
+    async function init() {
       try {
-        if (code) {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-          if (exchangeError) throw exchangeError
-        } else if (token_hash && type === "recovery") {
-          const { error: verifyError } = await supabase.auth.verifyOtp({
-            token_hash,
-            type: "recovery",
-          })
-          if (verifyError) throw verifyError
-        } else if (access_token && refresh_token && type === "recovery") {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token,
-            refresh_token,
-          })
-          if (sessionError) throw sessionError
-        }
-
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession()
-
-        if (sessionError) throw sessionError
-        if (!session) {
-          if (!cancelled) {
-            setError("Invalid or expired reset link. Request a new one below.")
-            setSessionReady(false)
-          }
-          return
-        }
-
+        await establishRecoverySessionFromHash()
         if (!cancelled) {
           setSessionReady(true)
           setError("")
         }
-
         window.history.replaceState(null, "", "/reset-password")
       } catch (err) {
         if (!cancelled) {
@@ -80,7 +92,7 @@ export default function ResetPasswordPage() {
       }
     }
 
-    void establishRecoverySession()
+    void init()
 
     return () => {
       cancelled = true
