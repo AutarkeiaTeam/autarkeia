@@ -45,7 +45,11 @@ export default async function DashboardPage() {
       isDemo: false,
       canManageSubscription: canManageSubscription(profile?.subscription_status),
     }
-    return <DashboardView user={dashboardUser} />
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-[#f5f7fa]" />}>
+        <DashboardView user={dashboardUser} />
+      </Suspense>
+    )
   }
 
   const cookieStore = await cookies()
@@ -60,7 +64,11 @@ export default async function DashboardPage() {
       tier,
       isDemo: true,
     }
-    return <DashboardView user={dashboardUser} />
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-[#f5f7fa]" />}>
+        <DashboardView user={dashboardUser} />
+      </Suspense>
+    )
   }
 
   redirect("/login")
