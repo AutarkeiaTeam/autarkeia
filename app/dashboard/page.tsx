@@ -1,7 +1,9 @@
+import { Suspense } from "react"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { DashboardView, type DashboardUser } from "@/components/dashboard/dashboard-view"
 import { getTier, type Tier } from "@/lib/auth-server"
+import { canManageSubscription, getProfileSubscription } from "@/lib/subscription"
 import { createClient } from "@/lib/supabase/server"
 
 function decodeCookieValue(value: string | undefined): string | null {
@@ -34,12 +36,14 @@ export default async function DashboardPage() {
 
   if (user) {
     const tier = await getTier()
+    const profile = await getProfileSubscription(user.id)
     const dashboardUser: DashboardUser = {
       id: user.id,
       email: user.email ?? null,
       displayName: displayNameFromUser(user),
       tier,
       isDemo: false,
+      canManageSubscription: canManageSubscription(profile?.subscription_status),
     }
     return <DashboardView user={dashboardUser} />
   }

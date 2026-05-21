@@ -1,20 +1,16 @@
 import { cookies } from "next/headers"
+import { getProAccess, getTier as getTierFromSubscription } from "@/lib/subscription"
 
 export type Tier = "free" | "pro"
 
 const TIER_COOKIE = "autarkeia-tier"
 const USER_COOKIE = "autarkeia-user"
 
-/**
- * Server-side helpers for reading the demo auth cookies. These work
- * standalone (no Supabase required) so the dashboard, forums, and
- * library paywall render correctly in local dev. Once Supabase is
- * configured these helpers should delegate to its session cookies.
- */
+export { getProAccess } from "@/lib/subscription"
+export { hasProSubscriptionStatus } from "@/lib/subscription-shared"
+
 export async function getTier(): Promise<Tier> {
-  const store = await cookies()
-  const value = store.get(TIER_COOKIE)?.value
-  return value === "pro" ? "pro" : "free"
+  return getTierFromSubscription()
 }
 
 export async function getUserId(): Promise<string | null> {

@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   CheckCircle2,
   Circle,
@@ -16,6 +16,7 @@ import {
   Users,
 } from "lucide-react"
 import { supabaseClient } from "@/lib/supabase-client"
+import { openBillingPortal } from "@/lib/stripe-client"
 import { useTier, type Tier } from "@/lib/use-tier"
 
 export type DashboardUser = {
@@ -24,6 +25,7 @@ export type DashboardUser = {
   displayName: string
   tier: Tier
   isDemo: boolean
+  canManageSubscription?: boolean
 }
 
 type ActionItem = { id: string; label: string; done: boolean }
@@ -76,6 +78,7 @@ const newsHeadlines = [
 
 export function DashboardView({ user }: { user: DashboardUser }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { tier, setTier } = useTier(user.tier)
   const [plan, setPlan] = useState(initialPlan)
   const [chatInput, setChatInput] = useState("")
@@ -85,6 +88,15 @@ export function DashboardView({ user }: { user: DashboardUser }) {
   const [deleteMessage, setDeleteMessage] = useState("")
   const [deleteError, setDeleteError] = useState("")
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false)
+  const [portalError, setPortalError] = useState("")
+  useEffect(() => {
+    if (searchParams.get("checkout") === "success") {
+      router.replace("/dashboard")
+      router.refresh()
+    }
+  }, [searchParams, router])
+
   const [chatLog, setChatLog] = useState<{ role: "user" | "assistant"; text: string }[]>([
     {
       role: "assistant",
@@ -97,6 +109,17 @@ export function DashboardView({ user }: { user: DashboardUser }) {
       ...prev,
       [bucket]: prev[bucket].map((item) => (item.id === id ? { ...item, done: !item.done } : item)),
     }))
+  }
+
+  const handleManageSubscription = async () => {
+    try {
+      setIsOpeningPortal(true)
+      setPortalError("")
+      await openBillingPortal()
+    } catch (err) {
+      setPortalError(err instanceof Error ? err.message : "Could not open billing portal")
+      setIsOpeningPortal(false)
+    }
   }
 
   const handleSignOut = async () => {
@@ -177,6 +200,16 @@ export function DashboardView({ user }: { user: DashboardUser }) {
             </p>
           </div>
           <div className="flex flex-col items-start gap-2 sm:items-end">
+            {user.canManageSubscription && (
+              <button
+                type="button"
+                onClick={handleManageSubscription}
+                disabled={isOpeningPortal}
+                className="rounded-lg border border-[#009b70] bg-white px-4 py-2 text-xs font-medium text-[#009b70] hover:bg-[#e8f8f3] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isOpeningPortal ? "Opening…" : "Manage subscription"}
+              </button>
+            )}
             <button
               type="button"
               onClick={handleSignOut}
@@ -185,6 +218,7 @@ export function DashboardView({ user }: { user: DashboardUser }) {
             >
               {isSigningOut ? "Signing out..." : "Sign Out"}
             </button>
+            {portalError && <p className="max-w-xs text-right text-xs text-red-600">{portalError}</p>}
             {signOutError && <p className="max-w-xs text-right text-xs text-red-600">{signOutError}</p>}
             {user.isDemo && (
               <div className="flex items-center gap-2">
