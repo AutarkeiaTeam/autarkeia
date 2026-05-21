@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       success_url: `${origin}/dashboard?checkout=success`,
       cancel_url: `${origin}/plans?checkout=cancelled`,
       automatic_tax: { enabled: true },
-      customer_update: { address: "auto" },
+      customer_update: { address: "auto", name: "auto" },
       tax_id_collection: { enabled: true },
       client_reference_id: user.id,
       metadata: {
