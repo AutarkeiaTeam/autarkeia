@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { FormEvent, useState } from "react"
+import { RegisterInterestForm } from "@/components/communities/register-interest-form"
 import { useI18n } from "@/components/i18n-provider"
 
 const livingOptions = [
@@ -26,24 +26,6 @@ const models = [
 
 export default function Communities() {
   const { t } = useI18n()
-  const [locations, setLocations] = useState<string[]>([])
-  const [draftLocation, setDraftLocation] = useState("")
-  const [submitted, setSubmitted] = useState(false)
-
-  const addLocation = () => {
-    if (locations.length >= 10 || !draftLocation.trim()) return
-    setLocations((prev) => [...prev, draftLocation.trim()])
-    setDraftLocation("")
-  }
-
-  const removeLocation = (index: number) => {
-    setLocations((prev) => prev.filter((_, idx) => idx !== index))
-  }
-
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    setSubmitted(true)
-  }
 
   return (
     <main className="min-h-screen bg-white">
@@ -93,109 +75,7 @@ export default function Communities() {
       <section id="register-interest" className="scroll-mt-28 py-14 bg-[#f5f7fa]">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
           <h2 className="text-2xl sm:text-3xl font-light text-[#0d1b2a] mb-8">Register your interest</h2>
-          <form onSubmit={onSubmit} className="space-y-8">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <input className="rounded-lg border border-[#d4dce8] p-3" placeholder="Full name" required />
-              <input type="email" className="rounded-lg border border-[#d4dce8] p-3" placeholder="Email address" required />
-              <input className="rounded-lg border border-[#d4dce8] p-3" placeholder="Country of residence" required />
-              <input className="rounded-lg border border-[#d4dce8] p-3" placeholder="City/region of residence" required />
-              <select className="rounded-lg border border-[#d4dce8] p-3" required><option>Age range</option><option>18-25</option><option>26-35</option><option>36-45</option><option>46-55</option><option>55+</option></select>
-              <select className="rounded-lg border border-[#d4dce8] p-3" required><option>Household type</option><option>single</option><option>couple</option><option>family with children</option><option>group of friends</option><option>other</option></select>
-            </div>
-
-            <div className="rounded-xl border border-[#d4dce8] bg-white p-5 space-y-4">
-              <p className="font-medium text-[#0d1b2a]">Where would you like to live? (up to 10 locations)</p>
-              <div className="flex gap-2">
-                <input value={draftLocation} onChange={(e) => setDraftLocation(e.target.value)} className="flex-1 rounded-lg border border-[#d4dce8] p-3" placeholder="Add location" />
-                <button type="button" onClick={addLocation} className="rounded-lg bg-[#009b70] px-4 text-white">Add</button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {locations.filter((item) => item.trim()).map((item, idx) => (
-                  <button type="button" key={`${item}-${idx}`} onClick={() => removeLocation(idx)} className="rounded-full bg-[#e8f8f3] px-3 py-1 text-sm text-[#0d1b2a]">
-                    {item} ×
-                  </button>
-                ))}
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <select className="rounded-lg border border-[#d4dce8] p-3" required><option>Climate preference</option><option>Mediterranean</option><option>Temperate</option><option>Tropical</option><option>Cold</option><option>Any</option></select>
-                <select className="rounded-lg border border-[#d4dce8] p-3" required><option>How far from a city?</option><option>Within 30min</option><option>30-60min</option><option>1-2 hours</option><option>Remote is fine</option></select>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <fieldset className="rounded-xl border border-[#d4dce8] bg-white p-5 space-y-2">
-                <p className="font-medium text-[#0d1b2a]">What type of community?</p>
-                {["Independent family plot", "Co-living with friends", "Small village 10-30 people", "Larger community 30-100 people", "Flexible/open"].map((o) => (
-                  <label key={o} className="flex gap-2 text-sm">
-                    <input type="checkbox" /> {o}
-                  </label>
-                ))}
-              </fieldset>
-              <fieldset className="rounded-xl border border-[#d4dce8] bg-white p-5 space-y-2">
-                <p className="font-medium text-[#0d1b2a]">Type of home</p>
-                {["Self-built natural home", "Prefab eco home", "Renovated existing building", "Flexible"].map((o) => (
-                  <label key={o} className="flex gap-2 text-sm">
-                    <input type="checkbox" /> {o}
-                  </label>
-                ))}
-              </fieldset>
-              <select className="rounded-lg border border-[#d4dce8] p-3 bg-white" required>
-                <option>Investment capacity</option>
-                <option>Under €50k</option>
-                <option>€50k-€150k</option>
-                <option>€150k-€500k</option>
-                <option>€500k-€1M</option>
-                <option>Over €1M</option>
-                <option>I want to rent not buy</option>
-              </select>
-              <select className="rounded-lg border border-[#d4dce8] p-3 bg-white" required>
-                <option>Investor type</option>
-                <option>Individual/family</option>
-                <option>Group of friends</option>
-                <option>Small investor group</option>
-                <option>Institutional/fund</option>
-                <option>Not sure yet</option>
-              </select>
-              <fieldset className="rounded-xl border border-[#d4dce8] bg-white p-5 space-y-2">
-                <p className="font-medium text-[#0d1b2a]">Energy preference</p>
-                {["Solar", "Wind", "Micro-hydro", "Combined off-grid", "Connected to grid as backup", "Not sure"].map((o) => (
-                  <label key={o} className="flex gap-2 text-sm">
-                    <input type="checkbox" /> {o}
-                  </label>
-                ))}
-              </fieldset>
-              <fieldset className="rounded-xl border border-[#d4dce8] bg-white p-5 space-y-2">
-                <p className="font-medium text-[#0d1b2a]">Food production interest</p>
-                {[
-                  "Grow all my own food",
-                  "Most of my food",
-                  "Some of my food",
-                  "Buy from the community farm",
-                  "Not important",
-                ].map((o) => (
-                  <label key={o} className="flex gap-2 text-sm">
-                    <input type="checkbox" /> {o}
-                  </label>
-                ))}
-              </fieldset>
-              <select className="rounded-lg border border-[#d4dce8] p-3 bg-white sm:col-span-2" required>
-                <option>When are you thinking of making this move?</option>
-                <option>As soon as possible</option>
-                <option>1-2 years</option>
-                <option>3-5 years</option>
-                <option>5+ years</option>
-                <option>Just exploring</option>
-              </select>
-              <textarea className="rounded-lg border border-[#d4dce8] p-3 bg-white sm:col-span-2" rows={4} placeholder="Additional notes" />
-            </div>
-
-            <button className="rounded-lg bg-[#009b70] px-6 py-3 text-white font-medium hover:bg-[#008060]">Register my interest →</button>
-            {submitted && (
-              <p className="rounded-lg border border-[#009b70]/40 bg-[#e8f8f3] p-4 text-sm text-[#0d1b2a]">
-                Thank you. We have received your interest. We will be in touch as we develop communities in your preferred locations. This data helps us demonstrate demand to investors and partners.
-              </p>
-            )}
-          </form>
+          <RegisterInterestForm />
         </div>
       </section>
     </main>
