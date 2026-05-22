@@ -1,4 +1,4 @@
-import type { PreferredLocation } from "@/lib/community-interest-location"
+import { locationKey, type PreferredLocation } from "@/lib/community-interest-location"
 
 const GEOCODE_URL = "https://api.mapbox.com/search/geocode/v6/forward"
 
