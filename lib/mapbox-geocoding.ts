@@ -2,6 +2,17 @@ import type { PreferredLocation } from "@/lib/community-interest-location"
 
 const GEOCODE_URL = "https://api.mapbox.com/search/geocode/v6/forward"
 
+/** Prefer cities/towns over states when sorting API results. */
+const FEATURE_TYPE_PRIORITY: Record<string, number> = {
+  place: 0,
+  locality: 1,
+  neighborhood: 2,
+  district: 3,
+  region: 4,
+}
+
+const GEOCODE_TYPES = "place,locality,neighborhood,district,region"
+
 type MapboxContextEntry = {
   name?: string
 }
@@ -12,6 +23,7 @@ type MapboxFeature = {
     name?: string
     full_address?: string
     place_formatted?: string
+    feature_type?: string
     coordinates?: { longitude?: number; latitude?: number }
     context?: {
       country?: MapboxContextEntry
@@ -20,6 +32,14 @@ type MapboxFeature = {
       place?: MapboxContextEntry
     }
   }
+}
+
+function sortFeaturesByPlacePriority(features: MapboxFeature[]): MapboxFeature[] {
+  return [...features].sort((a, b) => {
+    const rankA = FEATURE_TYPE_PRIORITY[a.properties.feature_type ?? ""] ?? 99
+    const rankB = FEATURE_TYPE_PRIORITY[b.properties.feature_type ?? ""] ?? 99
+    return rankA - rankB
+  })
 }
 
 type MapboxForwardResponse = {
@@ -72,12 +92,13 @@ export async function searchMapboxPlaces(
     return []
   }
 
+  const trimmedQuery = query.trim()
   const params = new URLSearchParams({
-    q: query,
+    q: trimmedQuery,
     access_token: token,
-    types: "region,district,place,locality",
+    types: GEOCODE_TYPES,
     autocomplete: "true",
-    limit: "5",
+    limit: "10",
     language: options?.language ?? "en",
   })
 
@@ -89,7 +110,7 @@ export async function searchMapboxPlaces(
   const data = (await response.json()) as MapboxForwardResponse
   const results: PreferredLocation[] = []
 
-  for (const feature of data.features ?? []) {
+  for (const feature of sortFeaturesByPlacePriority(data.features ?? [])) {
     const location = mapboxFeatureToPreferredLocation(feature)
     if (!location) continue
     if (results.some((item) => item.name === location.name)) continue
