@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { useI18n } from "@/components/i18n-provider"
-import { canManageSubscription } from "@/lib/subscription-shared"
+import { canManageSubscription, hasProSubscriptionStatus } from "@/lib/subscription-shared"
 import { startCheckout, openBillingPortal } from "@/lib/stripe-client"
 
 const freeFeatures = [
@@ -44,7 +44,9 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
   const [loadingPlan, setLoadingPlan] = useState<"monthly" | "annual" | "portal" | null>(null)
   const [error, setError] = useState("")
 
+  const hasActivePro = hasProSubscriptionStatus(subscriptionStatus)
   const hasManageableSubscription = canManageSubscription(subscriptionStatus)
+  const showManageOnly = hasManageableSubscription
   const checkoutCancelled = searchParams.get("checkout") === "cancelled"
 
   const cardClass = (tier: "free" | "pro") =>
@@ -122,25 +124,31 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
           >
             <h2 className="text-xl font-medium text-[#0d1b2a]">{t("plans.pro")}</h2>
             <p className="mt-1 text-xs font-medium uppercase tracking-wide text-[#009b70]">
-              3-day free trial · card required
+              {hasActivePro ? "Pro member" : "3-day free trial · card required"}
             </p>
 
-            <div className="mt-4 space-y-4">
-              <div className="rounded-xl border border-[#d4dce8] bg-[#f9fafc] p-4">
-                <p className="text-2xl font-semibold text-[#0d1b2a]">
-                  €7<span className="text-base font-normal text-[#3d5166]">/month</span>
+            {showManageOnly ? (
+              <div className="mt-4 rounded-xl border border-[#009b70]/30 bg-[#e8f8f3] p-4">
+                <p className="text-sm text-[#3d5166]">
+                  You already have an active Pro subscription. Manage your plan, payment method, or
+                  cancellation in the billing portal.
                 </p>
-                <p className="mt-1 text-xs text-[#8a9bb0]">Billed monthly after trial</p>
-                {hasManageableSubscription ? (
-                  <button
-                    type="button"
-                    onClick={handleManage}
-                    disabled={loadingPlan !== null}
-                    className="mt-4 w-full rounded-lg border border-[#009b70] bg-white px-4 py-2.5 text-sm font-medium text-[#009b70] hover:bg-[#e8f8f3] disabled:opacity-60"
-                  >
-                    {loadingPlan === "portal" ? "Opening…" : "Manage subscription"}
-                  </button>
-                ) : (
+                <button
+                  type="button"
+                  onClick={handleManage}
+                  disabled={loadingPlan !== null}
+                  className="mt-4 w-full rounded-lg bg-[#009b70] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#007a58] disabled:opacity-60"
+                >
+                  {loadingPlan === "portal" ? "Opening…" : "Manage subscription"}
+                </button>
+              </div>
+            ) : (
+              <div className="mt-4 space-y-4">
+                <div className="rounded-xl border border-[#d4dce8] bg-[#f9fafc] p-4">
+                  <p className="text-2xl font-semibold text-[#0d1b2a]">
+                    €7<span className="text-base font-normal text-[#3d5166]">/month</span>
+                  </p>
+                  <p className="mt-1 text-xs text-[#8a9bb0]">Billed monthly after trial</p>
                   <button
                     type="button"
                     onClick={() => handleStartTrial("monthly")}
@@ -149,16 +157,14 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
                   >
                     {loadingPlan === "monthly" ? "Redirecting…" : "Start free trial"}
                   </button>
-                )}
-              </div>
+                </div>
 
-              <div className="rounded-xl border border-[#009b70]/30 bg-[#e8f8f3] p-4">
-                <p className="text-2xl font-semibold text-[#0d1b2a]">
-                  €69<span className="text-base font-normal text-[#3d5166]">/year</span>
-                </p>
-                <p className="mt-1 text-sm font-medium text-[#009b70]">Save €15 vs monthly</p>
-                <p className="mt-1 text-xs text-[#8a9bb0]">Billed annually after trial</p>
-                {!hasManageableSubscription && (
+                <div className="rounded-xl border border-[#009b70]/30 bg-[#e8f8f3] p-4">
+                  <p className="text-2xl font-semibold text-[#0d1b2a]">
+                    €69<span className="text-base font-normal text-[#3d5166]">/year</span>
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-[#009b70]">Save €15 vs monthly</p>
+                  <p className="mt-1 text-xs text-[#8a9bb0]">Billed annually after trial</p>
                   <button
                     type="button"
                     onClick={() => handleStartTrial("annual")}
@@ -167,9 +173,9 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
                   >
                     {loadingPlan === "annual" ? "Redirecting…" : "Start free trial"}
                   </button>
-                )}
+                </div>
               </div>
-            </div>
+            )}
 
             <ul className="mt-4 space-y-2 text-sm text-[#3d5166]">
               {proFeatures.map((feature) => (

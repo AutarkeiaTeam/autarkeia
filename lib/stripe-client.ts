@@ -7,7 +7,12 @@ export async function startCheckout(priceId: CheckoutPlan): Promise<void> {
     body: JSON.stringify({ priceId }),
   })
 
-  const data = (await response.json()) as { url?: string; error?: string }
+  const data = (await response.json()) as {
+    url?: string
+    error?: string
+    existingSubscription?: boolean
+    message?: string
+  }
   if (!response.ok) {
     throw new Error(data.error || "Could not start checkout")
   }

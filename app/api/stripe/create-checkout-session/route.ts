@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getOrCreateStripeCustomer } from "@/lib/profiles"
 import { getStripe, resolveStripePriceId } from "@/lib/stripe"
+import { findBlockingSubscription } from "@/lib/stripe-subscriptions"
 import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: Request) {
@@ -21,6 +22,31 @@ export async function POST(request: Request) {
 
     const stripeCustomerId = await getOrCreateStripeCustomer(user)
     const stripe = getStripe()
+
+    const existing = await stripe.subscriptions.list({
+      customer: stripeCustomerId,
+      status: "all",
+      limit: 10,
+    })
+
+    const activeSubscription = findBlockingSubscription(existing.data)
+
+    if (activeSubscription) {
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: stripeCustomerId,
+        return_url: `${origin}/plans`,
+      })
+
+      if (!portalSession.url) {
+        return NextResponse.json({ error: "Billing portal URL missing" }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        url: portalSession.url,
+        existingSubscription: true,
+        message: "You already have a subscription. Manage it in the billing portal.",
+      })
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
