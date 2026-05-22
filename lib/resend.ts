@@ -4,16 +4,38 @@ import { formatPreferredLocationsForDisplay } from "@/lib/community-interest-loc
 const FROM_EMAIL = "Autarkeia <noreply@send.autarkeia.world>"
 const SUBJECT = "We received your interest — Autarkeia Communities"
 
+function formatList(items: string[]): string {
+  return items.length > 0 ? items.join(", ") : "Not specified"
+}
+
 function buildSummary(data: CommunityInterestInput): string {
   const locations =
     data.preferredLocations.length > 0
       ? formatPreferredLocationsForDisplay(data.preferredLocations)
       : "Not specified"
 
+  const energySources =
+    data.energyOwnership === "Resident-owned"
+      ? formatList(data.energyPreferences ?? [])
+      : "N/A (Autarkeia-managed)"
+
+  const foodMethods =
+    data.foodOwnership === "Resident-owned"
+      ? formatList(data.foodPreferences ?? [])
+      : "N/A (Autarkeia-managed)"
+
   return [
     `Preferred locations: ${locations}`,
-    `Community types: ${data.communityTypes.join(", ")}`,
+    `Living model: ${data.livingModel}`,
+    `Energy ownership: ${data.energyOwnership}`,
+    `Preferred energy sources: ${energySources}`,
+    `Food ownership: ${data.foodOwnership}`,
+    `Preferred food production: ${foodMethods}`,
+    `Dietary community preference: ${data.dietaryPreference}`,
+    `Climate: ${data.climatePreference}`,
+    `Distance from city: ${data.distanceFromCity}`,
     `Investment capacity: ${data.investmentCapacity}`,
+    `Investor type: ${data.investorType}`,
     `Timeline: ${data.moveTimeline}`,
   ].join("\n")
 }

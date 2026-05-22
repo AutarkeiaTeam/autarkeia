@@ -32,6 +32,7 @@ export const DISTANCE_FROM_CITY = [
   "1-2 hours",
   "Remote is fine",
 ] as const
+/** @deprecated Kept for DB column; no longer collected in the form */
 export const COMMUNITY_TYPES = [
   "Independent family plot",
   "Co-living with friends",
@@ -39,6 +40,7 @@ export const COMMUNITY_TYPES = [
   "Larger community 30-100 people",
   "Flexible/open",
 ] as const
+/** @deprecated Kept for DB column; no longer collected in the form */
 export const HOME_TYPES = [
   "Self-built natural home",
   "Prefab eco home",
@@ -60,21 +62,6 @@ export const INVESTOR_TYPES = [
   "Institutional/fund",
   "Not sure yet",
 ] as const
-export const ENERGY_PREFERENCES = [
-  "Solar",
-  "Wind",
-  "Micro-hydro",
-  "Combined off-grid",
-  "Connected to grid as backup",
-  "Not sure",
-] as const
-export const FOOD_INTERESTS = [
-  "Grow all my own food",
-  "Most of my food",
-  "Some of my food",
-  "Buy from the community farm",
-  "Not important",
-] as const
 export const MOVE_TIMELINES = [
   "As soon as possible",
   "1-2 years",
@@ -83,30 +70,147 @@ export const MOVE_TIMELINES = [
   "Just exploring",
 ] as const
 
+export const LIVING_MODELS = [
+  "Single family plot",
+  "Coliving",
+  "Communal living",
+] as const
+
+export const OWNERSHIP_MODELS = ["Resident-owned", "Autarkeia-managed"] as const
+
+export const ENERGY_SOURCE_OPTIONS = [
+  "Solar",
+  "Wind",
+  "Micro-hydro",
+  "Combined off-grid",
+  "Combined on-grid",
+] as const
+
+export const FOOD_PRODUCTION_OPTIONS = [
+  "Permaculture food forest",
+  "Annual vegetable gardens",
+  "Greenhouses and aquaponics",
+  "Livestock and dairy",
+  "Foraging and wild edibles",
+] as const
+
+export const DIETARY_PREFERENCES = [
+  "Omnivore-friendly",
+  "Vegetarian-only",
+  "Vegan-only",
+  "No preference",
+] as const
+
+export const LIVING_MODEL_OPTIONS: ReadonlyArray<{
+  value: (typeof LIVING_MODELS)[number]
+  description: string
+}> = [
+  {
+    value: "Single family plot",
+    description: "One house on your own private property.",
+  },
+  {
+    value: "Coliving",
+    description:
+      "Shared property with a group, either one single house together or multiple separate houses.",
+  },
+  {
+    value: "Communal living",
+    description:
+      "Shared central building (bunkbeds, hammocks or private rooms), with the option to build your own subplot home together with the community. Lower entry cost, more shared labor.",
+  },
+]
+
+export const OWNERSHIP_OPTIONS: ReadonlyArray<{
+  value: (typeof OWNERSHIP_MODELS)[number]
+  energyDescription?: string
+  foodDescription?: string
+}> = [
+  {
+    value: "Resident-owned",
+    energyDescription: "Autarkeia sets it up, you own and run it.",
+    foodDescription: "Autarkeia sets it up, you own and run it.",
+  },
+  {
+    value: "Autarkeia-managed",
+    energyDescription:
+      "Hybrid renewable system connected to the grid. You pay a monthly or yearly fee.",
+    foodDescription:
+      "Varied supply of grains, vegetables, fruit and animal products produced by Autarkeia. You pay a monthly or yearly fee.",
+  },
+]
+
 const nonEmptyString = z.string().trim().min(1).max(500)
 
-export const communityInterestSchema = z.object({
-  fullName: nonEmptyString.max(200),
-  email: z.string().trim().email().max(320),
-  country: nonEmptyString.max(120),
-  cityRegion: nonEmptyString.max(120),
-  ageRange: z.enum(AGE_RANGES),
-  householdType: z.enum(HOUSEHOLD_TYPES),
-  preferredLocations: z
-    .array(preferredLocationSchema)
-    .min(1, "Add at least one preferred location from the suggestions")
-    .max(10),
-  climatePreference: z.enum(CLIMATE_PREFERENCES),
-  distanceFromCity: z.enum(DISTANCE_FROM_CITY),
-  communityTypes: z.array(z.enum(COMMUNITY_TYPES)).min(1),
-  homeTypes: z.array(z.enum(HOME_TYPES)).min(1),
-  investmentCapacity: z.enum(INVESTMENT_CAPACITY),
-  investorType: z.enum(INVESTOR_TYPES),
-  energyPreferences: z.array(z.enum(ENERGY_PREFERENCES)).min(1),
-  foodInterests: z.array(z.enum(FOOD_INTERESTS)).min(1),
-  moveTimeline: z.enum(MOVE_TIMELINES),
-  notes: z.string().trim().max(5000).optional().default(""),
-})
+export const communityInterestSchema = z
+  .object({
+    fullName: nonEmptyString.max(200),
+    email: z.string().trim().email().max(320),
+    country: nonEmptyString.max(120),
+    cityRegion: nonEmptyString.max(120),
+    ageRange: z.enum(AGE_RANGES),
+    householdType: z.enum(HOUSEHOLD_TYPES),
+    preferredLocations: z
+      .array(preferredLocationSchema)
+      .min(1, "Add at least one preferred location from the suggestions")
+      .max(10),
+    climatePreference: z.enum(CLIMATE_PREFERENCES),
+    distanceFromCity: z.enum(DISTANCE_FROM_CITY),
+    communityTypes: z.array(z.enum(COMMUNITY_TYPES)).optional().default([]),
+    homeTypes: z.array(z.enum(HOME_TYPES)).optional().default([]),
+    investmentCapacity: z.enum(INVESTMENT_CAPACITY),
+    investorType: z.enum(INVESTOR_TYPES),
+    moveTimeline: z.enum(MOVE_TIMELINES),
+    notes: z.string().trim().max(5000).optional().default(""),
+
+    livingModel: z.enum(LIVING_MODELS),
+    energyOwnership: z.enum(OWNERSHIP_MODELS),
+    energyPreferences: z
+      .array(z.enum(ENERGY_SOURCE_OPTIONS))
+      .max(ENERGY_SOURCE_OPTIONS.length)
+      .optional()
+      .default([]),
+    foodOwnership: z.enum(OWNERSHIP_MODELS),
+    foodPreferences: z
+      .array(z.enum(FOOD_PRODUCTION_OPTIONS))
+      .max(FOOD_PRODUCTION_OPTIONS.length)
+      .optional()
+      .default([]),
+    dietaryPreference: z.enum(DIETARY_PREFERENCES),
+  })
+  .superRefine((data, ctx) => {
+    if (data.energyOwnership === "Resident-owned") {
+      if (!data.energyPreferences?.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["energyPreferences"],
+          message: "Select at least one preferred energy source",
+        })
+      }
+    } else if (data.energyPreferences?.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["energyPreferences"],
+        message: "Energy sources are only applicable for resident-owned setups",
+      })
+    }
+
+    if (data.foodOwnership === "Resident-owned") {
+      if (!data.foodPreferences?.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["foodPreferences"],
+          message: "Select at least one preferred food production method",
+        })
+      }
+    } else if (data.foodPreferences?.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["foodPreferences"],
+        message: "Food production methods are only applicable for resident-owned setups",
+      })
+    }
+  })
 
 export type CommunityInterestInput = z.infer<typeof communityInterestSchema>
 
@@ -114,6 +218,11 @@ export function communityInterestToRow(
   data: CommunityInterestInput,
   userId: string | null
 ) {
+  const energyPrefs =
+    data.energyOwnership === "Resident-owned" ? data.energyPreferences ?? [] : []
+  const foodPrefs =
+    data.foodOwnership === "Resident-owned" ? data.foodPreferences ?? [] : []
+
   return {
     user_id: userId,
     full_name: data.fullName,
@@ -125,13 +234,17 @@ export function communityInterestToRow(
     preferred_locations: data.preferredLocations,
     climate_preference: data.climatePreference,
     distance_from_city: data.distanceFromCity,
-    community_types: data.communityTypes,
-    home_types: data.homeTypes,
+    community_types: data.communityTypes ?? [],
+    home_types: data.homeTypes ?? [],
     investment_capacity: data.investmentCapacity,
     investor_type: data.investorType,
-    energy_preferences: data.energyPreferences,
-    food_interests: data.foodInterests,
     move_timeline: data.moveTimeline,
     notes: data.notes || null,
+    living_model: data.livingModel,
+    energy_ownership: data.energyOwnership,
+    energy_preferences: energyPrefs,
+    food_ownership: data.foodOwnership,
+    food_preferences: foodPrefs,
+    dietary_preference: data.dietaryPreference,
   }
 }

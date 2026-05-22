@@ -5,15 +5,16 @@ import { LocationAutocomplete } from "@/components/communities/location-autocomp
 import {
   AGE_RANGES,
   CLIMATE_PREFERENCES,
-  COMMUNITY_TYPES,
+  DIETARY_PREFERENCES,
   DISTANCE_FROM_CITY,
-  ENERGY_PREFERENCES,
-  FOOD_INTERESTS,
-  HOME_TYPES,
+  ENERGY_SOURCE_OPTIONS,
+  FOOD_PRODUCTION_OPTIONS,
   HOUSEHOLD_TYPES,
   INVESTMENT_CAPACITY,
   INVESTOR_TYPES,
+  LIVING_MODEL_OPTIONS,
   MOVE_TIMELINES,
+  OWNERSHIP_OPTIONS,
   type CommunityInterestInput,
 } from "@/lib/community-interest"
 
@@ -21,13 +22,24 @@ const selectClass =
   "w-full rounded-lg border border-[#d4dce8] bg-white p-3 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70]"
 const inputClass =
   "w-full rounded-lg border border-[#d4dce8] bg-white p-3 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70]"
+const sectionClass = "space-y-3 rounded-xl border border-[#d4dce8] bg-white p-5"
+
+type RegisterFormState = Omit<
+  CommunityInterestInput,
+  "livingModel" | "energyOwnership" | "foodOwnership" | "dietaryPreference"
+> & {
+  livingModel: CommunityInterestInput["livingModel"] | ""
+  energyOwnership: CommunityInterestInput["energyOwnership"] | ""
+  foodOwnership: CommunityInterestInput["foodOwnership"] | ""
+  dietaryPreference: CommunityInterestInput["dietaryPreference"] | ""
+}
 
 function toggleValue(list: string[], value: string, checked: boolean): string[] {
   if (checked) return list.includes(value) ? list : [...list, value]
   return list.filter((item) => item !== value)
 }
 
-const initialForm: CommunityInterestInput = {
+const initialForm: RegisterFormState = {
   fullName: "",
   email: "",
   country: "",
@@ -41,35 +53,23 @@ const initialForm: CommunityInterestInput = {
   homeTypes: [],
   investmentCapacity: "€50k-€150k",
   investorType: "Individual/family",
+  livingModel: "",
+  energyOwnership: "",
   energyPreferences: [],
-  foodInterests: [],
+  foodOwnership: "",
+  foodPreferences: [],
+  dietaryPreference: "",
   moveTimeline: "Just exploring",
   notes: "",
 }
 
 export function RegisterInterestForm() {
   const [form, setForm] = useState(initialForm)
-  const [draftLocation, setDraftLocation] = useState("")
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [errorMessage, setErrorMessage] = useState("")
 
-  const addLocation = () => {
-    const trimmed = draftLocation.trim()
-    if (!trimmed || form.preferredLocations.length >= 10) return
-    if (form.preferredLocations.includes(trimmed)) return
-    setForm((prev) => ({
-      ...prev,
-      preferredLocations: [...prev.preferredLocations, trimmed],
-    }))
-    setDraftLocation("")
-  }
-
-  const removeLocation = (index: number) => {
-    setForm((prev) => ({
-      ...prev,
-      preferredLocations: prev.preferredLocations.filter((_, idx) => idx !== index),
-    }))
-  }
+  const showEnergySources = form.energyOwnership === "Resident-owned"
+  const showFoodMethods = form.foodOwnership === "Resident-owned"
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -82,11 +82,21 @@ export function RegisterInterestForm() {
       return
     }
 
+    const payload: CommunityInterestInput = {
+      ...form,
+      livingModel: form.livingModel as CommunityInterestInput["livingModel"],
+      energyOwnership: form.energyOwnership as CommunityInterestInput["energyOwnership"],
+      foodOwnership: form.foodOwnership as CommunityInterestInput["foodOwnership"],
+      dietaryPreference: form.dietaryPreference as CommunityInterestInput["dietaryPreference"],
+      energyPreferences: showEnergySources ? form.energyPreferences : [],
+      foodPreferences: showFoodMethods ? form.foodPreferences : [],
+    }
+
     try {
       const response = await fetch("/api/community-interest/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
 
       const data = (await response.json().catch(() => null)) as { error?: string; ok?: boolean }
@@ -97,7 +107,6 @@ export function RegisterInterestForm() {
 
       setStatus("success")
       setForm(initialForm)
-      setDraftLocation("")
     } catch (err) {
       setStatus("error")
       setErrorMessage(err instanceof Error ? err.message : "Could not submit your interest.")
@@ -229,43 +238,165 @@ export function RegisterInterestForm() {
         </div>
       </div>
 
+      <div className="space-y-6">
+        <fieldset className={sectionClass}>
+          <legend className="font-medium text-[#0d1b2a]">Preferred living model</legend>
+          {LIVING_MODEL_OPTIONS.map((option) => (
+            <label
+              key={option.value}
+              className="flex cursor-pointer gap-3 rounded-lg border border-transparent p-2 hover:border-[#d4dce8]"
+            >
+              <input
+                type="radio"
+                name="livingModel"
+                className="mt-1 shrink-0"
+                required
+                value={option.value}
+                checked={form.livingModel === option.value}
+                onChange={() => setForm((prev) => ({ ...prev, livingModel: option.value }))}
+              />
+              <span className="text-sm text-[#3d5166]">
+                <span className="font-medium text-[#0d1b2a]">{option.value}</span>
+                <span className="mt-0.5 block">{option.description}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+
+        <fieldset className={sectionClass}>
+          <legend className="font-medium text-[#0d1b2a]">Energy ownership</legend>
+          {OWNERSHIP_OPTIONS.map((option) => (
+            <label
+              key={`energy-${option.value}`}
+              className="flex cursor-pointer gap-3 rounded-lg border border-transparent p-2 hover:border-[#d4dce8]"
+            >
+              <input
+                type="radio"
+                name="energyOwnership"
+                className="mt-1 shrink-0"
+                required
+                value={option.value}
+                checked={form.energyOwnership === option.value}
+                onChange={() =>
+                  setForm((prev) => ({
+                    ...prev,
+                    energyOwnership: option.value,
+                    energyPreferences:
+                      option.value === "Resident-owned" ? prev.energyPreferences : [],
+                  }))
+                }
+              />
+              <span className="text-sm text-[#3d5166]">
+                <span className="font-medium text-[#0d1b2a]">{option.value}</span>
+                <span className="mt-0.5 block">{option.energyDescription}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+
+        {showEnergySources && (
+          <fieldset className={sectionClass}>
+            <legend className="font-medium text-[#0d1b2a]">Preferred energy sources</legend>
+            <p className="text-xs text-[#8a9bb0]">Select all that apply.</p>
+            {ENERGY_SOURCE_OPTIONS.map((option) => (
+              <label key={option} className="flex gap-2 text-sm text-[#3d5166]">
+                <input
+                  type="checkbox"
+                  checked={form.energyPreferences.includes(option)}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      energyPreferences: toggleValue(
+                        prev.energyPreferences,
+                        option,
+                        e.target.checked
+                      ) as CommunityInterestInput["energyPreferences"],
+                    }))
+                  }
+                />
+                {option}
+              </label>
+            ))}
+          </fieldset>
+        )}
+
+        <fieldset className={sectionClass}>
+          <legend className="font-medium text-[#0d1b2a]">Food ownership</legend>
+          {OWNERSHIP_OPTIONS.map((option) => (
+            <label
+              key={`food-${option.value}`}
+              className="flex cursor-pointer gap-3 rounded-lg border border-transparent p-2 hover:border-[#d4dce8]"
+            >
+              <input
+                type="radio"
+                name="foodOwnership"
+                className="mt-1 shrink-0"
+                required
+                value={option.value}
+                checked={form.foodOwnership === option.value}
+                onChange={() =>
+                  setForm((prev) => ({
+                    ...prev,
+                    foodOwnership: option.value,
+                    foodPreferences:
+                      option.value === "Resident-owned" ? prev.foodPreferences : [],
+                  }))
+                }
+              />
+              <span className="text-sm text-[#3d5166]">
+                <span className="font-medium text-[#0d1b2a]">{option.value}</span>
+                <span className="mt-0.5 block">{option.foodDescription}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+
+        {showFoodMethods && (
+          <fieldset className={sectionClass}>
+            <legend className="font-medium text-[#0d1b2a]">Preferred food production methods</legend>
+            <p className="text-xs text-[#8a9bb0]">Select all that apply.</p>
+            {FOOD_PRODUCTION_OPTIONS.map((option) => (
+              <label key={option} className="flex gap-2 text-sm text-[#3d5166]">
+                <input
+                  type="checkbox"
+                  checked={form.foodPreferences.includes(option)}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      foodPreferences: toggleValue(
+                        prev.foodPreferences,
+                        option,
+                        e.target.checked
+                      ) as CommunityInterestInput["foodPreferences"],
+                    }))
+                  }
+                />
+                {option}
+              </label>
+            ))}
+          </fieldset>
+        )}
+
+        <fieldset className={sectionClass}>
+          <legend className="font-medium text-[#0d1b2a]">Dietary community preference</legend>
+          {DIETARY_PREFERENCES.map((option) => (
+            <label key={option} className="flex cursor-pointer gap-3 p-2 text-sm text-[#3d5166]">
+              <input
+                type="radio"
+                name="dietaryPreference"
+                className="mt-0.5 shrink-0"
+                required
+                value={option}
+                checked={form.dietaryPreference === option}
+                onChange={() => setForm((prev) => ({ ...prev, dietaryPreference: option }))}
+              />
+              {option}
+            </label>
+          ))}
+        </fieldset>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2">
-        <fieldset className="space-y-2 rounded-xl border border-[#d4dce8] bg-white p-5">
-          <p className="font-medium text-[#0d1b2a]">What type of community?</p>
-          {COMMUNITY_TYPES.map((option) => (
-            <label key={option} className="flex gap-2 text-sm text-[#3d5166]">
-              <input
-                type="checkbox"
-                checked={form.communityTypes.includes(option)}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    communityTypes: toggleValue(prev.communityTypes, option, e.target.checked),
-                  }))
-                }
-              />
-              {option}
-            </label>
-          ))}
-        </fieldset>
-        <fieldset className="space-y-2 rounded-xl border border-[#d4dce8] bg-white p-5">
-          <p className="font-medium text-[#0d1b2a]">Type of home</p>
-          {HOME_TYPES.map((option) => (
-            <label key={option} className="flex gap-2 text-sm text-[#3d5166]">
-              <input
-                type="checkbox"
-                checked={form.homeTypes.includes(option)}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    homeTypes: toggleValue(prev.homeTypes, option, e.target.checked),
-                  }))
-                }
-              />
-              {option}
-            </label>
-          ))}
-        </fieldset>
         <select
           className={selectClass}
           required
@@ -306,42 +437,6 @@ export function RegisterInterestForm() {
             </option>
           ))}
         </select>
-        <fieldset className="space-y-2 rounded-xl border border-[#d4dce8] bg-white p-5">
-          <p className="font-medium text-[#0d1b2a]">Energy preference</p>
-          {ENERGY_PREFERENCES.map((option) => (
-            <label key={option} className="flex gap-2 text-sm text-[#3d5166]">
-              <input
-                type="checkbox"
-                checked={form.energyPreferences.includes(option)}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    energyPreferences: toggleValue(prev.energyPreferences, option, e.target.checked),
-                  }))
-                }
-              />
-              {option}
-            </label>
-          ))}
-        </fieldset>
-        <fieldset className="space-y-2 rounded-xl border border-[#d4dce8] bg-white p-5">
-          <p className="font-medium text-[#0d1b2a]">Food production interest</p>
-          {FOOD_INTERESTS.map((option) => (
-            <label key={option} className="flex gap-2 text-sm text-[#3d5166]">
-              <input
-                type="checkbox"
-                checked={form.foodInterests.includes(option)}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    foodInterests: toggleValue(prev.foodInterests, option, e.target.checked),
-                  }))
-                }
-              />
-              {option}
-            </label>
-          ))}
-        </fieldset>
         <select
           className={`${selectClass} sm:col-span-2`}
           required
