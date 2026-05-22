@@ -139,11 +139,17 @@ export function LocationAutocomplete({
               <li key={locationKey(suggestion)} role="option">
                 <button
                   type="button"
-                  className="w-full px-3 py-2 text-left text-sm text-[#0d1b2a] hover:bg-[#e8f8f3]"
+                  className="w-full px-3 py-2 text-left hover:bg-[#e8f8f3]"
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => addLocation(suggestion)}
                 >
-                  {suggestion.name}
+                  <span className="block text-sm font-medium text-[#0d1b2a]">{suggestion.name}</span>
+                  {suggestion.placeFormatted &&
+                    suggestion.placeFormatted !== suggestion.name && (
+                      <span className="mt-0.5 block text-xs text-[#8a9bb0]">
+                        {suggestion.placeFormatted}
+                      </span>
+                    )}
                 </button>
               </li>
             ))}

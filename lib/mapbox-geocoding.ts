@@ -59,25 +59,17 @@ export function mapboxFeatureToPreferredLocation(feature: MapboxFeature): Prefer
     return null
   }
 
-  const name =
-    props.place_formatted?.trim() ||
-    props.full_address?.trim() ||
-    [props.name, props.context?.region?.name, props.context?.country?.name]
-      .filter(Boolean)
-      .join(", ")
-      .trim() ||
-    props.name?.trim()
-
+  const name = props.name?.trim()
   if (!name) return null
+
+  const placeFormatted =
+    props.place_formatted?.trim() || props.full_address?.trim() || ""
 
   return {
     name,
+    placeFormatted,
     country: props.context?.country?.name?.trim() ?? "",
-    region:
-      props.context?.region?.name?.trim() ??
-      props.context?.district?.name?.trim() ??
-      props.context?.place?.name?.trim() ??
-      "",
+    region: props.context?.region?.name?.trim() ?? "",
     coordinates: [lng, lat],
   }
 }
@@ -113,7 +105,7 @@ export async function searchMapboxPlaces(
   for (const feature of sortFeaturesByPlacePriority(data.features ?? [])) {
     const location = mapboxFeatureToPreferredLocation(feature)
     if (!location) continue
-    if (results.some((item) => item.name === location.name)) continue
+    if (results.some((item) => locationKey(item) === locationKey(location))) continue
     results.push(location)
   }
 
