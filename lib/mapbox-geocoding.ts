@@ -17,7 +17,7 @@ type MapboxContextEntry = {
   name?: string
 }
 
-type MapboxFeature = {
+export type MapboxFeature = {
   geometry: { coordinates: [number, number] }
   properties: {
     name?: string
@@ -46,36 +46,41 @@ type MapboxForwardResponse = {
   features?: MapboxFeature[]
 }
 
+/** Map a Mapbox Geocoding v6 feature to a PreferredLocation (call on select). */
 export function mapboxFeatureToPreferredLocation(feature: MapboxFeature): PreferredLocation | null {
   const props = feature.properties
-  const lng =
-    props.coordinates?.longitude ??
-    (Array.isArray(feature.geometry?.coordinates) ? feature.geometry.coordinates[0] : null)
-  const lat =
-    props.coordinates?.latitude ??
-    (Array.isArray(feature.geometry?.coordinates) ? feature.geometry.coordinates[1] : null)
-
-  if (lng == null || lat == null || !Number.isFinite(lng) || !Number.isFinite(lat)) {
-    return null
-  }
-
   const name = props.name?.trim()
   if (!name) return null
 
+  const coords = feature.geometry?.coordinates
+  if (!Array.isArray(coords) || coords.length < 2) return null
+  const lng = coords[0]
+  const lat = coords[1]
+  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null
+
+  const country = props.context?.country?.name?.trim() ?? ""
+  const region = props.context?.region?.name?.trim() ?? ""
+  const placeFormatted =
+    props.place_formatted?.trim() ||
+    [region, country].filter(Boolean).join(", ")
+  const fullAddress =
+    props.full_address?.trim() ||
+    (placeFormatted ? `${name}, ${placeFormatted}` : [name, region, country].filter(Boolean).join(", "))
+
   return {
     name,
-    placeFormatted: props.place_formatted?.trim() ?? "",
-    fullAddress: props.full_address?.trim() ?? "",
-    country: props.context?.country?.name?.trim() ?? "",
-    region: props.context?.region?.name?.trim() ?? "",
+    fullAddress,
+    placeFormatted,
+    region,
+    country,
     coordinates: [lng, lat],
   }
 }
 
-export async function searchMapboxPlaces(
+export async function searchMapboxPlaceFeatures(
   query: string,
   options?: { language?: string }
-): Promise<PreferredLocation[]> {
+): Promise<MapboxFeature[]> {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
   if (!token) {
     console.warn("NEXT_PUBLIC_MAPBOX_TOKEN is not set")
@@ -98,14 +103,29 @@ export async function searchMapboxPlaces(
   }
 
   const data = (await response.json()) as MapboxForwardResponse
-  const results: PreferredLocation[] = []
+  const features = sortFeaturesByPlacePriority(data.features ?? [])
+  const seen = new Set<string>()
+  const results: MapboxFeature[] = []
 
-  for (const feature of sortFeaturesByPlacePriority(data.features ?? [])) {
+  for (const feature of features) {
     const location = mapboxFeatureToPreferredLocation(feature)
     if (!location) continue
-    if (results.some((item) => locationKey(item) === locationKey(location))) continue
-    results.push(location)
+    const key = locationKey(location)
+    if (seen.has(key)) continue
+    seen.add(key)
+    results.push(feature)
   }
 
   return results
+}
+
+/** @deprecated Prefer searchMapboxPlaceFeatures + mapboxFeatureToPreferredLocation on select */
+export async function searchMapboxPlaces(
+  query: string,
+  options?: { language?: string }
+): Promise<PreferredLocation[]> {
+  const features = await searchMapboxPlaceFeatures(query, options)
+  return features
+    .map(mapboxFeatureToPreferredLocation)
+    .filter((location): location is PreferredLocation => location != null)
 }

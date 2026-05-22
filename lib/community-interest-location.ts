@@ -17,7 +17,7 @@ export const preferredLocationSchema = z.object({
 
 export type PreferredLocation = z.infer<typeof preferredLocationSchema>
 
-/** Chip / summary label: full_address, or "name, place_formatted", or name alone. */
+/** Chip / summary label: full_address, or "name, place_formatted", or name + region + country. */
 export function preferredLocationDisplayLabel(location: PreferredLocation): string {
   const fullAddress = location.fullAddress?.trim()
   if (fullAddress) return fullAddress
@@ -25,7 +25,10 @@ export function preferredLocationDisplayLabel(location: PreferredLocation): stri
   const placeFormatted = location.placeFormatted?.trim()
   if (placeFormatted) return `${location.name}, ${placeFormatted}`
 
-  return location.name
+  const parts = [location.name, location.region?.trim(), location.country?.trim()].filter(
+    Boolean
+  ) as string[]
+  return parts.length > 0 ? parts.join(", ") : location.name
 }
 
 export function formatPreferredLocationsForDisplay(locations: PreferredLocation[]): string {
