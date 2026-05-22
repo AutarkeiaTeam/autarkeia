@@ -1,6 +1,7 @@
 "use client"
 
 import { FormEvent, useState } from "react"
+import { LocationAutocomplete } from "@/components/communities/location-autocomplete"
 import {
   AGE_RANGES,
   CLIMATE_PREFERENCES,
@@ -77,7 +78,7 @@ export function RegisterInterestForm() {
 
     if (form.preferredLocations.length === 0) {
       setStatus("error")
-      setErrorMessage("Add at least one preferred location.")
+      setErrorMessage("Add at least one location from the suggestions.")
       return
     }
 
@@ -176,40 +177,14 @@ export function RegisterInterestForm() {
 
       <div className="space-y-4 rounded-xl border border-[#d4dce8] bg-white p-5">
         <p className="font-medium text-[#0d1b2a]">Where would you like to live? (up to 10 locations)</p>
-        <div className="flex gap-2">
-          <input
-            value={draftLocation}
-            onChange={(e) => setDraftLocation(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                addLocation()
-              }
-            }}
-            className={inputClass}
-            placeholder="Add location"
-          />
-          <button
-            type="button"
-            onClick={addLocation}
-            disabled={form.preferredLocations.length >= 10}
-            className="rounded-lg bg-[#009b70] px-4 text-sm font-medium text-white hover:bg-[#008060] disabled:opacity-60"
-          >
-            Add
-          </button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {form.preferredLocations.map((item, idx) => (
-            <button
-              type="button"
-              key={`${item}-${idx}`}
-              onClick={() => removeLocation(idx)}
-              className="rounded-full bg-[#e8f8f3] px-3 py-1 text-sm text-[#0d1b2a]"
-            >
-              {item} ×
-            </button>
-          ))}
-        </div>
+        <LocationAutocomplete
+          locations={form.preferredLocations}
+          maxLocations={10}
+          disabled={status === "loading" || status === "success"}
+          onChange={(preferredLocations) =>
+            setForm((prev) => ({ ...prev, preferredLocations }))
+          }
+        />
         <div className="grid gap-4 sm:grid-cols-2">
           <select
             className={selectClass}

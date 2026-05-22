@@ -1,4 +1,5 @@
 import type { CommunityInterestInput } from "@/lib/community-interest"
+import { formatPreferredLocationsForDisplay } from "@/lib/community-interest-location"
 
 const FROM_EMAIL = "Autarkeia <noreply@send.autarkeia.world>"
 const SUBJECT = "We received your interest — Autarkeia Communities"
@@ -6,7 +7,7 @@ const SUBJECT = "We received your interest — Autarkeia Communities"
 function buildSummary(data: CommunityInterestInput): string {
   const locations =
     data.preferredLocations.length > 0
-      ? data.preferredLocations.join(", ")
+      ? formatPreferredLocationsForDisplay(data.preferredLocations)
       : "Not specified"
 
   return [

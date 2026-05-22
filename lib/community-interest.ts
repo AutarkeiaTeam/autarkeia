@@ -1,4 +1,11 @@
 import { z } from "zod"
+import {
+  preferredLocationSchema,
+  type PreferredLocation,
+} from "@/lib/community-interest-location"
+
+export type { PreferredLocation }
+export { preferredLocationSchema, formatPreferredLocationsForDisplay } from "@/lib/community-interest-location"
 
 export const AGE_RANGES = ["18-25", "26-35", "36-45", "46-55", "55+"] as const
 export const HOUSEHOLD_TYPES = [
@@ -82,8 +89,8 @@ export const communityInterestSchema = z.object({
   ageRange: z.enum(AGE_RANGES),
   householdType: z.enum(HOUSEHOLD_TYPES),
   preferredLocations: z
-    .array(z.string().trim().min(1).max(200))
-    .min(1, "Add at least one preferred location")
+    .array(preferredLocationSchema)
+    .min(1, "Add at least one preferred location from the suggestions")
     .max(10),
   climatePreference: z.enum(CLIMATE_PREFERENCES),
   distanceFromCity: z.enum(DISTANCE_FROM_CITY),
