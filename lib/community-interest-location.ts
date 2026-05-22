@@ -1,12 +1,13 @@
 import { z } from "zod"
 
 export const preferredLocationSchema = z.object({
-  /** Primary label: city/town name from Mapbox properties.name */
+  /** City/town name from Mapbox properties.name */
   name: z.string().trim().min(1).max(500),
-  /** Secondary label for UI, e.g. "Granada, Andalusia, Spain" */
+  /** Mapbox properties.place_formatted */
   placeFormatted: z.string().trim().max(500).optional().default(""),
+  /** Mapbox properties.full_address */
+  fullAddress: z.string().trim().max(500).optional().default(""),
   country: z.string().trim().max(200),
-  /** Administrative region from context — not used as the display name */
   region: z.string().trim().max(200),
   coordinates: z.tuple([
     z.number().min(-180).max(180),
@@ -16,10 +17,19 @@ export const preferredLocationSchema = z.object({
 
 export type PreferredLocation = z.infer<typeof preferredLocationSchema>
 
+/** Chip / summary label: full_address, or "name, place_formatted", or name alone. */
+export function preferredLocationDisplayLabel(location: PreferredLocation): string {
+  const fullAddress = location.fullAddress?.trim()
+  if (fullAddress) return fullAddress
+
+  const placeFormatted = location.placeFormatted?.trim()
+  if (placeFormatted) return `${location.name}, ${placeFormatted}`
+
+  return location.name
+}
+
 export function formatPreferredLocationsForDisplay(locations: PreferredLocation[]): string {
-  return locations
-    .map((loc) => loc.placeFormatted || loc.name)
-    .join(", ")
+  return locations.map(preferredLocationDisplayLabel).join(", ")
 }
 
 export function locationKey(location: PreferredLocation): string {

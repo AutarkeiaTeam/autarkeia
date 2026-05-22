@@ -5,7 +5,11 @@ import {
 } from "@/lib/community-interest-location"
 
 export type { PreferredLocation }
-export { preferredLocationSchema, formatPreferredLocationsForDisplay } from "@/lib/community-interest-location"
+export {
+  preferredLocationSchema,
+  formatPreferredLocationsForDisplay,
+  preferredLocationDisplayLabel,
+} from "@/lib/community-interest-location"
 
 export const AGE_RANGES = ["18-25", "26-35", "36-45", "46-55", "55+"] as const
 export const HOUSEHOLD_TYPES = [

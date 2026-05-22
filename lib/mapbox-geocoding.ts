@@ -62,12 +62,10 @@ export function mapboxFeatureToPreferredLocation(feature: MapboxFeature): Prefer
   const name = props.name?.trim()
   if (!name) return null
 
-  const placeFormatted =
-    props.place_formatted?.trim() || props.full_address?.trim() || ""
-
   return {
     name,
-    placeFormatted,
+    placeFormatted: props.place_formatted?.trim() ?? "",
+    fullAddress: props.full_address?.trim() ?? "",
     country: props.context?.country?.name?.trim() ?? "",
     region: props.context?.region?.name?.trim() ?? "",
     coordinates: [lng, lat],

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react"
 import {
   locationKey,
+  preferredLocationDisplayLabel,
   type PreferredLocation,
 } from "@/lib/community-interest-location"
 import { searchMapboxPlaces } from "@/lib/mapbox-geocoding"
@@ -171,7 +172,7 @@ export function LocationAutocomplete({
             disabled={disabled}
             className="rounded-full bg-[#e8f8f3] px-3 py-1 text-sm text-[#0d1b2a] hover:bg-[#d4dce8] disabled:opacity-60"
           >
-            {item.name} ×
+            {preferredLocationDisplayLabel(item)} ×
           </button>
         ))}
       </div>
