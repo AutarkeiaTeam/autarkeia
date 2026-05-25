@@ -1,7 +1,9 @@
+import type { ContactMessageInput } from "@/lib/contact"
 import type { CommunityInterestInput } from "@/lib/community-interest"
 import { formatPreferredLocationsForDisplay } from "@/lib/community-interest-location"
 
 const FROM_EMAIL = "Autarkeia <noreply@send.autarkeia.world>"
+const CONTACT_NOTIFY_EMAIL = process.env.CONTACT_NOTIFY_EMAIL ?? "hello@autarkeia.world"
 const SUBJECT = "We received your interest — Autarkeia Communities"
 
 function formatList(items: string[]): string {
@@ -40,15 +42,40 @@ function buildSummary(data: CommunityInterestInput): string {
   ].join("\n")
 }
 
-export async function sendCommunityInterestConfirmation(
-  data: CommunityInterestInput
-): Promise<void> {
+async function sendResendEmail(options: {
+  to: string[]
+  subject: string
+  html: string
+}): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
-    console.warn("RESEND_API_KEY not set; skipping community interest confirmation email")
+    console.warn("RESEND_API_KEY not set; skipping email")
     return
   }
 
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: FROM_EMAIL,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+    }),
+  })
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => "")
+    throw new Error(`Resend API error (${response.status}): ${body}`)
+  }
+}
+
+export async function sendCommunityInterestConfirmation(
+  data: CommunityInterestInput
+): Promise<void> {
   const summary = buildSummary(data)
   const html = `
     <p>Hi ${escapeHtml(data.fullName)},</p>
@@ -59,24 +86,48 @@ export async function sendCommunityInterestConfirmation(
     <p>— The Autarkeia team</p>
   `.trim()
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: FROM_EMAIL,
-      to: [data.email],
-      subject: SUBJECT,
-      html,
-    }),
+  await sendResendEmail({
+    to: [data.email],
+    subject: SUBJECT,
+    html,
   })
+}
 
-  if (!response.ok) {
-    const body = await response.text().catch(() => "")
-    throw new Error(`Resend API error (${response.status}): ${body}`)
-  }
+export async function sendContactConfirmation(data: ContactMessageInput): Promise<void> {
+  const html = `
+    <p>Hi ${escapeHtml(data.name)},</p>
+    <p>Thank you for contacting Autarkeia. We have received your message and will reply when we can.</p>
+    <p>— The Autarkeia team</p>
+  `.trim()
+
+  await sendResendEmail({
+    to: [data.email],
+    subject: "We received your message — Autarkeia",
+    html,
+  })
+}
+
+export async function sendContactNotification(data: ContactMessageInput): Promise<void> {
+  const subjectLine = data.subject?.trim() || "(no subject)"
+  const body = [
+    `Name: ${data.name}`,
+    `Email: ${data.email}`,
+    `Subject: ${subjectLine}`,
+    "",
+    "Message:",
+    data.message,
+  ].join("\n")
+
+  const html = `
+    <p><strong>New contact form submission</strong></p>
+    <pre style="font-family: sans-serif; white-space: pre-wrap;">${escapeHtml(body)}</pre>
+  `.trim()
+
+  await sendResendEmail({
+    to: [CONTACT_NOTIFY_EMAIL],
+    subject: `Contact form: ${subjectLine}`,
+    html,
+  })
 }
 
 function escapeHtml(value: string): string {

@@ -1,7 +1,11 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-const PUBLIC_PATH_PREFIXES = ["/api/stripe/webhook", "/api/community-interest/submit"]
+const PUBLIC_PATH_PREFIXES = [
+  "/api/stripe/webhook",
+  "/api/community-interest/submit",
+  "/api/contact/submit",
+]
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -43,6 +47,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/stripe/webhook|api/community-interest/submit|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/stripe/webhook|api/community-interest/submit|api/contact/submit|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }
