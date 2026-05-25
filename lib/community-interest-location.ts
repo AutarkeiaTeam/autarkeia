@@ -17,18 +17,40 @@ export const preferredLocationSchema = z.object({
 
 export type PreferredLocation = z.infer<typeof preferredLocationSchema>
 
-/** Chip / summary label: full_address, or "name, place_formatted", or name + region + country. */
+function uniqueLabelParts(parts: string[]): string[] {
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const part of parts) {
+    const trimmed = part.trim()
+    if (!trimmed) continue
+    const key = trimmed.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    result.push(trimmed)
+  }
+  return result
+}
+
+/** Chip / summary label: full_address, or "name, place_formatted", or name alone for countries. */
 export function preferredLocationDisplayLabel(location: PreferredLocation): string {
+  const name = location.name.trim()
   const fullAddress = location.fullAddress?.trim()
-  if (fullAddress) return fullAddress
+  if (fullAddress) {
+    if (fullAddress.toLowerCase() === name.toLowerCase()) return name
+    return fullAddress
+  }
 
   const placeFormatted = location.placeFormatted?.trim()
-  if (placeFormatted) return `${location.name}, ${placeFormatted}`
+  if (placeFormatted && placeFormatted.toLowerCase() !== name.toLowerCase()) {
+    return `${name}, ${placeFormatted}`
+  }
 
-  const parts = [location.name, location.region?.trim(), location.country?.trim()].filter(
-    Boolean
-  ) as string[]
-  return parts.length > 0 ? parts.join(", ") : location.name
+  const parts = uniqueLabelParts([
+    name,
+    location.region?.trim() ?? "",
+    location.country?.trim() ?? "",
+  ])
+  return parts.length === 1 ? parts[0] : parts.join(", ")
 }
 
 export function formatPreferredLocationsForDisplay(locations: PreferredLocation[]): string {

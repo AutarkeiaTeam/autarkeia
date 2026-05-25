@@ -2,16 +2,17 @@ import { locationKey, type PreferredLocation } from "@/lib/community-interest-lo
 
 const GEOCODE_URL = "https://api.mapbox.com/search/geocode/v6/forward"
 
-/** Prefer cities/towns over states when sorting API results. */
+/** Prefer cities/towns over regions/countries when sorting API results. */
 const FEATURE_TYPE_PRIORITY: Record<string, number> = {
   place: 0,
   locality: 1,
   neighborhood: 2,
   district: 3,
   region: 4,
+  country: 5,
 }
 
-const GEOCODE_TYPES = "place,locality,neighborhood,district,region"
+const GEOCODE_TYPES = "country,place,locality,neighborhood,district,region"
 
 type MapboxContextEntry = {
   name?: string
@@ -46,6 +47,22 @@ type MapboxForwardResponse = {
   features?: MapboxFeature[]
 }
 
+function normalizePlaceFormatted(name: string, raw: string): string {
+  const trimmed = raw.trim()
+  if (!trimmed || trimmed.toLowerCase() === name.toLowerCase()) return ""
+  return trimmed
+}
+
+function buildFullAddress(name: string, placeFormatted: string, parts: string[]): string {
+  const fromApi = parts[0]?.trim()
+  if (fromApi) {
+    if (fromApi.toLowerCase() === name.toLowerCase()) return name
+    return fromApi
+  }
+  if (placeFormatted) return `${name}, ${placeFormatted}`
+  return name
+}
+
 /** Map a Mapbox Geocoding v6 feature to a PreferredLocation (call on select). */
 export function mapboxFeatureToPreferredLocation(feature: MapboxFeature): PreferredLocation | null {
   const props = feature.properties
@@ -58,14 +75,26 @@ export function mapboxFeatureToPreferredLocation(feature: MapboxFeature): Prefer
   const lat = coords[1]
   if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null
 
+  const featureType = props.feature_type ?? ""
+
+  if (featureType === "country") {
+    return {
+      name,
+      fullAddress: normalizePlaceFormatted(name, props.full_address?.trim() ?? "") || name,
+      placeFormatted: "",
+      region: "",
+      country: name,
+      coordinates: [lng, lat],
+    }
+  }
+
   const country = props.context?.country?.name?.trim() ?? ""
   const region = props.context?.region?.name?.trim() ?? ""
-  const placeFormatted =
-    props.place_formatted?.trim() ||
-    [region, country].filter(Boolean).join(", ")
-  const fullAddress =
-    props.full_address?.trim() ||
-    (placeFormatted ? `${name}, ${placeFormatted}` : [name, region, country].filter(Boolean).join(", "))
+  const placeFormatted = normalizePlaceFormatted(
+    name,
+    props.place_formatted?.trim() || [region, country].filter(Boolean).join(", ")
+  )
+  const fullAddress = buildFullAddress(name, placeFormatted, [props.full_address?.trim() ?? ""])
 
   return {
     name,

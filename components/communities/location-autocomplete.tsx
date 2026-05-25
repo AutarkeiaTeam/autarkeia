@@ -1,7 +1,11 @@
 "use client"
 
 import { useCallback, useEffect, useId, useRef, useState } from "react"
-import { locationKey, type PreferredLocation } from "@/lib/community-interest-location"
+import {
+  locationKey,
+  preferredLocationDisplayLabel,
+  type PreferredLocation,
+} from "@/lib/community-interest-location"
 import {
   mapboxFeatureToPreferredLocation,
   searchMapboxPlaceFeatures,
@@ -163,8 +167,9 @@ export function LocationAutocomplete({
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => selectLocation(feature)}
                   >
-                    <span className="block text-sm font-medium text-[#0d1b2a]">{preview.name}</span>
-                    {preview.placeFormatted && preview.placeFormatted !== preview.name && (
+                  <span className="block text-sm font-medium text-[#0d1b2a]">{preview.name}</span>
+                  {preview.placeFormatted &&
+                    preview.placeFormatted.toLowerCase() !== preview.name.toLowerCase() && (
                       <span className="mt-0.5 block text-xs text-[#8a9bb0]">
                         {preview.placeFormatted}
                       </span>
@@ -191,14 +196,7 @@ export function LocationAutocomplete({
             disabled={disabled}
             className="rounded-full bg-[#e8f8f3] px-3 py-1 text-sm text-[#0d1b2a] hover:bg-[#d4dce8] disabled:opacity-60"
           >
-            {location.fullAddress?.trim()
-              ? location.fullAddress.trim()
-              : location.placeFormatted?.trim()
-                ? `${location.name}, ${location.placeFormatted.trim()}`
-                : [location.name, location.region, location.country]
-                    .filter(Boolean)
-                    .join(", ")}{" "}
-            ×
+            {preferredLocationDisplayLabel(location)} ×
           </button>
         ))}
       </div>
