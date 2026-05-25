@@ -32,21 +32,6 @@ export const DISTANCE_FROM_CITY = [
   "1-2 hours",
   "Remote is fine",
 ] as const
-/** @deprecated Kept for DB column; no longer collected in the form */
-export const COMMUNITY_TYPES = [
-  "Independent family plot",
-  "Co-living with friends",
-  "Small village 10-30 people",
-  "Larger community 30-100 people",
-  "Flexible/open",
-] as const
-/** @deprecated Kept for DB column; no longer collected in the form */
-export const HOME_TYPES = [
-  "Self-built natural home",
-  "Prefab eco home",
-  "Renovated existing building",
-  "Flexible",
-] as const
 export const INVESTMENT_CAPACITY = [
   "Under €50k",
   "€50k-€150k",
@@ -156,8 +141,6 @@ export const communityInterestSchema = z
       .max(10),
     climatePreference: z.enum(CLIMATE_PREFERENCES),
     distanceFromCity: z.enum(DISTANCE_FROM_CITY),
-    communityTypes: z.array(z.enum(COMMUNITY_TYPES)).optional().default([]),
-    homeTypes: z.array(z.enum(HOME_TYPES)).optional().default([]),
     investmentCapacity: z.enum(INVESTMENT_CAPACITY),
     investorType: z.enum(INVESTOR_TYPES),
     moveTimeline: z.enum(MOVE_TIMELINES),
@@ -168,14 +151,14 @@ export const communityInterestSchema = z
     energyPreferences: z
       .array(z.enum(ENERGY_SOURCE_OPTIONS))
       .max(ENERGY_SOURCE_OPTIONS.length)
-      .optional()
-      .default([]),
+      .nullable()
+      .optional(),
     foodOwnership: z.enum(OWNERSHIP_MODELS),
     foodPreferences: z
       .array(z.enum(FOOD_PRODUCTION_OPTIONS))
       .max(FOOD_PRODUCTION_OPTIONS.length)
-      .optional()
-      .default([]),
+      .nullable()
+      .optional(),
     dietaryPreference: z.enum(DIETARY_PREFERENCES),
   })
   .superRefine((data, ctx) => {
@@ -187,7 +170,7 @@ export const communityInterestSchema = z
           message: "Select at least one preferred energy source",
         })
       }
-    } else if (data.energyPreferences?.length) {
+    } else if (data.energyPreferences != null && data.energyPreferences.length > 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["energyPreferences"],
@@ -218,10 +201,10 @@ export function communityInterestToRow(
   data: CommunityInterestInput,
   userId: string | null
 ) {
-  const energyPrefs =
-    data.energyOwnership === "Resident-owned" ? data.energyPreferences ?? [] : []
-  const foodPrefs =
-    data.foodOwnership === "Resident-owned" ? data.foodPreferences ?? [] : []
+  const energyPreferences =
+    data.energyOwnership === "Resident-owned" ? (data.energyPreferences ?? []) : null
+  const foodPreferences =
+    data.foodOwnership === "Resident-owned" ? (data.foodPreferences ?? []) : null
 
   return {
     user_id: userId,
@@ -234,17 +217,15 @@ export function communityInterestToRow(
     preferred_locations: data.preferredLocations,
     climate_preference: data.climatePreference,
     distance_from_city: data.distanceFromCity,
-    community_types: data.communityTypes ?? [],
-    home_types: data.homeTypes ?? [],
     investment_capacity: data.investmentCapacity,
     investor_type: data.investorType,
     move_timeline: data.moveTimeline,
     notes: data.notes || null,
     living_model: data.livingModel,
     energy_ownership: data.energyOwnership,
-    energy_preferences: energyPrefs,
+    energy_preferences: energyPreferences,
     food_ownership: data.foodOwnership,
-    food_preferences: foodPrefs,
+    food_preferences: foodPreferences,
     dietary_preference: data.dietaryPreference,
   }
 }

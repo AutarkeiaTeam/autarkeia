@@ -15,13 +15,13 @@ function buildSummary(data: CommunityInterestInput): string {
       : "Not specified"
 
   const energySources =
-    data.energyOwnership === "Resident-owned"
-      ? formatList(data.energyPreferences ?? [])
+    data.energyOwnership === "Resident-owned" && data.energyPreferences != null
+      ? formatList(data.energyPreferences)
       : "N/A (Autarkeia-managed)"
 
   const foodMethods =
-    data.foodOwnership === "Resident-owned"
-      ? formatList(data.foodPreferences ?? [])
+    data.foodOwnership === "Resident-owned" && data.foodPreferences != null
+      ? formatList(data.foodPreferences)
       : "N/A (Autarkeia-managed)"
 
   return [

@@ -49,8 +49,6 @@ const initialForm: RegisterFormState = {
   preferredLocations: [],
   climatePreference: "Temperate",
   distanceFromCity: "30-60min",
-  communityTypes: [],
-  homeTypes: [],
   investmentCapacity: "€50k-€150k",
   investorType: "Individual/family",
   livingModel: "",
@@ -88,8 +86,8 @@ export function RegisterInterestForm() {
       energyOwnership: form.energyOwnership as CommunityInterestInput["energyOwnership"],
       foodOwnership: form.foodOwnership as CommunityInterestInput["foodOwnership"],
       dietaryPreference: form.dietaryPreference as CommunityInterestInput["dietaryPreference"],
-      energyPreferences: showEnergySources ? form.energyPreferences : [],
-      foodPreferences: showFoodMethods ? form.foodPreferences : [],
+      energyPreferences: showEnergySources ? (form.energyPreferences ?? []) : null,
+      foodPreferences: showFoodMethods ? (form.foodPreferences ?? []) : null,
     }
 
     try {
@@ -302,15 +300,15 @@ export function RegisterInterestForm() {
               <label key={option} className="flex gap-2 text-sm text-[#3d5166]">
                 <input
                   type="checkbox"
-                  checked={form.energyPreferences.includes(option)}
+                  checked={(form.energyPreferences ?? []).includes(option)}
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,
                       energyPreferences: toggleValue(
-                        prev.energyPreferences,
+                        prev.energyPreferences ?? [],
                         option,
                         e.target.checked
-                      ) as CommunityInterestInput["energyPreferences"],
+                      ) as NonNullable<CommunityInterestInput["energyPreferences"]>,
                     }))
                   }
                 />
@@ -339,7 +337,7 @@ export function RegisterInterestForm() {
                     ...prev,
                     foodOwnership: option.value,
                     foodPreferences:
-                      option.value === "Resident-owned" ? prev.foodPreferences : [],
+                      option.value === "Resident-owned" ? prev.foodPreferences ?? [] : null,
                   }))
                 }
               />
@@ -359,15 +357,15 @@ export function RegisterInterestForm() {
               <label key={option} className="flex gap-2 text-sm text-[#3d5166]">
                 <input
                   type="checkbox"
-                  checked={form.foodPreferences.includes(option)}
+                  checked={(form.foodPreferences ?? []).includes(option)}
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,
                       foodPreferences: toggleValue(
-                        prev.foodPreferences,
+                        prev.foodPreferences ?? [],
                         option,
                         e.target.checked
-                      ) as CommunityInterestInput["foodPreferences"],
+                      ) as NonNullable<CommunityInterestInput["foodPreferences"]>,
                     }))
                   }
                 />
