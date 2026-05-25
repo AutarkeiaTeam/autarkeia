@@ -73,11 +73,17 @@ export function LocationAutocomplete({
       setIsSearching(true)
       setSearchError("")
       try {
-        const results = await searchMapboxPlaces(query.trim())
+        const features = await searchMapboxPlaceFeatures(query.trim())
         const selectedKeys = new Set(locations.map(locationKey))
-        setSuggestions(results.filter((item) => !selectedKeys.has(locationKey(item))))
+        setSuggestions(
+          features.filter((feature) => {
+            const mapped = mapboxFeatureToPreferredLocation(feature)
+            return mapped != null && !selectedKeys.has(locationKey(mapped))
+          })
+        )
         setIsOpen(true)
-      } catch {
+      } catch (err) {
+        console.error("[location-autocomplete] search failed:", err)
         setSuggestions([])
         setSearchError("Could not load suggestions. Try again.")
       } finally {
