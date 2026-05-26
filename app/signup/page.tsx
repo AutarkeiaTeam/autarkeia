@@ -54,11 +54,20 @@ export default function Signup() {
         setAutarkeiaSessionCookies({
           id: data.user.id,
           email: data.user.email ?? email,
-          user_metadata: data.user.user_metadata,
+          user_metadata: data.user.user_metadata ?? metadata,
         })
       }
 
+      const syncProfile = async () => {
+        try {
+          await fetch("/api/profile/sync", { method: "POST", credentials: "include" })
+        } catch {
+          // Non-blocking; profile can be synced on next login/OAuth callback
+        }
+      }
+
       if (data.session) {
+        await syncProfile()
         router.refresh()
         router.push("/dashboard")
         return
@@ -78,9 +87,10 @@ export default function Signup() {
         setAutarkeiaSessionCookies({
           id: signInData.user.id,
           email: signInData.user.email ?? email,
-          user_metadata: signInData.user.user_metadata,
+          user_metadata: signInData.user.user_metadata ?? metadata,
         })
       }
+      await syncProfile()
       router.refresh()
       router.push("/dashboard")
     } catch (err) {
