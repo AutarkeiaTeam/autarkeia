@@ -35,7 +35,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
         <h1 className="mt-2 text-3xl font-light text-[#0d1b2a]">{thread.title}</h1>
         {thread.description && <p className="mt-2 text-sm text-[#3d5166]">{thread.description}</p>}
         <p className="mt-2 text-xs text-[#8a9bb0]">
-          Started by <span className="font-medium text-[#3d5166]">{thread.author_id}</span> ·{" "}
+          Started by <span className="font-medium text-[#3d5166]">{thread.author_name}</span> ·{" "}
           {new Date(thread.created_at).toLocaleString()}
         </p>
         {isAuthor && <DeleteThreadButton threadId={thread.id} />}
@@ -44,7 +44,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
           {posts.map((p) => (
             <li key={p.id} className="rounded-2xl border border-[#d4dce8] bg-white p-5">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-[#0d1b2a]">{p.author_id}</p>
+                <p className="text-xs font-medium text-[#0d1b2a]">{p.author_name}</p>
                 <p className="text-[11px] text-[#8a9bb0]">{new Date(p.created_at).toLocaleString()}</p>
               </div>
               <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#3d5166]">{p.content}</p>

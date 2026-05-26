@@ -1,6 +1,7 @@
 import { promises as fs } from "fs"
 import path from "path"
 import { randomUUID } from "crypto"
+import { fetchProfileAuthorLabels } from "@/lib/profiles"
 
 /**
  * Forums data store. Two backends are wired:
@@ -48,6 +49,7 @@ export type ForumThread = {
   title: string
   description: string
   author_id: string
+  author_name: string
   category: string
   created_at: string
   updated_at: string
@@ -56,9 +58,29 @@ export type ForumPost = {
   id: string
   thread_id: string
   author_id: string
+  author_name: string
   content: string
   created_at: string
   updated_at: string
+}
+
+type ForumThreadRow = Omit<ForumThread, "author_name">
+type ForumPostRow = Omit<ForumPost, "author_name">
+
+async function enrichThreads(threads: ForumThreadRow[]): Promise<ForumThread[]> {
+  const labels = await fetchProfileAuthorLabels(threads.map((t) => t.author_id))
+  return threads.map((t) => ({
+    ...t,
+    author_name: labels.get(t.author_id) ?? "Member",
+  }))
+}
+
+async function enrichPosts(posts: ForumPostRow[]): Promise<ForumPost[]> {
+  const labels = await fetchProfileAuthorLabels(posts.map((p) => p.author_id))
+  return posts.map((p) => ({
+    ...p,
+    author_name: labels.get(p.author_id) ?? "Member",
+  }))
 }
 
 export const CATEGORIES: ForumCategory[] = [
@@ -72,7 +94,7 @@ export const CATEGORIES: ForumCategory[] = [
 const DATA_DIR = path.join(process.cwd(), ".data")
 const DATA_FILE = path.join(DATA_DIR, "forums.json")
 
-type Store = { threads: ForumThread[]; posts: ForumPost[] }
+type Store = { threads: ForumThreadRow[]; posts: ForumPostRow[] }
 
 async function ensureFile(): Promise<void> {
   try {
@@ -131,21 +153,26 @@ export async function listThreads(category?: string): Promise<ForumThread[]> {
     const query = category
       ? `forums_threads?select=*&category=eq.${category}&order=updated_at.desc`
       : `forums_threads?select=*&order=updated_at.desc`
-    return supabaseFetch<ForumThread[]>(query)
+    const rows = await supabaseFetch<ForumThreadRow[]>(query)
+    return enrichThreads(rows)
   }
   const store = await readStore()
   const threads = category ? store.threads.filter((t) => t.category === category) : store.threads
-  return [...threads].sort((a, b) => b.updated_at.localeCompare(a.updated_at))
+  return enrichThreads(
+    [...threads].sort((a, b) => b.updated_at.localeCompare(a.updated_at))
+  )
 }
 
 export async function getThread(id: string): Promise<{ thread: ForumThread; posts: ForumPost[] } | null> {
   if (supabaseConfigured()) {
-    const threads = await supabaseFetch<ForumThread[]>(`forums_threads?id=eq.${id}&select=*`)
+    const threads = await supabaseFetch<ForumThreadRow[]>(`forums_threads?id=eq.${id}&select=*`)
     if (!threads[0]) return null
-    const posts = await supabaseFetch<ForumPost[]>(
+    const postRows = await supabaseFetch<ForumPostRow[]>(
       `forums_posts?thread_id=eq.${id}&select=*&order=created_at.asc`
     )
-    return { thread: threads[0], posts }
+    const [thread] = await enrichThreads([threads[0]])
+    const posts = await enrichPosts(postRows)
+    return { thread, posts }
   }
   const store = await readStore()
   const thread = store.threads.find((t) => t.id === id)
@@ -153,7 +180,9 @@ export async function getThread(id: string): Promise<{ thread: ForumThread; post
   const posts = store.posts
     .filter((p) => p.thread_id === id)
     .sort((a, b) => a.created_at.localeCompare(b.created_at))
-  return { thread, posts }
+  const [enrichedThread] = await enrichThreads([thread])
+  const enrichedPosts = await enrichPosts(posts)
+  return { thread: enrichedThread, posts: enrichedPosts }
 }
 
 export async function createThread(input: {
@@ -165,7 +194,7 @@ export async function createThread(input: {
 }): Promise<ForumThread> {
   const now = new Date().toISOString()
   const id = randomUUID()
-  const thread: ForumThread = {
+  const threadRow: ForumThreadRow = {
     id,
     title: input.title.trim().slice(0, 200),
     description: input.description.trim().slice(0, 500),
@@ -174,7 +203,7 @@ export async function createThread(input: {
     created_at: now,
     updated_at: now,
   }
-  const firstPost: ForumPost = {
+  const firstPostRow: ForumPostRow = {
     id: randomUUID(),
     thread_id: id,
     author_id: input.author_id,
@@ -183,11 +212,14 @@ export async function createThread(input: {
     updated_at: now,
   }
   if (supabaseConfigured()) {
-    await supabaseFetch<unknown>("forums_threads", { method: "POST", body: JSON.stringify(thread) })
-    await supabaseFetch<unknown>("forums_posts", { method: "POST", body: JSON.stringify(firstPost) })
+    await supabaseFetch<unknown>("forums_threads", { method: "POST", body: JSON.stringify(threadRow) })
+    await supabaseFetch<unknown>("forums_posts", { method: "POST", body: JSON.stringify(firstPostRow) })
+    const [thread] = await enrichThreads([threadRow])
     return thread
   }
   const store = await readStore()
+  const [thread] = await enrichThreads([threadRow])
+  const [firstPost] = await enrichPosts([firstPostRow])
   store.threads.push(thread)
   store.posts.push(firstPost)
   await writeStore(store)
@@ -196,7 +228,7 @@ export async function createThread(input: {
 
 export async function addPost(threadId: string, authorId: string, content: string): Promise<ForumPost> {
   const now = new Date().toISOString()
-  const post: ForumPost = {
+  const postRow: ForumPostRow = {
     id: randomUUID(),
     thread_id: threadId,
     author_id: authorId,
@@ -205,14 +237,16 @@ export async function addPost(threadId: string, authorId: string, content: strin
     updated_at: now,
   }
   if (supabaseConfigured()) {
-    await supabaseFetch<unknown>("forums_posts", { method: "POST", body: JSON.stringify(post) })
+    await supabaseFetch<unknown>("forums_posts", { method: "POST", body: JSON.stringify(postRow) })
     await supabaseFetch<unknown>(`forums_threads?id=eq.${threadId}`, {
       method: "PATCH",
       body: JSON.stringify({ updated_at: now }),
     })
+    const [post] = await enrichPosts([postRow])
     return post
   }
   const store = await readStore()
+  const [post] = await enrichPosts([postRow])
   store.posts.push(post)
   const t = store.threads.find((x) => x.id === threadId)
   if (t) t.updated_at = now

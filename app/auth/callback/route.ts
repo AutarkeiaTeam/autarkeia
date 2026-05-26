@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { applyAutarkeiaSessionCookies } from "@/lib/auth-session-server"
+import { syncProfileEmail } from "@/lib/profiles"
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -58,6 +59,12 @@ export async function GET(request: Request) {
   }
 
   applyAutarkeiaSessionCookies(response, user)
+
+  try {
+    await syncProfileEmail(user)
+  } catch (syncError) {
+    console.error("profile email sync failed:", syncError)
+  }
 
   return response
 }
