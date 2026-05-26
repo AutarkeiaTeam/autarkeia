@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { deleteThread, getThread } from "@/lib/forums-store"
 import { getUserId } from "@/lib/auth-server"
-import { canDeleteForumContent, getForumDeleteAccess } from "@/lib/forum-permissions"
+import { canModerateForumContent, getForumDeleteAccess } from "@/lib/forum-permissions"
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params
@@ -18,7 +18,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
   if (!result) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   const { isAdmin: requesterIsAdmin } = await getForumDeleteAccess(userId)
-  if (!canDeleteForumContent(userId, result.thread.author_id, requesterIsAdmin)) {
+  if (!canModerateForumContent(userId, result.thread.author_id, requesterIsAdmin)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 

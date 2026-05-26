@@ -285,6 +285,52 @@ export async function deleteThread(
   return store.threads.length < before
 }
 
+export async function updatePost(
+  postId: string,
+  content: string,
+  requesterId: string,
+  asAdmin = false
+): Promise<ForumPost | null> {
+  const trimmed = content.trim()
+  if (trimmed.length < 2) return null
+
+  const now = new Date().toISOString()
+
+  if (supabaseConfigured()) {
+    const filter = asAdmin
+      ? `forums_posts?id=eq.${postId}`
+      : `forums_posts?id=eq.${postId}&author_id=eq.${requesterId}`
+    const rows = await supabaseFetch<ForumPostRow[]>(filter, {
+      method: "PATCH",
+      body: JSON.stringify({ content: trimmed, updated_at: now }),
+    })
+    if (!rows[0]) return null
+    await supabaseFetch<unknown>(`forums_threads?id=eq.${rows[0].thread_id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ updated_at: now }),
+    })
+    const [post] = await enrichPosts([rows[0]])
+    return post
+  }
+
+  const store = await readStore()
+  const index = store.posts.findIndex(
+    (p) => p.id === postId && (asAdmin || p.author_id === requesterId)
+  )
+  if (index === -1) return null
+
+  store.posts[index] = {
+    ...store.posts[index],
+    content: trimmed,
+    updated_at: now,
+  }
+  const thread = store.threads.find((t) => t.id === store.posts[index].thread_id)
+  if (thread) thread.updated_at = now
+  await writeStore(store)
+  const [post] = await enrichPosts([store.posts[index]])
+  return post
+}
+
 export async function deletePost(
   postId: string,
   requesterId: string,

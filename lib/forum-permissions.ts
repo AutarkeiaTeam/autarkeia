@@ -1,12 +1,16 @@
 import { isAdmin } from "@/lib/profiles"
 
-export function canDeleteForumContent(
+/** Author or admin may edit/delete forum posts (and delete threads). */
+export function canModerateForumContent(
   requesterId: string | null,
   authorId: string,
   requesterIsAdmin: boolean
 ): boolean {
   return !!requesterId && (requesterId === authorId || requesterIsAdmin)
 }
+
+/** @deprecated Use canModerateForumContent */
+export const canDeleteForumContent = canModerateForumContent
 
 export async function getForumDeleteAccess(requesterId: string | null): Promise<{
   requesterId: string | null

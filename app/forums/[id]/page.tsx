@@ -2,8 +2,9 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { CATEGORIES, getThread } from "@/lib/forums-store"
 import { getUserId } from "@/lib/auth-server"
-import { canDeleteForumContent, getForumDeleteAccess } from "@/lib/forum-permissions"
-import { ReplyForm, DeletePostButton, DeleteThreadButton } from "./thread-actions"
+import { canModerateForumContent, getForumDeleteAccess } from "@/lib/forum-permissions"
+import { PostCard } from "./post-card"
+import { ReplyForm, DeleteThreadButton } from "./thread-actions"
 
 export const dynamic = "force-dynamic"
 
@@ -25,7 +26,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
   const { thread, posts } = result
   const { isAdmin: viewerIsAdmin } = await getForumDeleteAccess(viewerId)
   const category = CATEGORIES.find((c) => c.id === thread.category)
-  const canDeleteThread = canDeleteForumContent(viewerId, thread.author_id, viewerIsAdmin)
+  const canDeleteThread = canModerateForumContent(viewerId, thread.author_id, viewerIsAdmin)
 
   return (
     <main className="min-h-screen bg-white">
@@ -44,16 +45,12 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
 
         <ol className="mt-8 space-y-4">
           {posts.map((p) => (
-            <li key={p.id} className="rounded-2xl border border-[#d4dce8] bg-white p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-[#0d1b2a]">{p.author_name}</p>
-                <p className="text-[11px] text-[#8a9bb0]">{new Date(p.created_at).toLocaleString()}</p>
-              </div>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#3d5166]">{p.content}</p>
-              {canDeleteForumContent(viewerId, p.author_id, viewerIsAdmin) && (
-                <DeletePostButton postId={p.id} threadId={thread.id} />
-              )}
-            </li>
+            <PostCard
+              key={p.id}
+              post={p}
+              viewerId={viewerId}
+              viewerIsAdmin={viewerIsAdmin}
+            />
           ))}
         </ol>
 
