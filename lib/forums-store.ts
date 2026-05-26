@@ -254,31 +254,54 @@ export async function addPost(threadId: string, authorId: string, content: strin
   return post
 }
 
-export async function deleteThread(threadId: string, authorId: string): Promise<boolean> {
+export async function getPost(postId: string): Promise<ForumPostRow | null> {
   if (supabaseConfigured()) {
-    await supabaseFetch<unknown>(`forums_threads?id=eq.${threadId}&author_id=eq.${authorId}`, {
-      method: "DELETE",
-    })
-    return true
+    const rows = await supabaseFetch<ForumPostRow[]>(`forums_posts?id=eq.${postId}&select=*`)
+    return rows[0] ?? null
+  }
+  const store = await readStore()
+  return store.posts.find((p) => p.id === postId) ?? null
+}
+
+export async function deleteThread(
+  threadId: string,
+  requesterId: string,
+  asAdmin = false
+): Promise<boolean> {
+  if (supabaseConfigured()) {
+    const filter = asAdmin
+      ? `forums_threads?id=eq.${threadId}`
+      : `forums_threads?id=eq.${threadId}&author_id=eq.${requesterId}`
+    const rows = await supabaseFetch<ForumThreadRow[]>(filter, { method: "DELETE" })
+    return rows.length > 0
   }
   const store = await readStore()
   const before = store.threads.length
-  store.threads = store.threads.filter((t) => !(t.id === threadId && t.author_id === authorId))
+  store.threads = store.threads.filter(
+    (t) => !(t.id === threadId && (asAdmin || t.author_id === requesterId))
+  )
   store.posts = store.posts.filter((p) => p.thread_id !== threadId)
   await writeStore(store)
   return store.threads.length < before
 }
 
-export async function deletePost(postId: string, authorId: string): Promise<boolean> {
+export async function deletePost(
+  postId: string,
+  requesterId: string,
+  asAdmin = false
+): Promise<boolean> {
   if (supabaseConfigured()) {
-    await supabaseFetch<unknown>(`forums_posts?id=eq.${postId}&author_id=eq.${authorId}`, {
-      method: "DELETE",
-    })
-    return true
+    const filter = asAdmin
+      ? `forums_posts?id=eq.${postId}`
+      : `forums_posts?id=eq.${postId}&author_id=eq.${requesterId}`
+    const rows = await supabaseFetch<ForumPostRow[]>(filter, { method: "DELETE" })
+    return rows.length > 0
   }
   const store = await readStore()
   const before = store.posts.length
-  store.posts = store.posts.filter((p) => !(p.id === postId && p.author_id === authorId))
+  store.posts = store.posts.filter(
+    (p) => !(p.id === postId && (asAdmin || p.author_id === requesterId))
+  )
   await writeStore(store)
   return store.posts.length < before
 }

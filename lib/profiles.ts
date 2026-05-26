@@ -17,6 +17,23 @@ export type ProfileSignupFields = {
   location?: string | null
 }
 
+/** True when profiles.is_admin is set (service role read). */
+export async function isAdmin(userId: string): Promise<boolean> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", userId)
+    .maybeSingle()
+
+  if (error) {
+    console.error("isAdmin lookup failed:", error.message)
+    return false
+  }
+
+  return data?.is_admin === true
+}
+
 /** Display name for forums: "First Last", display_name, email, or fallback. */
 export function profileAuthorLabel(
   profile: Pick<ProfileAuthorFields, "first_name" | "last_name" | "email" | "display_name"> | null | undefined,

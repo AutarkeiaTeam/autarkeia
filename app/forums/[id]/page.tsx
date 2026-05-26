@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { CATEGORIES, getThread } from "@/lib/forums-store"
 import { getUserId } from "@/lib/auth-server"
+import { canDeleteForumContent, getForumDeleteAccess } from "@/lib/forum-permissions"
 import { ReplyForm, DeletePostButton, DeleteThreadButton } from "./thread-actions"
 
 export const dynamic = "force-dynamic"
@@ -22,8 +23,9 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
   if (!result) notFound()
 
   const { thread, posts } = result
+  const { isAdmin: viewerIsAdmin } = await getForumDeleteAccess(viewerId)
   const category = CATEGORIES.find((c) => c.id === thread.category)
-  const isAuthor = viewerId === thread.author_id
+  const canDeleteThread = canDeleteForumContent(viewerId, thread.author_id, viewerIsAdmin)
 
   return (
     <main className="min-h-screen bg-white">
@@ -38,7 +40,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
           Started by <span className="font-medium text-[#3d5166]">{thread.author_name}</span> ·{" "}
           {new Date(thread.created_at).toLocaleString()}
         </p>
-        {isAuthor && <DeleteThreadButton threadId={thread.id} />}
+        {canDeleteThread && <DeleteThreadButton threadId={thread.id} />}
 
         <ol className="mt-8 space-y-4">
           {posts.map((p) => (
@@ -48,7 +50,9 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
                 <p className="text-[11px] text-[#8a9bb0]">{new Date(p.created_at).toLocaleString()}</p>
               </div>
               <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#3d5166]">{p.content}</p>
-              {viewerId === p.author_id && <DeletePostButton postId={p.id} threadId={thread.id} />}
+              {canDeleteForumContent(viewerId, p.author_id, viewerIsAdmin) && (
+                <DeletePostButton postId={p.id} threadId={thread.id} />
+              )}
             </li>
           ))}
         </ol>
