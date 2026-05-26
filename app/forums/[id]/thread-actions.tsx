@@ -1,5 +1,6 @@
 "use client"
 
+import { Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { FormEvent, useState } from "react"
 
@@ -59,7 +60,7 @@ export function DeletePostButton({ postId, threadId }: { postId: string; threadI
   const [deleting, setDeleting] = useState(false)
 
   const onDelete = async () => {
-    if (!confirm("Delete this reply?")) return
+    if (!confirm("Delete this reply? This cannot be undone.")) return
     setDeleting(true)
     try {
       const res = await fetch(`/api/forums/posts/${postId}`, { method: "DELETE" })
@@ -79,9 +80,10 @@ export function DeletePostButton({ postId, threadId }: { postId: string; threadI
       type="button"
       onClick={onDelete}
       disabled={deleting}
-      className="mt-3 text-xs text-[#8a9bb0] hover:text-red-600"
+      className="mt-3 inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-60"
       data-thread={threadId}
     >
+      <Trash2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
       {deleting ? "Deleting…" : "Delete"}
     </button>
   )
@@ -92,7 +94,7 @@ export function DeleteThreadButton({ threadId }: { threadId: string }) {
   const [deleting, setDeleting] = useState(false)
 
   const onDelete = async () => {
-    if (!confirm("Delete this entire thread? This cannot be undone.")) return
+    if (!confirm("Delete this thread? This cannot be undone.")) return
     setDeleting(true)
     try {
       const res = await fetch(`/api/forums/threads/${threadId}`, { method: "DELETE" })
@@ -112,8 +114,9 @@ export function DeleteThreadButton({ threadId }: { threadId: string }) {
       type="button"
       onClick={onDelete}
       disabled={deleting}
-      className="mt-3 inline-block text-xs text-[#8a9bb0] hover:text-red-600"
+      className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
     >
+      <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
       {deleting ? "Deleting…" : "Delete thread"}
     </button>
   )
