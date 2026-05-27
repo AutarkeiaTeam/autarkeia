@@ -48,6 +48,7 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
   const hasManageableSubscription = canManageSubscription(subscriptionStatus)
   const showManageOnly = hasManageableSubscription
   const checkoutCancelled = searchParams.get("checkout") === "cancelled"
+  const fromMarketplace = searchParams.get("from") === "marketplace"
 
   const cardClass = (tier: "free" | "pro") =>
     `rounded-2xl bg-white p-6 transition-all duration-200 ${
@@ -89,6 +90,12 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
         <h1 className="text-3xl font-light text-[#0d1b2a]">{t("plans.title")}</h1>
         <p className="mt-3 text-sm text-[#3d5166]">{t("plans.sub")}</p>
 
+        {fromMarketplace && !hasActivePro && (
+          <p className="mt-4 rounded-lg border border-[#009b70] bg-[#e8f8f3] px-4 py-3 text-sm text-[#0d1b2a]">
+            Upgrade to Pro to access the marketplace — curated affiliate partners with geo-aware storefront
+            links.
+          </p>
+        )}
         {checkoutCancelled && (
           <p className="mt-4 rounded-lg border border-[#d4dce8] bg-white px-4 py-3 text-sm text-[#3d5166]">
             Checkout cancelled. You can start a free trial whenever you&apos;re ready.

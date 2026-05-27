@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import type { Tier } from "@/lib/auth-server"
 import {
+  hasActiveProSubscription,
   hasProSubscriptionStatus,
   PRO_SUBSCRIPTION_STATUSES,
   type ProSubscriptionStatus,
@@ -9,6 +10,7 @@ import {
 
 export {
   canManageSubscription,
+  hasActiveProSubscription,
   hasProSubscriptionStatus,
   PRO_SUBSCRIPTION_STATUSES,
   type ProSubscriptionStatus,
@@ -56,7 +58,7 @@ export async function getProAccess(): Promise<boolean> {
 
   if (user) {
     const profile = await getProfileSubscription(user.id)
-    if (hasProSubscriptionStatus(profile?.subscription_status)) {
+    if (hasActiveProSubscription(profile)) {
       return true
     }
 
