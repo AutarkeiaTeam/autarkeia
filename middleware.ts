@@ -5,6 +5,7 @@ const PUBLIC_PATH_PREFIXES = [
   "/api/stripe/webhook",
   "/api/community-interest/submit",
   "/api/contact/submit",
+  "/api/cron/sync-marketplace",
 ]
 
 export async function middleware(request: NextRequest) {
@@ -47,6 +48,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/stripe/webhook|api/community-interest/submit|api/contact/submit|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/stripe/webhook|api/community-interest/submit|api/contact/submit|api/cron/sync-marketplace|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }

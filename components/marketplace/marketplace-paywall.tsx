@@ -1,8 +1,15 @@
 import Link from "next/link"
-import { MARKETPLACE_CATEGORY_LABELS, marketplaceBrands } from "@/lib/marketplace-brands"
+const TEASER_CATEGORIES = [
+  "Power",
+  "Outdoor",
+  "Gardening",
+  "Water",
+  "Air Quality",
+  "Preparedness",
+]
 
 export function MarketplacePaywall() {
-  const teaserCategories = [...new Set(marketplaceBrands.map((b) => b.category))]
+  const teaserCategories = TEASER_CATEGORIES
 
   return (
     <main className="min-h-screen bg-white">
@@ -20,7 +27,7 @@ export function MarketplacePaywall() {
               key={cat}
               className="rounded-full border border-[#d4dce8] bg-[#f5f7fa] px-3 py-1 text-xs text-[#3d5166]"
             >
-              {MARKETPLACE_CATEGORY_LABELS[cat]}
+              {cat}
             </span>
           ))}
         </div>

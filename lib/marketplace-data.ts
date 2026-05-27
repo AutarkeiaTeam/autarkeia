@@ -9,6 +9,7 @@ export type MarketplaceCategory =
   | "Security"
   | "Communications"
   | "Navigation"
+  | "Air Quality"
 
 /** Chips shown at top of marketplace (Navigation products still appear under "All") */
 export const MARKETPLACE_FILTER_CATEGORIES: MarketplaceCategory[] = [
@@ -21,6 +22,7 @@ export const MARKETPLACE_FILTER_CATEGORIES: MarketplaceCategory[] = [
   "Security",
   "Communications",
   "Clothing",
+  "Air Quality",
 ]
 
 export type MarketplaceProduct = {
@@ -33,9 +35,13 @@ export type MarketplaceProduct = {
   affiliate: string
 }
 
-export type MarketplaceSeller = "Amazon"
+export type MarketplaceSeller = "Amazon" | (string & {})
 
 export const MARKETPLACE_SELLERS: MarketplaceSeller[] = ["Amazon"]
+
+export function buildMarketplaceSellers(awinSellerNames: string[]): MarketplaceSeller[] {
+  return ["Amazon", ...awinSellerNames]
+}
 
 export type MarketplaceBundle = {
   name: string
@@ -279,6 +285,28 @@ const PRODUCT_NAMES: Record<MarketplaceCategory, string[]> = {
     "Lensatic compass",
     "Clinometer pocket",
     "Declination adjustment tool",
+  ],
+  "Air Quality": [
+    "Dehumidifier compact",
+    "Crawlspace fan kit",
+    "Moisture meter",
+    "HEPA filter replacement",
+    "Air quality monitor",
+    "Mould treatment spray",
+    "Basement vent fan",
+    "Humidity data logger",
+    "Condensate pump",
+    "Vapor barrier roll",
+    "Radon test kit",
+    "Inline duct fan",
+    "Desiccant refill pack",
+    "Drain hose kit",
+    "Filter drier cartridge",
+    "Wall-mounted hygrometer",
+    "Whole-room purifier",
+    "MERV filter pack",
+    "Damp proof membrane",
+    "Air scrubber rental",
   ],
 }
 

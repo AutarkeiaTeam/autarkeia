@@ -1,24 +1,26 @@
 import type { Metadata } from "next"
-import { AffiliateMarketplaceView } from "@/components/marketplace/affiliate-marketplace-view"
 import { MarketplacePaywall } from "@/components/marketplace/marketplace-paywall"
-import { getRequestCountry } from "@/lib/geo-country"
+import { MarketplaceView } from "@/components/marketplace/marketplace-view"
 import { getMarketplaceAccess } from "@/lib/marketplace-access"
+import { listAwinMarketplaceProducts } from "@/lib/marketplace-db"
 
 export async function generateMetadata(): Promise<Metadata> {
   const hasPro = await getMarketplaceAccess()
   return {
     title: "Marketplace — Autarkeia",
-    description: "Curated affiliate partners for self-sufficiency and resilience.",
+    description: "Curated affiliate partners and preparedness gear for practical resilience.",
     ...(hasPro ? {} : { robots: { index: false, follow: false } }),
   }
 }
 
 export default async function MarketplacePage() {
-  const [hasPro, country] = await Promise.all([getMarketplaceAccess(), getRequestCountry()])
+  const hasPro = await getMarketplaceAccess()
 
   if (!hasPro) {
     return <MarketplacePaywall />
   }
 
-  return <AffiliateMarketplaceView initialCountry={country} />
+  const awinProducts = await listAwinMarketplaceProducts()
+
+  return <MarketplaceView hasPro awinProducts={awinProducts} />
 }
