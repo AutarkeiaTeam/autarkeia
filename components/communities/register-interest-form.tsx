@@ -6,18 +6,28 @@ import { LocationAutocomplete } from "@/components/communities/location-autocomp
 import { useI18n } from "@/components/i18n-provider"
 import {
   AGE_RANGES,
+  AGE_RANGE_LABEL_KEYS,
+  CLIMATE_LABEL_KEYS,
   COMMUNITY_INTENTS,
   CLIMATE_PREFERENCES,
+  DIETARY_LABEL_KEYS,
   DIETARY_PREFERENCES,
+  DISTANCE_LABEL_KEYS,
   DISTANCE_FROM_CITY,
+  ENERGY_SOURCE_LABEL_KEYS,
   ENERGY_SOURCE_OPTIONS,
   FOOD_FREQUENCIES,
   FOOD_PRODUCT_OPTIONS,
+  FOOD_PRODUCTION_LABEL_KEYS,
   FOOD_PRODUCTION_OPTIONS,
+  HOUSEHOLD_TYPE_LABEL_KEYS,
   HOUSEHOLD_TYPES,
+  INVESTMENT_LABEL_KEYS,
   INVESTMENT_CAPACITY,
+  INVESTOR_TYPE_LABEL_KEYS,
   INVESTOR_TYPES,
   LIVING_MODEL_OPTIONS,
+  MOVE_TIMELINE_LABEL_KEYS,
   MOVE_TIMELINES,
   OWNERSHIP_OPTIONS,
   type CommunityInterestInput,
@@ -93,6 +103,8 @@ export function RegisterInterestForm() {
   const requiresFoodBuyer = form.intent === "buy_food" || form.intent === "both"
   const showEnergySources = form.energyOwnership === "Resident-owned"
   const showFoodMethods = form.foodOwnership === "Resident-owned"
+  const translateError = (message: string) =>
+    message.startsWith("communities.") ? t(message) : message
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -139,7 +151,8 @@ export function RegisterInterestForm() {
       const data = (await response.json().catch(() => null)) as { error?: string; ok?: boolean }
 
       if (!response.ok) {
-        throw new Error(data?.error || t("communities.form.error_submit"))
+        const message = data?.error ? translateError(data.error) : t("communities.form.error_submit")
+        throw new Error(message)
       }
 
       setStatus("success")
@@ -195,7 +208,7 @@ export function RegisterInterestForm() {
           </option>
           {AGE_RANGES.map((option) => (
             <option key={option} value={option}>
-              {option}
+              {t(AGE_RANGE_LABEL_KEYS[option])}
             </option>
           ))}
         </select>
@@ -215,7 +228,7 @@ export function RegisterInterestForm() {
           </option>
           {HOUSEHOLD_TYPES.map((option) => (
             <option key={option} value={option}>
-              {option}
+              {t(HOUSEHOLD_TYPE_LABEL_KEYS[option])}
             </option>
           ))}
         </select>
@@ -281,7 +294,7 @@ export function RegisterInterestForm() {
             </option>
             {CLIMATE_PREFERENCES.map((option) => (
               <option key={option} value={option}>
-                {option}
+                {t(CLIMATE_LABEL_KEYS[option])}
               </option>
             ))}
           </select>
@@ -301,7 +314,7 @@ export function RegisterInterestForm() {
             </option>
             {DISTANCE_FROM_CITY.map((option) => (
               <option key={option} value={option}>
-                {option}
+                {t(DISTANCE_LABEL_KEYS[option])}
               </option>
             ))}
           </select>
@@ -323,8 +336,8 @@ export function RegisterInterestForm() {
                 onChange={() => setForm((prev) => ({ ...prev, livingModel: option.value }))}
               />
               <span className="text-sm text-[#3d5166]">
-                <span className="font-medium text-[#0d1b2a]">{option.value}</span>
-                <span className="mt-0.5 block">{option.description}</span>
+                <span className="font-medium text-[#0d1b2a]">{t(option.labelKey)}</span>
+                <span className="mt-0.5 block">{t(option.descriptionKey)}</span>
               </span>
             </label>
           ))}
@@ -354,8 +367,8 @@ export function RegisterInterestForm() {
                 }
               />
               <span className="text-sm text-[#3d5166]">
-                <span className="font-medium text-[#0d1b2a]">{option.value}</span>
-                <span className="mt-0.5 block">{option.energyDescription}</span>
+                <span className="font-medium text-[#0d1b2a]">{t(option.labelKey)}</span>
+                <span className="mt-0.5 block">{option.energyDescriptionKey ? t(option.energyDescriptionKey) : ""}</span>
               </span>
             </label>
           ))}
@@ -381,7 +394,7 @@ export function RegisterInterestForm() {
                     }))
                   }
                 />
-                {option}
+                {t(ENERGY_SOURCE_LABEL_KEYS[option])}
               </label>
             ))}
           </fieldset>
@@ -411,8 +424,8 @@ export function RegisterInterestForm() {
                 }
               />
               <span className="text-sm text-[#3d5166]">
-                <span className="font-medium text-[#0d1b2a]">{option.value}</span>
-                <span className="mt-0.5 block">{option.foodDescription}</span>
+                <span className="font-medium text-[#0d1b2a]">{t(option.labelKey)}</span>
+                <span className="mt-0.5 block">{option.foodDescriptionKey ? t(option.foodDescriptionKey) : ""}</span>
               </span>
             </label>
           ))}
@@ -438,7 +451,7 @@ export function RegisterInterestForm() {
                     }))
                   }
                 />
-                {option}
+                {t(FOOD_PRODUCTION_LABEL_KEYS[option])}
               </label>
             ))}
           </fieldset>
@@ -457,7 +470,7 @@ export function RegisterInterestForm() {
                 checked={form.dietaryPreference === option}
                 onChange={() => setForm((prev) => ({ ...prev, dietaryPreference: option }))}
               />
-              {option}
+              {t(DIETARY_LABEL_KEYS[option])}
             </label>
           ))}
         </fieldset>
@@ -526,7 +539,7 @@ export function RegisterInterestForm() {
           </option>
           {INVESTMENT_CAPACITY.map((option) => (
             <option key={option} value={option}>
-              {option}
+              {t(INVESTMENT_LABEL_KEYS[option])}
             </option>
           ))}
         </select>
@@ -546,7 +559,7 @@ export function RegisterInterestForm() {
           </option>
           {INVESTOR_TYPES.map((option) => (
             <option key={option} value={option}>
-              {option}
+              {t(INVESTOR_TYPE_LABEL_KEYS[option])}
             </option>
           ))}
         </select>
@@ -566,7 +579,7 @@ export function RegisterInterestForm() {
           </option>
           {MOVE_TIMELINES.map((option) => (
             <option key={option} value={option}>
-              {option}
+              {t(MOVE_TIMELINE_LABEL_KEYS[option])}
             </option>
           ))}
         </select>

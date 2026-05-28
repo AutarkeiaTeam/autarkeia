@@ -67,6 +67,85 @@ export const FOOD_PRODUCT_OPTIONS = [
 ] as const
 export const FOOD_FREQUENCIES = ["Weekly", "Monthly", "Yearly"] as const
 
+export const AGE_RANGE_LABEL_KEYS: Record<(typeof AGE_RANGES)[number], string> = {
+  "18-25": "communities.form.option.age.18-25",
+  "26-35": "communities.form.option.age.26-35",
+  "36-45": "communities.form.option.age.36-45",
+  "46-55": "communities.form.option.age.46-55",
+  "55+": "communities.form.option.age.55+",
+}
+
+export const HOUSEHOLD_TYPE_LABEL_KEYS: Record<(typeof HOUSEHOLD_TYPES)[number], string> = {
+  single: "communities.form.option.household.single",
+  couple: "communities.form.option.household.couple",
+  "family with children": "communities.form.option.household.family_with_children",
+  "group of friends": "communities.form.option.household.group_of_friends",
+  other: "communities.form.option.household.other",
+}
+
+export const CLIMATE_LABEL_KEYS: Record<(typeof CLIMATE_PREFERENCES)[number], string> = {
+  Mediterranean: "communities.form.option.climate.mediterranean",
+  Temperate: "communities.form.option.climate.temperate",
+  Tropical: "communities.form.option.climate.tropical",
+  Cold: "communities.form.option.climate.cold",
+  Any: "communities.form.option.climate.any",
+}
+
+export const DISTANCE_LABEL_KEYS: Record<(typeof DISTANCE_FROM_CITY)[number], string> = {
+  "Within 30min": "communities.form.option.distance.within_30",
+  "30-60min": "communities.form.option.distance.30_60",
+  "1-2 hours": "communities.form.option.distance.1_2_hours",
+  "Remote is fine": "communities.form.option.distance.remote_ok",
+}
+
+export const INVESTMENT_LABEL_KEYS: Record<(typeof INVESTMENT_CAPACITY)[number], string> = {
+  "Under €50k": "communities.form.option.investment.under_50k",
+  "€50k-€150k": "communities.form.option.investment.50k_150k",
+  "€150k-€500k": "communities.form.option.investment.150k_500k",
+  "€500k-€1M": "communities.form.option.investment.500k_1m",
+  "Over €1M": "communities.form.option.investment.over_1m",
+  "I want to rent not buy": "communities.form.option.investment.rent_not_buy",
+}
+
+export const INVESTOR_TYPE_LABEL_KEYS: Record<(typeof INVESTOR_TYPES)[number], string> = {
+  "Individual/family": "communities.form.option.investor.individual_family",
+  "Group of friends": "communities.form.option.investor.group_of_friends",
+  "Small investor group": "communities.form.option.investor.small_group",
+  "Institutional/fund": "communities.form.option.investor.institutional_fund",
+  "Not sure yet": "communities.form.option.investor.not_sure",
+}
+
+export const MOVE_TIMELINE_LABEL_KEYS: Record<(typeof MOVE_TIMELINES)[number], string> = {
+  "As soon as possible": "communities.form.option.timeline.asap",
+  "1-2 years": "communities.form.option.timeline.1_2",
+  "3-5 years": "communities.form.option.timeline.3_5",
+  "5+ years": "communities.form.option.timeline.5_plus",
+  "Just exploring": "communities.form.option.timeline.exploring",
+}
+
+export const ENERGY_SOURCE_LABEL_KEYS: Record<(typeof ENERGY_SOURCE_OPTIONS)[number], string> = {
+  Solar: "communities.form.option.energy_source.solar",
+  Wind: "communities.form.option.energy_source.wind",
+  "Micro-hydro": "communities.form.option.energy_source.micro_hydro",
+  "Combined off-grid": "communities.form.option.energy_source.combined_off_grid",
+  "Combined on-grid": "communities.form.option.energy_source.combined_on_grid",
+}
+
+export const FOOD_PRODUCTION_LABEL_KEYS: Record<(typeof FOOD_PRODUCTION_OPTIONS)[number], string> = {
+  "Permaculture food forest": "communities.form.option.food_production.permaculture_forest",
+  "Annual vegetable gardens": "communities.form.option.food_production.annual_gardens",
+  "Greenhouses and aquaponics": "communities.form.option.food_production.greenhouses_aquaponics",
+  "Livestock and dairy": "communities.form.option.food_production.livestock_dairy",
+  "Foraging and wild edibles": "communities.form.option.food_production.foraging_wild",
+}
+
+export const DIETARY_LABEL_KEYS: Record<(typeof DIETARY_PREFERENCES)[number], string> = {
+  "Omnivore-friendly": "communities.form.option.dietary.omnivore",
+  "Vegetarian-only": "communities.form.option.dietary.vegetarian",
+  "Vegan-only": "communities.form.option.dietary.vegan",
+  "No preference": "communities.form.option.dietary.none",
+}
+
 export const LIVING_MODELS = [
   "Single family plot",
   "Coliving",
@@ -100,40 +179,43 @@ export const DIETARY_PREFERENCES = [
 
 export const LIVING_MODEL_OPTIONS: ReadonlyArray<{
   value: (typeof LIVING_MODELS)[number]
-  description: string
+  labelKey: string
+  descriptionKey: string
 }> = [
   {
     value: "Single family plot",
-    description: "One house on your own private property.",
+    labelKey: "communities.form.option.living_model.single_family_plot.label",
+    descriptionKey: "communities.form.option.living_model.single_family_plot.description",
   },
   {
     value: "Coliving",
-    description:
-      "Shared property with a group, either one single house together or multiple separate houses.",
+    labelKey: "communities.form.option.living_model.coliving.label",
+    descriptionKey: "communities.form.option.living_model.coliving.description",
   },
   {
     value: "Communal living",
-    description:
-      "Shared central building (bunkbeds, hammocks or private rooms), with the option to build your own subplot home together with the community. Lower entry cost, more shared labor.",
+    labelKey: "communities.form.option.living_model.communal_living.label",
+    descriptionKey: "communities.form.option.living_model.communal_living.description",
   },
 ]
 
 export const OWNERSHIP_OPTIONS: ReadonlyArray<{
   value: (typeof OWNERSHIP_MODELS)[number]
-  energyDescription?: string
-  foodDescription?: string
+  labelKey: string
+  energyDescriptionKey?: string
+  foodDescriptionKey?: string
 }> = [
   {
     value: "Resident-owned",
-    energyDescription: "Autarkeia sets it up, you own and run it.",
-    foodDescription: "Autarkeia sets it up, you own and run it.",
+    labelKey: "communities.form.option.ownership.resident_owned.label",
+    energyDescriptionKey: "communities.form.option.ownership.resident_owned.energy_description",
+    foodDescriptionKey: "communities.form.option.ownership.resident_owned.food_description",
   },
   {
     value: "Autarkeia-managed",
-    energyDescription:
-      "Hybrid renewable system connected to the grid. You pay a monthly or yearly fee.",
-    foodDescription:
-      "Varied supply of grains, vegetables, fruit and animal products produced by Autarkeia. You pay a monthly or yearly fee.",
+    labelKey: "communities.form.option.ownership.autarkeia_managed.label",
+    energyDescriptionKey: "communities.form.option.ownership.autarkeia_managed.energy_description",
+    foodDescriptionKey: "communities.form.option.ownership.autarkeia_managed.food_description",
   },
 ]
 
@@ -149,7 +231,7 @@ export const communityInterestSchema = z
     householdType: z.enum(HOUSEHOLD_TYPES),
     preferredLocations: z
       .array(preferredLocationSchema)
-      .min(1, "Add at least one preferred location from the suggestions")
+      .min(1, "communities.validation.add_location")
       .max(10),
     climatePreference: z.enum(CLIMATE_PREFERENCES),
     distanceFromCity: z.enum(DISTANCE_FROM_CITY),
@@ -189,7 +271,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["livingModel"],
-          message: "Select your preferred living model",
+          message: "communities.validation.living_model_required",
         })
       }
 
@@ -197,7 +279,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["energyOwnership"],
-          message: "Select your preferred energy ownership setup",
+          message: "communities.validation.energy_ownership_required",
         })
       }
 
@@ -205,7 +287,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["foodOwnership"],
-          message: "Select your preferred food ownership setup",
+          message: "communities.validation.food_ownership_required",
         })
       }
 
@@ -213,7 +295,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["dietaryPreference"],
-          message: "Select a dietary preference",
+          message: "communities.validation.dietary_required",
         })
       }
 
@@ -221,7 +303,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["energyPreferences"],
-          message: "Select at least one preferred energy source",
+          message: "communities.validation.energy_source_required",
         })
       }
 
@@ -229,7 +311,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["foodPreferences"],
-          message: "Select at least one preferred food production method",
+          message: "communities.validation.food_method_required",
         })
       }
 
@@ -237,7 +319,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["climatePreference"],
-          message: "Select a climate preference",
+          message: "communities.validation.climate_required",
         })
       }
 
@@ -245,7 +327,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["distanceFromCity"],
-          message: "Select a preferred distance from city",
+          message: "communities.validation.distance_required",
         })
       }
 
@@ -253,7 +335,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["investmentCapacity"],
-          message: "Select an investment capacity",
+          message: "communities.validation.investment_required",
         })
       }
 
@@ -261,7 +343,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["investorType"],
-          message: "Select an investor type",
+          message: "communities.validation.investor_required",
         })
       }
 
@@ -269,7 +351,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["moveTimeline"],
-          message: "Select a move timeline",
+          message: "communities.validation.timeline_required",
         })
       }
     }
@@ -279,7 +361,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["foodProducts"],
-          message: "Select at least one product",
+          message: "communities.validation.food_products_required",
         })
       }
 
@@ -287,7 +369,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["foodFrequency"],
-          message: "Select a purchase frequency",
+          message: "communities.validation.food_frequency_required",
         })
       }
     }
@@ -297,7 +379,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["energyPreferences"],
-          message: "Energy sources are only applicable for resident-focused submissions",
+          message: "communities.validation.energy_sources_not_applicable",
         })
       }
 
@@ -305,7 +387,7 @@ export const communityInterestSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["foodPreferences"],
-          message: "Food production methods are only applicable for resident-focused submissions",
+          message: "communities.validation.food_methods_not_applicable",
         })
       }
     }
@@ -314,7 +396,7 @@ export const communityInterestSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["foodProducts"],
-        message: "Food buyer fields are only applicable for food-buyer submissions",
+        message: "communities.validation.food_fields_not_applicable",
       })
     }
   })

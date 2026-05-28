@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const parsed = communityInterestSchema.safeParse(json)
 
     if (!parsed.success) {
-      const message = parsed.error.errors.map((e) => e.message).join("; ") || "Invalid form data"
+      const message = parsed.error.errors[0]?.message || "communities.validation.invalid_form_data"
       return NextResponse.json({ error: message }, { status: 400 })
     }
 
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     if (insertError) {
       console.error("community_interest insert failed:", insertError.message)
       return NextResponse.json(
-        { error: "Could not save your submission. Please try again." },
+        { error: "communities.validation.submit_save_failed" },
         { status: 500 }
       )
     }
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("community-interest submit error:", err)
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Submission failed" },
+      { error: err instanceof Error ? err.message : "communities.validation.submit_failed" },
       { status: 500 }
     )
   }

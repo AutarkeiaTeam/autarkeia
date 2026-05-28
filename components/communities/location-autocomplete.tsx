@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useId, useRef, useState } from "react"
+import { useI18n } from "@/components/i18n-provider"
 import {
   locationKey,
   preferredLocationDisplayLabel,
@@ -28,6 +29,7 @@ export function LocationAutocomplete({
   onChange,
   disabled = false,
 }: Props) {
+  const { t } = useI18n()
   const listboxId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
   const [query, setQuery] = useState("")
@@ -89,14 +91,14 @@ export function LocationAutocomplete({
       } catch (err) {
         console.error("[location-autocomplete] search failed:", err)
         setSuggestions([])
-        setSearchError("Could not load suggestions. Try again.")
+        setSearchError(t("communities.form.location.error_load_suggestions"))
       } finally {
         setIsSearching(false)
       }
     }, 250)
 
     return () => window.clearTimeout(handle)
-  }, [query, locations])
+  }, [query, locations, t])
 
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
@@ -116,8 +118,8 @@ export function LocationAutocomplete({
           className={inputClass}
           placeholder={
             atLimit
-              ? "Maximum locations selected"
-              : "Search for a city, region, or country…"
+              ? t("communities.form.location.max_selected")
+              : t("communities.form.location.search_placeholder")
           }
           value={query}
           disabled={disabled || atLimit}
@@ -144,7 +146,7 @@ export function LocationAutocomplete({
         />
         {isSearching && (
           <p className="pointer-events-none absolute right-3 top-3 text-xs text-[#8a9bb0]">
-            Searching…
+            {t("communities.form.location.searching")}
           </p>
         )}
         {isOpen && !atLimit && (suggestions.length > 0 || searchError) && (
@@ -183,8 +185,7 @@ export function LocationAutocomplete({
       </div>
 
       <p className="text-xs text-[#8a9bb0]">
-        Pick locations from the suggestions (at least 2 characters). Free-text entries are not
-        saved.
+        {t("communities.form.location.helper")}
       </p>
 
       <div className="flex flex-wrap gap-2">
