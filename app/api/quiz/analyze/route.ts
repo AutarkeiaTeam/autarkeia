@@ -1,6 +1,7 @@
 import type { QuizType, QuizAnswers } from '@/lib/quiz-data'
 import { getQuizConfig } from '@/lib/quiz-data'
 import { parseAcceptLanguage, translate, type Locale } from '@/lib/i18n-core'
+import { scoreQuiz } from '@/lib/quiz-scoring'
 
 function formatAnswersForPrompt(quizType: QuizType, answers: QuizAnswers): string {
   const config = getQuizConfig(quizType)
@@ -31,24 +32,7 @@ function t(locale: Locale, key: string): string {
 }
 
 function buildFallback(locale: Locale, quizType: QuizType) {
-  const fallbackByCategory: Record<string, number> = {
-    Food: 30,
-    Water: 40,
-    Energy: 35,
-    Shelter: 40,
-    Skills: 25,
-    Medical: 35,
-    Power: 30,
-    Communication: 28,
-  }
-  const category_scores = Object.fromEntries(
-    getQuizConfig(quizType).categories.map((category) => [category, fallbackByCategory[category] ?? 30])
-  )
-
   return {
-    overall_score: 35,
-    category_scores,
-    score_label: t(locale, 'quiz.fallback.score_label'),
     action_plan: {
       week: [
         { title: t(locale, 'quiz.fallback.week.1.title'), description: t(locale, 'quiz.fallback.week.1.description'), estimated_cost: '€15-25', priority: 'high' },
@@ -78,17 +62,36 @@ function buildFallback(locale: Locale, quizType: QuizType) {
 }
 
 export async function POST(req: Request) {
+  let requestQuizType: QuizType = 'self-sufficiency'
+  let requestAnswers: QuizAnswers = {}
   try {
     const locale = parseAcceptLanguage(req.headers.get('accept-language'))
     const { quizType, answers } = await req.json() as {
       quizType: QuizType
       answers: QuizAnswers
     }
+    requestQuizType = quizType
+    requestAnswers = answers
     const config = getQuizConfig(quizType)
+    const deterministic = scoreQuiz(quizType, answers)
     const formattedAnswers = formatAnswersForPrompt(quizType, answers)
-    const systemPrompt = `You are Autarkeia's AI analyst. Analyse these quiz answers and return ONLY raw JSON with no markdown or backticks. The JSON must have: overall_score (integer 0-92), category_scores (object with keys: ${config.categories.join(', ')} each value 0-100), score_label (one of: Just getting started, Early stage, Moderately self-sufficient, Highly self-sufficient), action_plan (object with week/month/year arrays each with exactly 3 items having title/description/estimated_cost/priority as high or medium or low), product_recommendations (array of exactly 6 items with category/name/why/estimated_price). Be specific to the user location and situation. Never exceed 92 for overall_score.`
+    const systemPrompt = `You are Autarkeia's AI advisor. Return ONLY raw JSON with no markdown or backticks. The JSON must have: action_plan (object with week/month/year arrays each with exactly 3 items having title/description/estimated_cost/priority as high or medium or low), product_recommendations (array of exactly 6 items with category/name/why/estimated_price). Do NOT include score fields. The score is already computed deterministically and you must align recommendations with it.`
+    const scoreContext = JSON.stringify({
+      overall_score: deterministic.overall_score,
+      category_scores: deterministic.category_scores,
+      score_label: deterministic.score_label,
+    })
 
     const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
+    const fallbackAdvice = buildFallback(locale, quizType)
+    if (!apiKey) {
+      return Response.json({
+        result: {
+          ...deterministic,
+          ...fallbackAdvice,
+        },
+      })
+    }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -98,37 +101,77 @@ export async function POST(req: Request) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 4000,
+        model: 'claude-3-5-haiku-latest',
+        max_tokens: 2200,
         system: systemPrompt,
-        messages: [{ role: 'user', content: formattedAnswers }],
+        messages: [{ role: 'user', content: `Computed score context:\n${scoreContext}\n\nUser answers:\n${formattedAnswers}` }],
       }),
     })
 
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Anthropic API error:', response.status, errorText)
-      return Response.json({ result: buildFallback(locale, quizType) })
+      return Response.json({
+        result: {
+          ...deterministic,
+          ...fallbackAdvice,
+        },
+      })
     }
 
     const data = await response.json()
     const content = data.content?.[0]
     if (!content || content.type !== 'text') {
-      return Response.json({ result: buildFallback(locale, quizType) })
+      return Response.json({
+        result: {
+          ...deterministic,
+          ...fallbackAdvice,
+        },
+      })
     }
 
     const text = content.text.trim()
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      return Response.json({ result: buildFallback(locale, quizType) })
+      return Response.json({
+        result: {
+          ...deterministic,
+          ...fallbackAdvice,
+        },
+      })
     }
 
-    const result = JSON.parse(jsonMatch[0])
-    return Response.json({ result })
+    const aiResult = JSON.parse(jsonMatch[0]) as {
+      action_plan?: unknown
+      product_recommendations?: unknown
+    }
+
+    if (!aiResult.action_plan || !aiResult.product_recommendations) {
+      return Response.json({
+        result: {
+          ...deterministic,
+          ...fallbackAdvice,
+        },
+      })
+    }
+
+    return Response.json({
+      result: {
+        ...deterministic,
+        action_plan: aiResult.action_plan,
+        product_recommendations: aiResult.product_recommendations,
+      },
+    })
 
   } catch (error) {
     console.error('Quiz analysis error:', error)
     const locale = parseAcceptLanguage(req.headers.get('accept-language'))
-    return Response.json({ result: buildFallback(locale, 'self-sufficiency') })
+    const deterministic = scoreQuiz(requestQuizType, requestAnswers)
+    return Response.json({
+      result: {
+        ...deterministic,
+        ...buildFallback(locale, requestQuizType),
+      },
+    })
   }
 }
