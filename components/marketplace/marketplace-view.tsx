@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   BatteryCharging,
   ChevronDown,
@@ -63,6 +63,28 @@ export function MarketplaceView({ hasPro, awinProducts }: Props) {
   const [productsOpen, setProductsOpen] = useState(true)
   const [bundlesOpen, setBundlesOpen] = useState(false)
 
+  const visibleProducts = useMemo(
+    () =>
+      hasPro
+        ? [...marketplaceProducts, ...awinProducts]
+        : marketplaceProducts,
+    [hasPro, awinProducts]
+  )
+
+  const availableCategories = useMemo(
+    () =>
+      MARKETPLACE_FILTER_CATEGORIES.filter((cat) =>
+        visibleProducts.some((p) => p.category === cat)
+      ),
+    [visibleProducts]
+  )
+
+  useEffect(() => {
+    if (active !== "All" && !availableCategories.includes(active)) {
+      setActive("All")
+    }
+  }, [active, availableCategories])
+
   const allSellers = useMemo(
     () => (hasPro ? buildMarketplaceSellers(getAwinSellerDisplayNames()) : ["Amazon"]),
     [hasPro]
@@ -101,7 +123,7 @@ export function MarketplaceView({ hasPro, awinProducts }: Props) {
           </p>
           <div className="flex flex-wrap gap-2">
             <CategoryPill label="All" active={active === "All"} onClick={() => setActive("All")} />
-            {MARKETPLACE_FILTER_CATEGORIES.map((cat) => (
+            {availableCategories.map((cat) => (
               <CategoryPill
                 key={cat}
                 label={cat}
