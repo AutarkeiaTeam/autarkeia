@@ -1,0 +1,24 @@
+---
+description: Require English + Spanish translations for all user-facing text
+alwaysApply: true
+---
+
+# i18n — English + Spanish
+
+**TRANSLATION REQUIREMENT — applies to every change:**
+
+Whenever you add, edit, or remove any user-facing text anywhere in the app, you MUST update both `locales/en.json` and `locales/es.json` in the same change. Never hardcode user-facing English strings directly in components — always use a translation key via the `t()` function. Every new key added to `en.json` must have a matching Spanish translation added to `es.json`. Before considering any task complete, verify that no user-facing string was left untranslated and that `en.json` and `es.json` have identical key structures. This applies to: page content, buttons, form labels, placeholders, error messages, toasts, email templates, metadata, and any other text a user can see.
+
+## How this project implements i18n
+
+- **Dictionaries:** flat keys in `locales/en.json` (canonical) and `locales/es.json`.
+- **Client components:** `const { t } = useI18n()` from `@/components/i18n-provider`.
+- **Server components:** `getLocale()` from `@/lib/i18n-server` and `translate(locale, key)` from `@/lib/i18n-core`.
+- **Key naming:** dot-separated namespaces (e.g. `home.hero_title`, `nav.sign_in`, `quiz.flow.next`).
+- **Fallback:** missing Spanish keys fall back to English at runtime — still add Spanish for every new key before shipping.
+
+## Completion checklist
+
+1. New or changed copy uses `t("...")` / `translate(...)`, not literal strings in JSX.
+2. Same keys exist in `en.json` and `es.json` with Spanish values in `es.json`.
+3. Key sets in both locale files match (no orphans on either side).
