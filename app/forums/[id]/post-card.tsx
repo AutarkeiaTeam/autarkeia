@@ -3,9 +3,11 @@
 import { MoreVertical } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
+import { useI18n } from "@/components/i18n-provider"
 import type { ForumPost } from "@/lib/forums-store"
 import { canModerateForumContent } from "@/lib/forum-permissions"
 import { postWasEdited } from "@/lib/forums-post"
+import { formatRelativeTime } from "@/lib/relative-time"
 
 type PostCardProps = {
   post: ForumPost
@@ -14,6 +16,7 @@ type PostCardProps = {
 }
 
 export function PostCard({ post: initialPost, viewerId, viewerIsAdmin }: PostCardProps) {
+  const { locale, t } = useI18n()
   const router = useRouter()
   const menuRef = useRef<HTMLDivElement>(null)
   const [post, setPost] = useState(initialPost)
@@ -26,6 +29,8 @@ export function PostCard({ post: initialPost, viewerId, viewerIsAdmin }: PostCar
 
   const canModerate = canModerateForumContent(viewerId, post.author_id, viewerIsAdmin)
   const edited = postWasEdited(post.created_at, post.updated_at)
+  const translateError = (message: string) =>
+    message.startsWith("forums.") ? t(message) : message
 
   useEffect(() => {
     setPost(initialPost)
@@ -75,12 +80,12 @@ export function PostCard({ post: initialPost, viewerId, viewerIsAdmin }: PostCar
         body: JSON.stringify({ content: draft }),
       })
       const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error || "Could not save reply")
+      if (!res.ok) throw new Error(data.error || "forums.error.save_reply_failed")
       if (data.post) setPost(data.post)
       setEditing(false)
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save reply")
+      setError(err instanceof Error ? translateError(err.message) : t("forums.error.save_reply_failed"))
     } finally {
       setSaving(false)
     }
@@ -88,13 +93,14 @@ export function PostCard({ post: initialPost, viewerId, viewerIsAdmin }: PostCar
 
   const onDelete = async () => {
     setMenuOpen(false)
-    if (!confirm("Delete this reply? This cannot be undone.")) return
+    if (!confirm(t("forums.post.delete_confirm"))) return
     setDeleting(true)
     try {
       const res = await fetch(`/api/forums/posts/${post.id}`, { method: "DELETE" })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        alert(data.error || "Could not delete reply")
+        const message = typeof data.error === "string" ? data.error : "forums.error.delete_reply_failed"
+        alert(translateError(message))
         return
       }
       router.refresh()
@@ -109,7 +115,7 @@ export function PostCard({ post: initialPost, viewerId, viewerIsAdmin }: PostCar
         <div ref={menuRef} className="absolute right-3 top-3">
           <button
             type="button"
-            aria-label="Post options"
+            aria-label={t("forums.post.options")}
             aria-expanded={menuOpen}
             aria-haspopup="menu"
             onClick={() => setMenuOpen((open) => !open)}
@@ -128,7 +134,7 @@ export function PostCard({ post: initialPost, viewerId, viewerIsAdmin }: PostCar
                 onClick={startEdit}
                 className="block w-full px-3 py-1.5 text-left text-sm text-[#3d5166] hover:bg-[#f5f7fa]"
               >
-                Edit
+                {t("forums.post.edit")}
               </button>
               <button
                 type="button"
@@ -137,7 +143,7 @@ export function PostCard({ post: initialPost, viewerId, viewerIsAdmin }: PostCar
                 disabled={deleting}
                 className="block w-full px-3 py-1.5 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-60"
               >
-                {deleting ? "Deleting…" : "Delete"}
+                {deleting ? t("forums.post.deleting") : t("forums.post.delete")}
               </button>
             </div>
           )}
@@ -145,10 +151,12 @@ export function PostCard({ post: initialPost, viewerId, viewerIsAdmin }: PostCar
       )}
 
       <div className="flex items-center justify-between gap-4 pr-2">
-        <p className="text-xs font-medium text-[#0d1b2a]">{post.author_name}</p>
+        <p className="text-xs font-medium text-[#0d1b2a]">
+          {post.author_name === "forums.member_fallback" ? t("forums.member_fallback") : post.author_name}
+        </p>
         <p className="shrink-0 text-[11px] text-[#8a9bb0]">
-          {new Date(post.created_at).toLocaleString()}
-          {edited && <span className="ml-1 text-[#8a9bb0]">(edited)</span>}
+          {formatRelativeTime(post.created_at, locale)}
+          {edited && <span className="ml-1 text-[#8a9bb0]">{t("forums.post.edited")}</span>}
         </p>
       </div>
 
@@ -170,7 +178,7 @@ export function PostCard({ post: initialPost, viewerId, viewerIsAdmin }: PostCar
               disabled={saving || draft.trim().length < 2}
               className="rounded-lg bg-[#009b70] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#007a58] disabled:opacity-60"
             >
-              {saving ? "Saving…" : "Save"}
+              {saving ? t("forums.post.saving") : t("forums.post.save")}
             </button>
             <button
               type="button"
@@ -178,7 +186,7 @@ export function PostCard({ post: initialPost, viewerId, viewerIsAdmin }: PostCar
               disabled={saving}
               className="rounded-lg border border-[#d4dce8] px-3 py-1.5 text-sm text-[#3d5166] hover:bg-[#f5f7fa] disabled:opacity-60"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </div>

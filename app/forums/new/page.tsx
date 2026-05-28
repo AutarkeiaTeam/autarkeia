@@ -3,16 +3,11 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { FormEvent, Suspense, useEffect, useState } from "react"
-
-const CATEGORIES = [
-  { id: "housing-land", name: "Housing & Land" },
-  { id: "food-systems", name: "Food Systems" },
-  { id: "energy-water", name: "Energy & Water" },
-  { id: "governance", name: "Governance" },
-  { id: "general", name: "General" },
-]
+import { useI18n } from "@/components/i18n-provider"
+import { CATEGORIES } from "@/lib/forums-store"
 
 function NewThreadPageInner() {
+  const { t } = useI18n()
   const router = useRouter()
   const params = useSearchParams()
   const presetCategory = params.get("category") ?? "general"
@@ -23,6 +18,8 @@ function NewThreadPageInner() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [authed, setAuthed] = useState(false)
+  const translateError = (message: string) =>
+    message.startsWith("forums.") ? t(message) : message
 
   useEffect(() => {
     if (typeof document === "undefined") return
@@ -45,11 +42,11 @@ function NewThreadPageInner() {
       })
       const data = await res.json()
       if (!res.ok) {
-        throw new Error(data.error || "Could not create thread")
+        throw new Error(data.error || "forums.error.create_thread_failed")
       }
       router.push(`/forums/${data.thread.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error")
+      setError(err instanceof Error ? translateError(err.message) : t("forums.error.unknown"))
     } finally {
       setSubmitting(false)
     }
@@ -60,17 +57,17 @@ function NewThreadPageInner() {
       <main className="min-h-screen bg-[#f5f7fa]">
         <div className="mx-auto max-w-2xl px-4 py-20 lg:px-8">
           <Link href="/forums" className="text-sm text-[#009b70]">
-            ← Forums
+            {t("forums.back")}
           </Link>
-          <h1 className="mt-6 text-3xl font-light text-[#0d1b2a]">Sign in to start a discussion</h1>
+          <h1 className="mt-6 text-3xl font-light text-[#0d1b2a]">{t("forums.new.sign_in_heading")}</h1>
           <p className="mt-3 text-sm text-[#3d5166]">
-            Reading is open to everyone; posting requires an account so threads can be moderated.
+            {t("forums.new.sign_in_copy")}
           </p>
           <Link
             href="/login"
             className="mt-6 inline-block rounded-lg bg-[#009b70] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#007a58]"
           >
-            Sign in →
+            {t("forums.sign_in_arrow")}
           </Link>
         </div>
       </main>
@@ -81,35 +78,35 @@ function NewThreadPageInner() {
     <main className="min-h-screen bg-[#f5f7fa]">
       <div className="mx-auto max-w-2xl px-4 py-14 lg:px-8">
         <Link href="/forums" className="text-sm text-[#009b70]">
-          ← Forums
+          {t("forums.back")}
         </Link>
-        <h1 className="mt-6 text-3xl font-light text-[#0d1b2a]">New discussion</h1>
+        <h1 className="mt-6 text-3xl font-light text-[#0d1b2a]">{t("forums.new.heading")}</h1>
 
         <form onSubmit={submit} className="mt-8 space-y-5 rounded-2xl border border-[#d4dce8] bg-white p-6">
           <div>
-            <label className="block text-xs font-medium text-[#3d5166]">Title</label>
+            <label className="block text-xs font-medium text-[#3d5166]">{t("forums.new.title_label")}</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="mt-1 w-full rounded-lg border border-[#d4dce8] p-3 text-sm outline-none focus:border-[#009b70]"
-              placeholder="A short, specific title"
+              placeholder={t("forums.new.title_placeholder")}
               required
               minLength={4}
               maxLength={200}
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#3d5166]">Short description (optional)</label>
+            <label className="block text-xs font-medium text-[#3d5166]">{t("forums.new.description_label")}</label>
             <input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="mt-1 w-full rounded-lg border border-[#d4dce8] p-3 text-sm outline-none focus:border-[#009b70]"
-              placeholder="One sentence to help others decide if it's for them"
+              placeholder={t("forums.new.description_placeholder")}
               maxLength={500}
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#3d5166]">Category</label>
+            <label className="block text-xs font-medium text-[#3d5166]">{t("forums.new.category_label")}</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -117,13 +114,13 @@ function NewThreadPageInner() {
             >
               {CATEGORIES.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name}
+                  {t(`forums.category.${c.id}.name`)}
                 </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#3d5166]">First post</label>
+            <label className="block text-xs font-medium text-[#3d5166]">{t("forums.new.first_post_label")}</label>
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
@@ -131,7 +128,7 @@ function NewThreadPageInner() {
               rows={8}
               required
               minLength={4}
-              placeholder="Share your situation, question, or proposal. Specifics get better replies."
+              placeholder={t("forums.new.first_post_placeholder")}
             />
           </div>
           {error && <p className="text-xs text-red-600">{error}</p>}
@@ -140,7 +137,7 @@ function NewThreadPageInner() {
             disabled={submitting}
             className="rounded-lg bg-[#009b70] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#007a58] disabled:opacity-60"
           >
-            {submitting ? "Creating…" : "Create discussion"}
+            {submitting ? t("forums.new.creating") : t("forums.new.create_cta")}
           </button>
         </form>
       </div>
@@ -150,8 +147,13 @@ function NewThreadPageInner() {
 
 export default function NewThreadPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<NewThreadFallback />}>
       <NewThreadPageInner />
     </Suspense>
   )
+}
+
+function NewThreadFallback() {
+  const { t } = useI18n()
+  return <div>{t("forums.loading")}</div>
 }

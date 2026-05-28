@@ -4,43 +4,45 @@ import { CATEGORIES, listThreads } from "@/lib/forums-store"
 import { isAuthenticated } from "@/lib/auth-server"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
+import { formatRelativeTime } from "@/lib/relative-time"
 
-export const metadata = {
-  title: "Forums — Autarkeia",
-  description:
-    "Discussions on Autarkeia Forums plus curated external communities on Reddit, Substack, Facebook Groups, and Discord.",
+export async function generateMetadata() {
+  const locale = await getLocale()
+  return {
+    title: translate(locale, "forums.meta_title"),
+    description: translate(locale, "forums.meta_description"),
+  }
 }
 
 export const dynamic = "force-dynamic"
 
-type ExternalForum = { name: string; href: string; platform: string }
+type ExternalForum = { key: string; href: string; platform: string }
 
 const externalForums: ExternalForum[] = [
-  { name: "r/preppers", href: "https://www.reddit.com/r/preppers/", platform: "Reddit" },
-  { name: "r/homestead", href: "https://www.reddit.com/r/homestead/", platform: "Reddit" },
-  { name: "r/OffGrid", href: "https://www.reddit.com/r/OffGrid/", platform: "Reddit" },
-  { name: "r/permaculture", href: "https://www.reddit.com/r/permaculture/", platform: "Reddit" },
-  { name: "r/SelfSufficiency", href: "https://www.reddit.com/r/SelfSufficiency/", platform: "Reddit" },
-  { name: "r/IntentionalCommunity", href: "https://www.reddit.com/r/IntentionalCommunity/", platform: "Reddit" },
-  { name: "r/collapse", href: "https://www.reddit.com/r/collapse/", platform: "Reddit" },
-  { name: "r/Survival", href: "https://www.reddit.com/r/Survival/", platform: "Reddit" },
-  { name: "Substack — Preparedness writers", href: "https://substack.com/search?q=preparedness", platform: "Substack" },
-  { name: "Substack — Resilience", href: "https://substack.com/search?q=resilience", platform: "Substack" },
-  { name: "Substack — Homestead newsletters", href: "https://substack.com/search?q=homestead", platform: "Substack" },
-  { name: "Facebook — Prepper groups", href: "https://www.facebook.com/search/groups/?q=preppers", platform: "Facebook" },
-  { name: "Facebook — Homesteading", href: "https://www.facebook.com/search/groups/?q=homesteading", platform: "Facebook" },
-  { name: "Facebook — Permaculture", href: "https://www.facebook.com/search/groups/?q=permaculture", platform: "Facebook" },
-  { name: "Disboard — prepping", href: "https://disboard.org/servers/tag/prepping", platform: "Discord" },
-  { name: "Disboard — homestead", href: "https://disboard.org/servers/tag/homestead", platform: "Discord" },
-  { name: "Disboard — off-grid", href: "https://disboard.org/servers/tag/off-grid", platform: "Discord" },
-  { name: "Disboard — permaculture", href: "https://disboard.org/servers/tag/permaculture", platform: "Discord" },
+  { key: "forums.external.1", href: "https://www.reddit.com/r/preppers/", platform: "Reddit" },
+  { key: "forums.external.2", href: "https://www.reddit.com/r/homestead/", platform: "Reddit" },
+  { key: "forums.external.3", href: "https://www.reddit.com/r/OffGrid/", platform: "Reddit" },
+  { key: "forums.external.4", href: "https://www.reddit.com/r/permaculture/", platform: "Reddit" },
+  { key: "forums.external.5", href: "https://www.reddit.com/r/SelfSufficiency/", platform: "Reddit" },
+  { key: "forums.external.6", href: "https://www.reddit.com/r/IntentionalCommunity/", platform: "Reddit" },
+  { key: "forums.external.7", href: "https://www.reddit.com/r/collapse/", platform: "Reddit" },
+  { key: "forums.external.8", href: "https://www.reddit.com/r/Survival/", platform: "Reddit" },
+  { key: "forums.external.9", href: "https://substack.com/search?q=preparedness", platform: "Substack" },
+  { key: "forums.external.10", href: "https://substack.com/search?q=resilience", platform: "Substack" },
+  { key: "forums.external.11", href: "https://substack.com/search?q=homestead", platform: "Substack" },
+  { key: "forums.external.12", href: "https://www.facebook.com/search/groups/?q=preppers", platform: "Facebook" },
+  { key: "forums.external.13", href: "https://www.facebook.com/search/groups/?q=homesteading", platform: "Facebook" },
+  { key: "forums.external.14", href: "https://www.facebook.com/search/groups/?q=permaculture", platform: "Facebook" },
+  { key: "forums.external.15", href: "https://disboard.org/servers/tag/prepping", platform: "Discord" },
+  { key: "forums.external.16", href: "https://disboard.org/servers/tag/homestead", platform: "Discord" },
+  { key: "forums.external.17", href: "https://disboard.org/servers/tag/off-grid", platform: "Discord" },
+  { key: "forums.external.18", href: "https://disboard.org/servers/tag/permaculture", platform: "Discord" },
 ]
 
 async function ForumsPageContent() {
   const locale = await getLocale()
   const t = (key: string) => translate(locale, key)
   const [threads, authed] = await Promise.all([listThreads(), isAuthenticated()])
-  const dateFmt = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : locale, { dateStyle: "medium" })
 
   const counts = CATEGORIES.reduce<Record<string, number>>((acc, c) => {
     acc[c.id] = threads.filter((th) => th.category === c.id).length
@@ -82,12 +84,12 @@ async function ForumsPageContent() {
                 className="rounded-xl border border-[#d4dce8] p-4 transition-colors hover:border-[#009b70]"
               >
                 <div className="flex items-baseline justify-between">
-                  <p className="text-sm font-medium text-[#0d1b2a]">{c.name}</p>
+                  <p className="text-sm font-medium text-[#0d1b2a]">{t(`forums.category.${c.id}.name`)}</p>
                   <span className="text-xs text-[#8a9bb0]">
                     {counts[c.id] ?? 0} {t("forums.threads")}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-[#3d5166]">{c.description}</p>
+                <p className="mt-1 text-xs text-[#3d5166]">{t(`forums.category.${c.id}.description`)}</p>
               </Link>
             ))}
           </div>
@@ -98,7 +100,7 @@ async function ForumsPageContent() {
           return (
             <section key={c.id} id={`category-${c.id}`} className="mt-12">
               <div className="flex items-baseline justify-between">
-                <h2 className="text-lg font-medium text-[#0d1b2a]">{c.name}</h2>
+                <h2 className="text-lg font-medium text-[#0d1b2a]">{t(`forums.category.${c.id}.name`)}</h2>
                 <span className="text-xs text-[#8a9bb0]">
                   {list.length} {t("forums.threads")}
                 </span>
@@ -130,7 +132,7 @@ async function ForumsPageContent() {
                         <p className="text-sm font-medium text-[#0d1b2a]">{th.title}</p>
                         {th.description && <p className="mt-1 text-xs text-[#3d5166]">{th.description}</p>}
                         <p className="mt-2 text-[11px] text-[#8a9bb0]">
-                          {t("forums.updated")} {dateFmt.format(new Date(th.updated_at))}
+                          {t("forums.updated")} {formatRelativeTime(th.updated_at, locale)}
                         </p>
                       </Link>
                     </li>
@@ -146,7 +148,7 @@ async function ForumsPageContent() {
           <p className="mt-2 text-sm text-[#8a9bb0]">{t("forums.external_note")}</p>
           <ul className="mt-6 grid gap-3 sm:grid-cols-2">
             {externalForums.map((f) => (
-              <li key={`${f.platform}-${f.name}-${f.href}`}>
+              <li key={`${f.platform}-${f.key}-${f.href}`}>
                 <a
                   href={f.href}
                   target="_blank"
@@ -154,7 +156,7 @@ async function ForumsPageContent() {
                   className="flex flex-col rounded-xl border border-[#d4dce8] bg-white p-4 transition-colors hover:border-[#009b70]"
                 >
                   <span className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">{f.platform}</span>
-                  <span className="mt-1 text-sm font-medium text-[#0d1b2a]">{f.name}</span>
+                  <span className="mt-1 text-sm font-medium text-[#0d1b2a]">{t(f.key)}</span>
                   <span className="mt-1 truncate text-xs text-[#8a9bb0]">{f.href}</span>
                 </a>
               </li>

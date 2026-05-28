@@ -43,7 +43,7 @@ import { fetchProfileAuthorLabels } from "@/lib/profiles"
  *   );
  */
 
-export type ForumCategory = { id: string; name: string; description: string }
+export type ForumCategory = { id: string }
 export type ForumThread = {
   id: string
   title: string
@@ -71,7 +71,7 @@ async function enrichThreads(threads: ForumThreadRow[]): Promise<ForumThread[]> 
   const labels = await fetchProfileAuthorLabels(threads.map((t) => t.author_id))
   return threads.map((t) => ({
     ...t,
-    author_name: labels.get(t.author_id) ?? "Member",
+    author_name: labels.get(t.author_id) ?? "forums.member_fallback",
   }))
 }
 
@@ -79,16 +79,16 @@ async function enrichPosts(posts: ForumPostRow[]): Promise<ForumPost[]> {
   const labels = await fetchProfileAuthorLabels(posts.map((p) => p.author_id))
   return posts.map((p) => ({
     ...p,
-    author_name: labels.get(p.author_id) ?? "Member",
+    author_name: labels.get(p.author_id) ?? "forums.member_fallback",
   }))
 }
 
 export const CATEGORIES: ForumCategory[] = [
-  { id: "housing-land", name: "Housing & Land", description: "Natural building, plots, and homestead infrastructure." },
-  { id: "food-systems", name: "Food Systems", description: "Growing, livestock, preservation, and food security." },
-  { id: "energy-water", name: "Energy & Water", description: "Solar, wind, micro-hydro, rainwater, and storage." },
-  { id: "governance", name: "Governance", description: "Decision-making, agreements, and community structure." },
-  { id: "general", name: "General", description: "Everything else — introductions, regional notes, off-topic." },
+  { id: "housing-land" },
+  { id: "food-systems" },
+  { id: "energy-water" },
+  { id: "governance" },
+  { id: "general" },
 ]
 
 const DATA_DIR = path.join(process.cwd(), ".data")
