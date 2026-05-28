@@ -21,10 +21,8 @@ export const metadata: Metadata = {
   description:
     "Everything you need to need nothing. Global emergency readiness and self-sufficiency platform helping you live on your own terms.",
   icons: {
-    icon: [
-      { url: "/FOOTER1.png", type: "image/png" },
-      { url: "/favicon.ico", sizes: "any" },
-    ],
+    icon: [{ url: "/icon.png" }],
+    shortcut: "/favicon.ico",
     apple: "/apple-icon.png",
   },
 }
@@ -40,8 +38,6 @@ export default async function RootLayout({
   return (
     <html lang={locale} className="bg-background">
       <head>
-        <link rel="icon" href="/FOOTER1.png" type="image/png" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
         <Script
           id="supabase-oauth-hash-redirect"
           strategy="beforeInteractive"

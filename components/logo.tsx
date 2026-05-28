@@ -14,7 +14,7 @@ export function Logo({
       className={`inline-flex items-center gap-6 font-light tracking-[2px] text-[14px] sm:text-[15px] ${className}`}
     >
       <img
-        src="/FAVICON10.png"
+        src="/icon.png"
         alt=""
         width={40}
         height={40}
