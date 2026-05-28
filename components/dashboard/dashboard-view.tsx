@@ -18,6 +18,7 @@ import {
 import { supabaseClient } from "@/lib/supabase-client"
 import { openBillingPortal } from "@/lib/stripe-client"
 import { useTier, type Tier } from "@/lib/use-tier"
+import { useI18n } from "@/components/i18n-provider"
 
 export type DashboardUser = {
   id: string
@@ -28,55 +29,73 @@ export type DashboardUser = {
   canManageSubscription?: boolean
 }
 
-type ActionItem = { id: string; label: string; done: boolean }
+type ActionItem = { id: string; labelKey: string; done: boolean }
 
 const initialPlan: { week: ActionItem[]; month: ActionItem[]; year: ActionItem[] } = {
   week: [
-    { id: "w1", label: "Fill three 5L jugs of water and store in a cool spot", done: false },
-    { id: "w2", label: "Walk your evacuation route from front door to safe meet-up", done: false },
-    { id: "w3", label: "Photograph household documents and store the photos offline", done: false },
+    { id: "w1", labelKey: "dashboard.plan.w1", done: false },
+    { id: "w2", labelKey: "dashboard.plan.w2", done: false },
+    { id: "w3", labelKey: "dashboard.plan.w3", done: false },
   ],
   month: [
-    { id: "m1", label: "Take a one-day Red Cross or local first aid course", done: false },
-    { id: "m2", label: "Build a 14-day pantry of foods you actually eat", done: false },
-    { id: "m3", label: "Identify a backup heat source and test it once", done: false },
-    { id: "m4", label: "Agree a family communication plan (out-of-area contact)", done: false },
+    { id: "m1", labelKey: "dashboard.plan.m1", done: false },
+    { id: "m2", labelKey: "dashboard.plan.m2", done: false },
+    { id: "m3", labelKey: "dashboard.plan.m3", done: false },
+    { id: "m4", labelKey: "dashboard.plan.m4", done: false },
   ],
   year: [
-    { id: "y1", label: "Install a 200–400W solar setup with battery backup", done: false },
-    { id: "y2", label: "Plant a small kitchen garden, even on a balcony", done: false },
-    { id: "y3", label: "Take a hands-on skill course: canning, sewing, or basic carpentry", done: false },
-    { id: "y4", label: "Build a relationship with two neighbours you'd actually call in a crisis", done: false },
+    { id: "y1", labelKey: "dashboard.plan.y1", done: false },
+    { id: "y2", labelKey: "dashboard.plan.y2", done: false },
+    { id: "y3", labelKey: "dashboard.plan.y3", done: false },
+    { id: "y4", labelKey: "dashboard.plan.y4", done: false },
   ],
 }
 
 const scoreHistory = [
-  { date: "Jan", overall: 38 },
-  { date: "Feb", overall: 44 },
-  { date: "Mar", overall: 49 },
-  { date: "Apr", overall: 55 },
-  { date: "May", overall: 61 },
-  { date: "Jun", overall: 65 },
-  { date: "Jul", overall: 68 },
+  { year: 2026, month: 1, overall: 38 },
+  { year: 2026, month: 2, overall: 44 },
+  { year: 2026, month: 3, overall: 49 },
+  { year: 2026, month: 4, overall: 55 },
+  { year: 2026, month: 5, overall: 61 },
+  { year: 2026, month: 6, overall: 65 },
+  { year: 2026, month: 7, overall: 68 },
 ]
 
 const categoryScores = [
-  { name: "Water", score: 72 },
-  { name: "Food", score: 65 },
-  { name: "Shelter & energy", score: 58 },
-  { name: "Medical", score: 60 },
-  { name: "Community & comms", score: 80 },
+  { nameKey: "dashboard.cat.water", score: 72 },
+  { nameKey: "dashboard.cat.food", score: 65 },
+  { nameKey: "dashboard.cat.shelter", score: 58 },
+  { nameKey: "dashboard.cat.medical", score: 60 },
+  { nameKey: "dashboard.cat.community", score: 80 },
 ]
 
 const newsHeadlines = [
-  { title: "Iran tensions raise Strait of Hormuz disruption risk", href: "/news/iran-strait-hormuz-risk" },
-  { title: "Mediterranean drought enters its fifth year in southern Spain", href: "/news" },
-  { title: "European grid operators warn on winter capacity", href: "/news" },
-  { title: "Antibiotic shortages reported across UK pharmacies", href: "/news" },
-  { title: "Permian basin oil output rolls over for second quarter", href: "/news" },
+  { titleKey: "dashboard.news.1", href: "/news/iran-strait-hormuz-risk" },
+  { titleKey: "dashboard.news.2", href: "/news" },
+  { titleKey: "dashboard.news.3", href: "/news" },
+  { titleKey: "dashboard.news.4", href: "/news" },
+  { titleKey: "dashboard.news.5", href: "/news" },
 ]
 
+const monthlyReports = [
+  { year: 2026, month: 5, titleKey: "dashboard.report.2026_05" },
+  { year: 2026, month: 4, titleKey: "dashboard.report.2026_04" },
+  { year: 2026, month: 3, titleKey: "dashboard.report.2026_03" },
+  { year: 2026, month: 2, titleKey: "dashboard.report.2026_02" },
+  { year: 2026, month: 1, titleKey: "dashboard.report.2026_01" },
+]
+
+function asErrorKey(value: unknown): string | null {
+  if (typeof value !== "string") return null
+  return /^[a-z0-9_.-]+\.[a-z0-9_.-]+$/i.test(value) ? value : null
+}
+
+function withError(message: string, error: string): string {
+  return message.replace("{error}", error)
+}
+
 export function DashboardView({ user }: { user: DashboardUser }) {
+  const { t, locale } = useI18n()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { tier, setTier } = useTier(user.tier)
@@ -100,9 +119,25 @@ export function DashboardView({ user }: { user: DashboardUser }) {
   const [chatLog, setChatLog] = useState<{ role: "user" | "assistant"; text: string }[]>([
     {
       role: "assistant",
-      text: "Hi — I'm your Autarkeia assistant. Ask me anything about your situation, location, household, or scores.",
+      text: t("dashboard.chat_greeting"),
     },
   ])
+
+  useEffect(() => {
+    setChatLog((prev) => {
+      if (!prev.length || prev[0]?.role !== "assistant") return prev
+      return [{ ...prev[0], text: t("dashboard.chat_greeting") }, ...prev.slice(1)]
+    })
+  }, [t])
+
+  const monthFormatter = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "es-ES", {
+    month: "short",
+  })
+
+  const formatMonth = (year: number, month: number) =>
+    monthFormatter
+      .format(new Date(Date.UTC(year, month - 1, 1)))
+      .replace(".", "")
 
   const togglePlanItem = (bucket: keyof typeof plan, id: string) => {
     setPlan((prev) => ({
@@ -117,7 +152,8 @@ export function DashboardView({ user }: { user: DashboardUser }) {
       setPortalError("")
       await openBillingPortal()
     } catch (err) {
-      setPortalError(err instanceof Error ? err.message : "Could not open billing portal")
+      const key = asErrorKey(err instanceof Error ? err.message : null)
+      setPortalError(key ? t(key) : t("plans.error.open_billing_portal"))
       setIsOpeningPortal(false)
     }
   }
@@ -134,7 +170,8 @@ export function DashboardView({ user }: { user: DashboardUser }) {
       router.push("/")
       router.refresh()
     } catch (err) {
-      setSignOutError(err instanceof Error ? err.message : "Unable to sign out.")
+      const key = asErrorKey(err instanceof Error ? err.message : null)
+      setSignOutError(key ? t(key) : t("dashboard.error_sign_out"))
     } finally {
       setIsSigningOut(false)
     }
@@ -149,11 +186,16 @@ export function DashboardView({ user }: { user: DashboardUser }) {
       const res = await fetch("/api/delete-account", { method: "POST" })
       const data = await res.json().catch(() => null)
       if (!res.ok) {
-        setDeleteError(`Failed to delete account: ${data?.error || "Unknown error"}`)
+        const key = asErrorKey(data?.error)
+        setDeleteError(
+          key
+            ? t(key)
+            : withError(t("dashboard.delete_failed"), String(data?.error ?? t("forums.error.unknown")))
+        )
         return
       }
 
-      setDeleteMessage("Account deleted successfully")
+      setDeleteMessage(t("dashboard.delete_success"))
       await new Promise((resolve) => setTimeout(resolve, 2000))
       await supabaseClient.auth.signOut().catch(() => undefined)
       document.cookie = "autarkeia-user=; path=/; max-age=0; SameSite=Lax"
@@ -163,7 +205,8 @@ export function DashboardView({ user }: { user: DashboardUser }) {
       router.push("/")
       router.refresh()
     } catch (err) {
-      setDeleteError(`Failed to delete account: ${err instanceof Error ? err.message : "Unknown error"}`)
+      const key = asErrorKey(err instanceof Error ? err.message : null)
+      setDeleteError(key ? t(key) : withError(t("dashboard.delete_failed"), t("forums.error.unknown")))
     } finally {
       setIsDeletingAccount(false)
     }
@@ -179,7 +222,7 @@ export function DashboardView({ user }: { user: DashboardUser }) {
       ...prev,
       {
         role: "assistant",
-        text: "Thanks — once the AI chat backend is wired to Claude this will give you a tailored answer based on your scores, location, and household.",
+        text: t("dashboard.chat_stub"),
       },
     ])
   }
@@ -191,11 +234,11 @@ export function DashboardView({ user }: { user: DashboardUser }) {
       <div className="mx-auto max-w-6xl px-4 py-12 lg:px-8">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-light text-[#0d1b2a]">Your dashboard</h1>
+            <h1 className="text-3xl font-light text-[#0d1b2a]">{t("dashboard.title")}</h1>
             <p className="mt-1 text-sm text-[#3d5166]">
-              Signed in as <span className="font-medium text-[#0d1b2a]">{user.displayName}</span> ·{" "}
+              {t("dashboard.signed_in_as")} <span className="font-medium text-[#0d1b2a]">{user.displayName}</span> ·{" "}
               <span className={`font-medium ${isPro ? "text-[#009b70]" : "text-[#3d5166]"}`}>
-                {isPro ? "Pro" : "Free"} member
+                {isPro ? t("dashboard.member_pro") : t("dashboard.member_free")}
               </span>
             </p>
           </div>
@@ -207,7 +250,7 @@ export function DashboardView({ user }: { user: DashboardUser }) {
                 disabled={isOpeningPortal}
                 className="rounded-lg border border-[#009b70] bg-white px-4 py-2 text-xs font-medium text-[#009b70] hover:bg-[#e8f8f3] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isOpeningPortal ? "Opening…" : "Manage subscription"}
+                {isOpeningPortal ? t("plans.cta.opening") : t("plans.cta.manage_subscription")}
               </button>
             )}
             <button
@@ -216,13 +259,13 @@ export function DashboardView({ user }: { user: DashboardUser }) {
               disabled={isSigningOut}
               className="rounded-lg border border-[#d4dce8] bg-white px-4 py-2 text-xs font-medium text-[#9f1d1d] hover:border-[#c43a3a] hover:bg-[#fff5f5] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSigningOut ? "Signing out..." : "Sign Out"}
+              {isSigningOut ? t("dashboard.signing_out") : t("dashboard.sign_out")}
             </button>
             {portalError && <p className="max-w-xs text-right text-xs text-red-600">{portalError}</p>}
             {signOutError && <p className="max-w-xs text-right text-xs text-red-600">{signOutError}</p>}
             {user.isDemo && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-[#8a9bb0]">Switch tier (demo):</span>
+                <span className="text-xs text-[#8a9bb0]">{t("dashboard.switch_tier")}</span>
                 <button
                   type="button"
                   onClick={() => setTier("free")}
@@ -230,7 +273,7 @@ export function DashboardView({ user }: { user: DashboardUser }) {
                     tier === "free" ? "bg-[#0d1b2a] text-white" : "bg-white text-[#3d5166] border border-[#d4dce8]"
                   }`}
                 >
-                  Free
+                  {t("plans.free")}
                 </button>
                 <button
                   type="button"
@@ -250,10 +293,10 @@ export function DashboardView({ user }: { user: DashboardUser }) {
         <section className="mt-8 rounded-2xl border border-[#d4dce8] bg-white p-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">Quiz results</p>
-              <p className="mt-1 text-3xl font-light text-[#0d1b2a]">Overall score: 68%</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">{t("dashboard.quiz_results")}</p>
+              <p className="mt-1 text-3xl font-light text-[#0d1b2a]">{t("dashboard.overall_score")}</p>
               <p className="mt-1 text-sm text-[#3d5166]">
-                Based on Emergency Readiness + Self-Sufficiency quizzes.
+                {t("dashboard.score_based_on")}
               </p>
             </div>
             <div className="flex gap-2">
@@ -261,24 +304,24 @@ export function DashboardView({ user }: { user: DashboardUser }) {
                 href="/quiz/emergency-readiness"
                 className="rounded-lg border border-[#d4dce8] px-4 py-2 text-xs font-medium text-[#0d1b2a] hover:border-[#009b70]"
               >
-                Retake Emergency Readiness
+                {t("dashboard.retake_emergency")}
               </Link>
               <Link
                 href="/quiz/self-sufficiency"
                 className="rounded-lg border border-[#d4dce8] px-4 py-2 text-xs font-medium text-[#0d1b2a] hover:border-[#009b70]"
               >
-                Retake Self-Sufficiency
+                {t("dashboard.retake_self")}
               </Link>
             </div>
           </div>
 
           {isPro ? (
             <div className="mt-6">
-              <p className="text-sm font-medium text-[#0d1b2a]">Category breakdown</p>
+              <p className="text-sm font-medium text-[#0d1b2a]">{t("dashboard.category_breakdown")}</p>
               <div className="mt-3 space-y-2">
                 {categoryScores.map((c) => (
-                  <div key={c.name} className="flex items-center gap-3">
-                    <span className="w-44 text-sm text-[#3d5166]">{c.name}</span>
+                  <div key={c.nameKey} className="flex items-center gap-3">
+                    <span className="w-44 text-sm text-[#3d5166]">{t(c.nameKey)}</span>
                     <div className="h-2 flex-1 rounded-full bg-[#e8eef5]">
                       <div className="h-full rounded-full bg-[#009b70]" style={{ width: `${c.score}%` }} />
                     </div>
@@ -290,11 +333,10 @@ export function DashboardView({ user }: { user: DashboardUser }) {
           ) : (
             <div className="mt-6 rounded-xl border border-dashed border-[#d4dce8] bg-[#f9fafc] p-4">
               <p className="text-sm text-[#3d5166]">
-                <Lock className="mr-1 inline h-3 w-3" /> Full category breakdown across all 5 categories is
-                available with Pro.
+                <Lock className="mr-1 inline h-3 w-3" /> {t("dashboard.pro_breakdown_locked")}
               </p>
               <Link href="/plans" className="mt-2 inline-block text-sm font-medium text-[#009b70]">
-                Upgrade to Pro →
+                {t("dashboard.upgrade_pro")}
               </Link>
             </div>
           )}
@@ -302,26 +344,26 @@ export function DashboardView({ user }: { user: DashboardUser }) {
 
         {/* Action plan */}
         <section className="mt-6 rounded-2xl border border-[#d4dce8] bg-white p-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">Action plan</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">{t("dashboard.action_plan")}</p>
           <h2 className="mt-1 text-xl font-medium text-[#0d1b2a]">
-            {isPro ? "This week · 30 days · 1 year" : "This week"}
+            {isPro ? t("dashboard.plan_horizons_pro") : t("dashboard.plan_horizons_free")}
           </h2>
 
           <div className="mt-4 grid gap-6 md:grid-cols-3">
             <PlanColumn
-              title="This week"
+              title={t("dashboard.this_week")}
               items={plan.week}
               onToggle={(id) => togglePlanItem("week", id)}
               isPro={true}
             />
             <PlanColumn
-              title="30 days"
+              title={t("dashboard.30_days")}
               items={plan.month}
               onToggle={(id) => togglePlanItem("month", id)}
               isPro={isPro}
             />
             <PlanColumn
-              title="1 year"
+              title={t("dashboard.1_year")}
               items={plan.year}
               onToggle={(id) => togglePlanItem("year", id)}
               isPro={isPro}
@@ -330,8 +372,7 @@ export function DashboardView({ user }: { user: DashboardUser }) {
 
           {!isPro && (
             <p className="mt-4 text-xs text-[#8a9bb0]">
-              Free shows the first 3 items for this week only. Upgrade to unlock the full 30-day and 1-year plans,
-              edit items, and track progress.
+              {t("dashboard.free_plan_note")}
             </p>
           )}
         </section>
@@ -340,18 +381,18 @@ export function DashboardView({ user }: { user: DashboardUser }) {
         {isPro && (
           <section className="mt-6 rounded-2xl border border-[#d4dce8] bg-white p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
-              <TrendingUp className="mr-1 inline h-3 w-3" /> Score history
+              <TrendingUp className="mr-1 inline h-3 w-3" /> {t("dashboard.score_history")}
             </p>
-            <h2 className="mt-1 text-xl font-medium text-[#0d1b2a]">Your trend over time</h2>
+            <h2 className="mt-1 text-xl font-medium text-[#0d1b2a]">{t("dashboard.trend_over_time")}</h2>
             <div className="mt-4 flex h-32 items-end gap-2">
               {scoreHistory.map((point) => (
-                <div key={point.date} className="flex flex-1 flex-col items-center gap-1">
+                <div key={`${point.year}-${point.month}`} className="flex flex-1 flex-col items-center gap-1">
                   <div
                     className="w-full rounded-t bg-[#009b70]"
                     style={{ height: `${point.overall}%` }}
-                    title={`${point.date}: ${point.overall}%`}
+                    title={`${formatMonth(point.year, point.month)}: ${point.overall}%`}
                   />
-                  <span className="text-[10px] text-[#8a9bb0]">{point.date}</span>
+                  <span className="text-[10px] text-[#8a9bb0]">{formatMonth(point.year, point.month)}</span>
                 </div>
               ))}
             </div>
@@ -362,41 +403,41 @@ export function DashboardView({ user }: { user: DashboardUser }) {
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           <section className="rounded-2xl border border-[#d4dce8] bg-white p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
-              <ShoppingBag className="mr-1 inline h-3 w-3" /> Marketplace
+              <ShoppingBag className="mr-1 inline h-3 w-3" /> {t("dashboard.marketplace")}
             </p>
             <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">
-              {isPro ? "Full marketplace — all sellers" : "Limited — Amazon only"}
+              {isPro ? t("dashboard.marketplace_pro") : t("dashboard.marketplace_free")}
             </h2>
             <p className="mt-2 text-sm text-[#3d5166]">
               {isPro
-                ? "All vendors and bundles are unlocked. Filter by category and country."
-                : "Free members see Amazon listings only. Upgrade to access regional shops, direct-from-maker bundles, and curated brands."}
+                ? t("dashboard.marketplace_pro_sub")
+                : t("dashboard.marketplace_free_sub")}
             </p>
             <Link
               href="/marketplace"
               className="mt-3 inline-block text-sm font-medium text-[#009b70]"
             >
-              Open marketplace →
+              {t("dashboard.open_marketplace")}
             </Link>
           </section>
 
           <section className="rounded-2xl border border-[#d4dce8] bg-white p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
-              <Newspaper className="mr-1 inline h-3 w-3" /> Library
+              <Newspaper className="mr-1 inline h-3 w-3" /> {t("dashboard.library")}
             </p>
             <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">
-              {isPro ? "Full library — all 9 languages" : "Limited preview (20% of catalogue)"}
+              {isPro ? t("dashboard.library_pro") : t("dashboard.library_free")}
             </h2>
             <p className="mt-2 text-sm text-[#3d5166]">
               {isPro
-                ? "Every book, article, podcast, course, app, and the 70+ Geopolitics & World Future episodes."
-                : "Free members see a taster of each section. Upgrade to unlock the rest, plus all 9 languages."}
+                ? t("dashboard.library_pro_sub")
+                : t("dashboard.library_free_sub")}
             </p>
             <Link
               href="/library"
               className="mt-3 inline-block text-sm font-medium text-[#009b70]"
             >
-              Open library →
+              {t("dashboard.open_library")}
             </Link>
           </section>
         </div>
@@ -405,14 +446,14 @@ export function DashboardView({ user }: { user: DashboardUser }) {
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           <section className="rounded-2xl border border-[#d4dce8] bg-white p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
-              <Newspaper className="mr-1 inline h-3 w-3" /> World News Watch
+              <Newspaper className="mr-1 inline h-3 w-3" /> {t("dashboard.world_news")}
             </p>
-            <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">Latest headlines</h2>
+            <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">{t("dashboard.latest_headlines")}</h2>
             <ul className="mt-3 space-y-2">
               {newsHeadlines.slice(0, isPro ? 5 : 3).map((h) => (
-                <li key={h.title}>
+                <li key={h.titleKey}>
                   <Link href={h.href} className="text-sm text-[#3d5166] hover:text-[#009b70]">
-                    · {h.title}
+                    · {t(h.titleKey)}
                   </Link>
                 </li>
               ))}
@@ -420,10 +461,10 @@ export function DashboardView({ user }: { user: DashboardUser }) {
             {isPro && (
               <div className="mt-4 rounded-lg border border-[#d4dce8] bg-[#f5f7fa] p-3">
                 <p className="text-xs font-medium text-[#0d1b2a]">
-                  <Mail className="mr-1 inline h-3 w-3" /> Weekly email briefing
+                  <Mail className="mr-1 inline h-3 w-3" /> {t("dashboard.weekly_briefing")}
                 </p>
                 <label className="mt-2 flex items-center gap-2 text-xs text-[#3d5166]">
-                  <input type="checkbox" defaultChecked /> Send me Monday morning briefings
+                  <input type="checkbox" defaultChecked /> {t("dashboard.briefing_checkbox")}
                 </label>
               </div>
             )}
@@ -431,21 +472,21 @@ export function DashboardView({ user }: { user: DashboardUser }) {
 
           <section className="rounded-2xl border border-[#d4dce8] bg-white p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
-              <Users className="mr-1 inline h-3 w-3" /> Autarkeia Communities
+              <Users className="mr-1 inline h-3 w-3" /> {t("dashboard.communities")}
             </p>
             <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">
-              {isPro ? "Priority community access" : "Register interest"}
+              {isPro ? t("dashboard.communities_pro") : t("dashboard.communities_free")}
             </h2>
             <p className="mt-2 text-sm text-[#3d5166]">
               {isPro
-                ? "Pro members are first in line when we open pilots. You'll receive private updates as sites get scoped."
-                : "Tell us where you want to live and what model fits your household. Free members get all community development updates."}
+                ? t("dashboard.communities_pro_sub")
+                : t("dashboard.communities_free_sub")}
             </p>
             <Link
               href="/communities#register-interest"
               className="mt-3 inline-block text-sm font-medium text-[#009b70]"
             >
-              {isPro ? "Update preferences →" : "Register interest →"}
+              {isPro ? t("dashboard.update_preferences") : t("dashboard.register_interest")}
             </Link>
           </section>
         </div>
@@ -454,12 +495,11 @@ export function DashboardView({ user }: { user: DashboardUser }) {
         {isPro && (
           <section className="mt-6 rounded-2xl border border-[#d4dce8] bg-white p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
-              <MessageSquare className="mr-1 inline h-3 w-3" /> AI chat
+              <MessageSquare className="mr-1 inline h-3 w-3" /> {t("dashboard.ai_chat")}
             </p>
-            <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">Ask Claude about your situation</h2>
+            <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">{t("dashboard.ask_claude")}</h2>
             <p className="mt-2 text-sm text-[#3d5166]">
-              Ask about your scores, location, household, climate, or any of your action items. Claude knows your
-              Autarkeia profile.
+              {t("dashboard.ai_chat_sub")}
             </p>
             <div className="mt-4 space-y-3 rounded-xl bg-[#f5f7fa] p-4">
               {chatLog.map((msg, i) => (
@@ -481,14 +521,14 @@ export function DashboardView({ user }: { user: DashboardUser }) {
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendChat()}
-                placeholder="Ask anything…"
+                placeholder={t("dashboard.chat_placeholder")}
                 className="flex-1 rounded-lg border border-[#d4dce8] px-3 py-2 text-sm outline-none focus:border-[#009b70]"
               />
               <button
                 onClick={sendChat}
                 className="rounded-lg bg-[#009b70] px-4 py-2 text-sm font-medium text-white hover:bg-[#007a58]"
               >
-                Send
+                {t("common.send")}
               </button>
             </div>
           </section>
@@ -498,15 +538,15 @@ export function DashboardView({ user }: { user: DashboardUser }) {
         {isPro && (
           <section className="mt-6 rounded-2xl border border-[#d4dce8] bg-white p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
-              <Sparkles className="mr-1 inline h-3 w-3" /> Monthly Global Report
+              <Sparkles className="mr-1 inline h-3 w-3" /> {t("dashboard.monthly_report")}
             </p>
-            <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">Newsletter archive</h2>
+            <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">{t("dashboard.newsletter_archive")}</h2>
             <ul className="mt-3 space-y-2 text-sm text-[#3d5166]">
-              <li>· May 2026 — Hormuz, harvest, and household pantries</li>
-              <li>· Apr 2026 — Cracks in the European grid</li>
-              <li>· Mar 2026 — Spring planting playbook by climate zone</li>
-              <li>· Feb 2026 — Insurance, climate, and where coverage is collapsing</li>
-              <li>· Jan 2026 — Top systemic risks for the year ahead</li>
+              {monthlyReports.map((report) => (
+                <li key={report.titleKey}>
+                  · {formatMonth(report.year, report.month)} {report.year} — {t(report.titleKey)}
+                </li>
+              ))}
             </ul>
           </section>
         )}
@@ -515,10 +555,10 @@ export function DashboardView({ user }: { user: DashboardUser }) {
         <section className="mt-6 rounded-2xl border border-[#f0c6c6] bg-white p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#9f1d1d]">Danger zone</p>
-              <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">Delete account</h2>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#9f1d1d]">{t("dashboard.danger_zone")}</p>
+              <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">{t("dashboard.delete_account")}</h2>
               <p className="mt-1 max-w-2xl text-sm text-[#3d5166]">
-                Permanently delete your Autarkeia account and sign out. This action cannot be undone.
+                {t("dashboard.delete_account_desc")}
               </p>
             </div>
             <button
@@ -530,7 +570,7 @@ export function DashboardView({ user }: { user: DashboardUser }) {
               }}
               className="rounded-lg border border-[#e5a5a5] px-4 py-2 text-sm font-medium text-[#9f1d1d] hover:border-[#c43a3a] hover:bg-[#fff5f5]"
             >
-              Delete Account
+              {t("dashboard.delete_account_btn")}
             </button>
           </div>
         </section>
@@ -540,9 +580,9 @@ export function DashboardView({ user }: { user: DashboardUser }) {
       {deleteDialogOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0d1b2a]/60 px-4">
           <div className="w-full max-w-md rounded-2xl border border-[#d4dce8] bg-white p-6 shadow-xl">
-            <h2 className="text-xl font-medium text-[#0d1b2a]">Delete Account</h2>
+            <h2 className="text-xl font-medium text-[#0d1b2a]">{t("dashboard.delete_confirm_title")}</h2>
             <p className="mt-2 text-sm text-[#3d5166]">
-              Are you sure you want to delete your account? This cannot be undone.
+              {t("dashboard.delete_confirm_sub")}
             </p>
             {deleteMessage && <p className="mt-3 text-sm font-medium text-[#009b70]">{deleteMessage}</p>}
             {deleteError && <p className="mt-3 text-sm text-red-600">{deleteError}</p>}
@@ -553,7 +593,7 @@ export function DashboardView({ user }: { user: DashboardUser }) {
                 disabled={isDeletingAccount || !!deleteMessage}
                 className="rounded-lg border border-[#d4dce8] px-4 py-2 text-sm text-[#3d5166] hover:bg-[#f5f7fa] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -561,7 +601,7 @@ export function DashboardView({ user }: { user: DashboardUser }) {
                 disabled={isDeletingAccount || !!deleteMessage}
                 className="rounded-lg bg-[#9f1d1d] px-4 py-2 text-sm font-medium text-white hover:bg-[#7f1717] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isDeletingAccount ? "Deleting..." : "Delete Account"}
+                {isDeletingAccount ? t("dashboard.deleting") : t("dashboard.delete_account_btn")}
               </button>
             </div>
           </div>
@@ -582,12 +622,13 @@ function PlanColumn({
   onToggle: (id: string) => void
   isPro: boolean
 }) {
+  const { t } = useI18n()
   if (!isPro) {
     return (
       <div className="rounded-xl border border-dashed border-[#d4dce8] bg-[#f9fafc] p-4">
         <p className="text-sm font-medium text-[#0d1b2a]">{title}</p>
         <p className="mt-2 text-xs text-[#3d5166]">
-          <Lock className="mr-1 inline h-3 w-3" /> Locked. Upgrade to Pro to see your full plan and track progress.
+          <Lock className="mr-1 inline h-3 w-3" /> {t("dashboard.plan_locked")}
         </p>
       </div>
     )
@@ -608,7 +649,7 @@ function PlanColumn({
               ) : (
                 <Circle className="mt-0.5 h-4 w-4 text-[#8a9bb0]" />
               )}
-              <span className={item.done ? "line-through opacity-60" : ""}>{item.label}</span>
+              <span className={item.done ? "line-through opacity-60" : ""}>{t(item.labelKey)}</span>
             </button>
           </li>
         ))}
