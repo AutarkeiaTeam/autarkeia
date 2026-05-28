@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const parsed = contactMessageSchema.safeParse(json)
 
     if (!parsed.success) {
-      const message = parsed.error.errors.map((e) => e.message).join("; ") || "Invalid form data"
+      const message = parsed.error.errors[0]?.message || "contact.validation.invalid_form_data"
       return NextResponse.json({ error: message }, { status: 400 })
     }
 
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     if (insertError) {
       console.error("contact_messages insert failed:", insertError.message)
       return NextResponse.json(
-        { error: "Could not send your message. Please try again." },
+        { error: "contact.validation.submit_send_failed" },
         { status: 500 }
       )
     }
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("contact submit error:", err)
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Submission failed" },
+      { error: err instanceof Error ? err.message : "contact.validation.submit_failed" },
       { status: 500 }
     )
   }

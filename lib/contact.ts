@@ -3,14 +3,14 @@ import { z } from "zod"
 export const CONTACT_MESSAGE_MAX_LENGTH = 2000
 
 export const contactMessageSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(100),
-  email: z.string().trim().email("Enter a valid email").max(320),
+  name: z.string().trim().min(1, "contact.validation.name_required").max(100),
+  email: z.string().trim().email("contact.validation.email_invalid").max(320),
   subject: z.string().trim().max(200).optional().default(""),
   message: z
     .string()
     .trim()
-    .min(1, "Message is required")
-    .max(CONTACT_MESSAGE_MAX_LENGTH, `Message must be at most ${CONTACT_MESSAGE_MAX_LENGTH} characters`),
+    .min(1, "contact.validation.message_required")
+    .max(CONTACT_MESSAGE_MAX_LENGTH, "contact.validation.message_too_long"),
 })
 
 export type ContactMessageInput = z.infer<typeof contactMessageSchema>

@@ -2,12 +2,14 @@
 
 import Link from "next/link"
 import { FormEvent, useState } from "react"
+import { useI18n } from "@/components/i18n-provider"
 import { CONTACT_MESSAGE_MAX_LENGTH } from "@/lib/contact"
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-[#d4dce8] px-3 py-2 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70]"
 
 export default function ContactPage() {
+  const { t } = useI18n()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [subject, setSubject] = useState("")
@@ -17,6 +19,8 @@ export default function ContactPage() {
 
   const messageLength = message.length
   const atMessageLimit = messageLength >= CONTACT_MESSAGE_MAX_LENGTH
+  const translateError = (message: string) =>
+    message.startsWith("contact.") ? t(message) : message
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -33,7 +37,7 @@ export default function ContactPage() {
       const data = (await response.json().catch(() => null)) as { error?: string; ok?: boolean }
 
       if (!response.ok) {
-        throw new Error(data?.error || "Could not send your message.")
+        throw new Error(data?.error || "contact.validation.submit_send_failed")
       }
 
       setStatus("success")
@@ -43,7 +47,8 @@ export default function ContactPage() {
       setMessage("")
     } catch (err) {
       setStatus("error")
-      setErrorMessage(err instanceof Error ? err.message : "Could not send your message.")
+      const message = err instanceof Error ? err.message : "contact.validation.submit_send_failed"
+      setErrorMessage(translateError(message))
     }
   }
 
@@ -51,15 +56,14 @@ export default function ContactPage() {
     <main className="min-h-screen bg-[#f5f7fa]">
       <div className="mx-auto max-w-lg px-4 py-16 lg:px-8">
         <Link href="/" className="text-sm text-[#009b70] hover:underline">
-          ← Home
+          {t("contact.back_home")}
         </Link>
-        <h1 className="mt-6 text-3xl font-light text-[#0d1b2a]">Contact</h1>
+        <h1 className="mt-6 text-3xl font-light text-[#0d1b2a]">{t("contact.heading")}</h1>
         <p className="mt-3 text-sm leading-relaxed text-[#3d5166]">
-          Questions about Autarkeia, communities, or membership? Send us a message below. We read
-          every note; response times depend on volume.
+          {t("contact.intro")}
         </p>
         <p className="mt-3 text-sm text-[#3d5166]">
-          Prefer email?{" "}
+          {t("contact.prefer_email")}{" "}
           <a href="mailto:hello@autarkeia.world" className="font-medium text-[#009b70] hover:underline">
             hello@autarkeia.world
           </a>
@@ -67,8 +71,7 @@ export default function ContactPage() {
 
         {status === "success" ? (
           <div className="mt-8 rounded-2xl border border-[#009b70]/40 bg-[#e8f8f3] p-6 text-sm text-[#0d1b2a]">
-            Thank you. We have received your message and sent a confirmation to your email. We will
-            reply when we can.
+            {t("contact.success")}
           </div>
         ) : (
           <form
@@ -77,7 +80,7 @@ export default function ContactPage() {
           >
             <div>
               <label htmlFor="contact-name" className="block text-xs font-medium text-[#3d5166]">
-                Name
+                {t("contact.name")}
               </label>
               <input
                 id="contact-name"
@@ -92,7 +95,7 @@ export default function ContactPage() {
             </div>
             <div>
               <label htmlFor="contact-email" className="block text-xs font-medium text-[#3d5166]">
-                Email
+                {t("contact.email")}
               </label>
               <input
                 id="contact-email"
@@ -107,7 +110,7 @@ export default function ContactPage() {
             </div>
             <div>
               <label htmlFor="contact-subject" className="block text-xs font-medium text-[#3d5166]">
-                Subject <span className="font-normal text-[#8a9bb0]">(optional)</span>
+                {t("contact.subject")} <span className="font-normal text-[#8a9bb0]">({t("contact.optional")})</span>
               </label>
               <input
                 id="contact-subject"
@@ -115,14 +118,14 @@ export default function ContactPage() {
                 onChange={(e) => setSubject(e.target.value)}
                 className={inputClass}
                 maxLength={200}
-                placeholder="What is this about?"
+                placeholder={t("contact.subject_placeholder")}
                 disabled={status === "loading"}
               />
             </div>
             <div>
               <div className="flex items-baseline justify-between gap-2">
                 <label htmlFor="contact-message" className="block text-xs font-medium text-[#3d5166]">
-                  Message
+                  {t("contact.message")}
                 </label>
                 <span
                   className={`text-xs tabular-nums ${atMessageLimit ? "text-amber-700" : "text-[#8a9bb0]"}`}
@@ -139,7 +142,7 @@ export default function ContactPage() {
                 className={`${inputClass} resize-y`}
                 required
                 maxLength={CONTACT_MESSAGE_MAX_LENGTH}
-                placeholder="How can we help?"
+                placeholder={t("contact.message_placeholder")}
                 disabled={status === "loading"}
               />
             </div>
@@ -148,7 +151,7 @@ export default function ContactPage() {
               disabled={status === "loading"}
               className="w-full rounded-lg bg-[#009b70] py-2.5 text-sm font-medium text-white hover:bg-[#007a58] disabled:opacity-60"
             >
-              {status === "loading" ? "Sending…" : "Send message"}
+              {status === "loading" ? t("contact.sending") : t("contact.send")}
             </button>
             {status === "error" && errorMessage && (
               <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
