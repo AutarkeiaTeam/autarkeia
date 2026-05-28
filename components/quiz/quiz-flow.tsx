@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { useI18n } from '@/components/i18n-provider'
 import type { QuizQuestion, QuizAnswers, QuizType } from '@/lib/quiz-data'
 
 interface QuizFlowProps {
@@ -15,6 +16,7 @@ interface QuizFlowProps {
 }
 
 export function QuizFlow({ quizType, title, questions, accentColor }: QuizFlowProps) {
+  const { t } = useI18n()
   const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<QuizAnswers>({})
@@ -101,8 +103,8 @@ export function QuizFlow({ quizType, title, questions, accentColor }: QuizFlowPr
           className="h-16 w-16 animate-spin rounded-full border-4 border-t-transparent mb-6"
           style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }}
         />
-        <p className="text-lg font-light text-[#0d1b2a]">Calculating your score...</p>
-        <p className="text-sm text-[#8a9bb0] mt-2">Analysing your answers with AI</p>
+        <p className="text-lg font-light text-[#0d1b2a]">{t('quiz.flow.calculating')}</p>
+        <p className="text-sm text-[#8a9bb0] mt-2">{t('quiz.flow.analysing')}</p>
       </div>
     )
   }
@@ -116,7 +118,9 @@ export function QuizFlow({ quizType, title, questions, accentColor }: QuizFlowPr
         </p>
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-[#8a9bb0]">
-            Question {currentIndex + 1} of {questions.length}
+            {t('quiz.flow.question_of')
+              .replace('{current}', String(currentIndex + 1))
+              .replace('{total}', String(questions.length))}
           </span>
           <span className="text-sm font-medium text-[#0d1b2a]">
             {Math.round(progress)}%
@@ -138,7 +142,7 @@ export function QuizFlow({ quizType, title, questions, accentColor }: QuizFlowPr
           {currentQuestion.question}
         </h2>
         {currentQuestion.type === 'multi' && (
-          <p className="text-sm text-[#8a9bb0]">Select all that apply</p>
+          <p className="text-sm text-[#8a9bb0]">{t('quiz.flow.select_all')}</p>
         )}
       </div>
 
@@ -216,7 +220,7 @@ export function QuizFlow({ quizType, title, questions, accentColor }: QuizFlowPr
           className="text-[#3d5166]"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          {t('common.back')}
         </Button>
 
         <Button
@@ -228,7 +232,7 @@ export function QuizFlow({ quizType, title, questions, accentColor }: QuizFlowPr
             color: hasAnswer ? 'white' : '#8a9bb0',
           }}
         >
-          {isLastQuestion ? 'Get my score' : 'Next'}
+          {isLastQuestion ? t('quiz.flow.get_score') : t('common.next')}
           {!isLastQuestion && <ArrowRight className="h-4 w-4 ml-2" />}
         </Button>
       </div>

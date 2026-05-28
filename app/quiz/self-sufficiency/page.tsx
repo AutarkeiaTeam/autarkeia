@@ -1,25 +1,22 @@
-import { QuizFlow } from '@/components/quiz/quiz-flow'
-import { getQuizConfig } from '@/lib/quiz-data'
+import type { Metadata } from 'next'
+import { LocalizedQuizFlow } from '@/components/quiz/localized-quiz-flow'
+import { getLocale } from '@/lib/i18n-server'
+import { translate } from '@/lib/i18n-core'
 
-export const metadata = {
-  title: 'Self-Sufficiency Quiz — Autarkeia',
-  description: 'Discover how self-sufficient your household truly is with our 7-question assessment.',
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  return {
+    title: `${translate(locale, 'quiz.self-sufficiency.title')} — Autarkeia`,
+    description: translate(locale, 'quiz.page.self.metadata_description'),
+  }
 }
 
 export default function SelfSufficiencyQuizPage() {
-  const config = getQuizConfig('self-sufficiency')
-
   return (
     <main className="min-h-screen flex flex-col">
-      
       <div className="flex-1 bg-white py-12 sm:py-16">
         <div className="mx-auto max-w-4xl px-4 lg:px-8">
-          <QuizFlow 
-            quizType="self-sufficiency"
-            title={config.title}
-            questions={config.questions}
-            accentColor={config.accentColor}
-          />
+          <LocalizedQuizFlow quizType="self-sufficiency" />
         </div>
       </div>
     </main>

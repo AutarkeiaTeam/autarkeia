@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, ExternalLink, Calendar, Clock, Target, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useI18n } from '@/components/i18n-provider'
 import type { QuizType, QuizResult, QuizAnswers } from '@/lib/quiz-data'
 import { getQuizConfig } from '@/lib/quiz-data'
 
@@ -18,7 +19,15 @@ function getScoreColor(score: number): string {
   return '#ef4444'
 }
 
-function ScoreRing({ score, accentColor }: { score: number; accentColor: string }) {
+function ScoreRing({
+  score,
+  accentColor,
+  overallLabel,
+}: {
+  score: number
+  accentColor: string
+  overallLabel: string
+}) {
   const circumference = 2 * Math.PI * 56
   const offset = circumference - (score / 100) * circumference
 
@@ -48,7 +57,7 @@ function ScoreRing({ score, accentColor }: { score: number; accentColor: string 
       </svg>
       <div className="absolute flex flex-col items-center">
         <span className="text-5xl font-light text-[#0d1b2a]">{score}%</span>
-        <span className="text-sm font-light text-[#8a9bb0]">Overall</span>
+        <span className="text-sm font-light text-[#8a9bb0]">{overallLabel}</span>
       </div>
     </div>
   )
@@ -79,13 +88,17 @@ function ActionItem({
   description, 
   estimated_cost, 
   priority,
-  accentColor 
+  accentColor,
+  estimatedCostLabel,
+  translatePriority,
 }: { 
   title: string
   description: string
   estimated_cost: string
   priority: string
   accentColor: string
+  estimatedCostLabel: string
+  translatePriority: (value: string) => string
 }) {
   const priorityColors = {
     high: '#ef4444',
@@ -101,11 +114,11 @@ function ActionItem({
           className="text-xs px-2 py-0.5 rounded-full text-white capitalize"
           style={{ backgroundColor: priorityColors[priority as keyof typeof priorityColors] || accentColor }}
         >
-          {priority}
+          {translatePriority(priority)}
         </span>
       </div>
       <p className="text-sm text-[#3d5166] font-light mb-3">{description}</p>
-      <p className="text-xs text-[#8a9bb0]">Estimated cost: {estimated_cost}</p>
+      <p className="text-xs text-[#8a9bb0]">{estimatedCostLabel} {estimated_cost}</p>
     </div>
   )
 }
@@ -115,13 +128,15 @@ function ProductCard({
   name, 
   why, 
   estimated_price,
-  accentColor 
+  accentColor,
+  buyLabel,
 }: { 
   category: string
   name: string
   why: string
   estimated_price: string
   accentColor: string
+  buyLabel: string
 }) {
   return (
     <div className="p-5 rounded-xl border border-[#d4dce8] bg-white flex flex-col" style={{ borderWidth: '0.5px' }}>
@@ -140,7 +155,7 @@ function ProductCard({
           className="text-white text-xs"
           style={{ backgroundColor: accentColor }}
         >
-          Buy <ExternalLink className="h-3 w-3 ml-1" />
+          {buyLabel} <ExternalLink className="h-3 w-3 ml-1" />
         </Button>
       </div>
     </div>
@@ -148,6 +163,7 @@ function ProductCard({
 }
 
 export function QuizResults({ quizType }: QuizResultsProps) {
+  const { t } = useI18n()
   const [result, setResult] = useState<QuizResult | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -159,13 +175,25 @@ export function QuizResults({ quizType }: QuizResultsProps) {
   const config = getQuizConfig(quizType)
   const otherQuizType = quizType === 'self-sufficiency' ? 'emergency-readiness' : 'self-sufficiency'
   const otherQuizConfig = getQuizConfig(otherQuizType)
+  const quizTitle = t(`quiz.${quizType}.title`)
+  const otherQuizTitle = t(`quiz.${otherQuizType}.title`)
+  const format = (key: string, vars: Record<string, string>) =>
+    Object.entries(vars).reduce((acc, [k, v]) => acc.replaceAll(`{${k}}`, v), t(key))
+  const translatePriority = (value: string) => t(`quiz.results.priority.${value}`)
+  const scoreLabelMap: Record<string, string> = {
+    'Just getting started': t('quiz.results.score_label.just_getting_started'),
+    'Early stage': t('quiz.results.score_label.early_stage'),
+    'Moderately self-sufficient': t('quiz.results.score_label.moderately_self_sufficient'),
+    'Highly self-sufficient': t('quiz.results.score_label.highly_self_sufficient'),
+  }
+  const localizedScoreLabel = scoreLabelMap[result?.score_label ?? ''] ?? result?.score_label ?? ''
 
   useEffect(() => {
     async function analyzeQuiz() {
       try {
         const storedAnswers = sessionStorage.getItem(`quiz-answers-${quizType}`)
         if (!storedAnswers) {
-          setError('No quiz answers found. Please take the quiz first.')
+          setError(t('quiz.results.no_answers'))
           setIsLoading(false)
           return
         }
@@ -182,21 +210,21 @@ export function QuizResults({ quizType }: QuizResultsProps) {
         })
 
         if (!response.ok) {
-          throw new Error('Failed to analyze quiz')
+          throw new Error(t('quiz.results.analyze_error'))
         }
 
         const data = await response.json()
         setResult(data.result)
       } catch (err) {
         console.error('Error analyzing quiz:', err)
-        setError('Something went wrong. Please try again.')
+        setError(t('quiz.results.analyze_error'))
       } finally {
         setIsLoading(false)
       }
     }
 
     analyzeQuiz()
-  }, [quizType])
+  }, [quizType, t])
 
   async function sendResultsEmail() {
     if (!result) return
@@ -219,12 +247,12 @@ export function QuizResults({ quizType }: QuizResultsProps) {
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {
-        setEmailError(typeof data.error === 'string' ? data.error : 'Could not send email.')
+        setEmailError(typeof data.error === 'string' ? data.error : t('quiz.results.email_error'))
         return
       }
-      setEmailFeedback(typeof data.message === 'string' ? data.message : 'Check your inbox shortly.')
+      setEmailFeedback(typeof data.message === 'string' ? data.message : t('quiz.results.email_success'))
     } catch {
-      setEmailError('Network error. Please try again.')
+      setEmailError(t('quiz.results.network_error'))
     } finally {
       setEmailBusy(false)
     }
@@ -237,8 +265,8 @@ export function QuizResults({ quizType }: QuizResultsProps) {
           className="h-16 w-16 animate-spin rounded-full border-4 border-t-transparent mb-6"
           style={{ borderColor: `${config.accentColor}33`, borderTopColor: config.accentColor }}
         />
-        <p className="text-lg font-light text-[#0d1b2a]">Calculating your score...</p>
-        <p className="text-sm text-[#8a9bb0] mt-2">Analysing your answers with AI</p>
+        <p className="text-lg font-light text-[#0d1b2a]">{t('quiz.flow.calculating')}</p>
+        <p className="text-sm text-[#8a9bb0] mt-2">{t('quiz.flow.analysing')}</p>
       </div>
     )
   }
@@ -246,10 +274,10 @@ export function QuizResults({ quizType }: QuizResultsProps) {
   if (error || !result) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <p className="text-lg text-[#0d1b2a] mb-4">{error || 'Something went wrong'}</p>
+        <p className="text-lg text-[#0d1b2a] mb-4">{error || t('quiz.results.analyze_error')}</p>
         <Link href={`/quiz/${quizType}`}>
           <Button style={{ backgroundColor: config.accentColor }} className="text-white">
-            Retake Quiz
+            {t('quiz.results.retake')}
           </Button>
         </Link>
       </div>
@@ -261,33 +289,33 @@ export function QuizResults({ quizType }: QuizResultsProps) {
       {/* Score Section */}
       <div className="text-center mb-12">
         <p className="text-sm font-medium mb-4" style={{ color: config.accentColor }}>
-          Your {config.title} Results
+          {format('quiz.results.your_results', { title: quizTitle })}
         </p>
         
-        <ScoreRing score={result.overall_score} accentColor={config.accentColor} />
+        <ScoreRing score={result.overall_score} accentColor={config.accentColor} overallLabel={t('common.overall')} />
         
         <h2 className="text-2xl font-medium text-[#0d1b2a] mt-6 mb-2">
-          {result.score_label}
+          {localizedScoreLabel}
         </h2>
         <p className="text-[#3d5166] font-light max-w-md mx-auto">
           {result.overall_score < 30 
-            ? "You're at the beginning of your journey. Here's how to get started."
+            ? t('quiz.results.score_beginning')
             : result.overall_score < 50
-            ? "You've made some progress. Let's build on what you have."
+            ? t('quiz.results.score_progress')
             : result.overall_score < 70
-            ? "Good progress! Focus on strengthening your weak areas."
-            : "Impressive! You're well prepared. Here are some final touches."}
+            ? t('quiz.results.score_good')
+            : t('quiz.results.score_impressive')}
         </p>
       </div>
 
       {/* Category Scores */}
       <div className="bg-white rounded-2xl border border-[#d4dce8] p-6 mb-8" style={{ borderWidth: '0.5px' }}>
-        <h3 className="text-lg font-medium text-[#0d1b2a] mb-6">Category Breakdown</h3>
+        <h3 className="text-lg font-medium text-[#0d1b2a] mb-6">{t('quiz.results.category_breakdown')}</h3>
         <div className="space-y-4">
-          {config.categories.map(category => (
+          {config.categories.map((category) => (
             <CategoryBar 
               key={category} 
-              name={category} 
+              name={t(`quiz.category.${category}`)}
               score={result.category_scores[category] || 0} 
             />
           ))}
@@ -296,39 +324,57 @@ export function QuizResults({ quizType }: QuizResultsProps) {
 
       {/* Action Plan */}
       <div className="bg-white rounded-2xl border border-[#d4dce8] p-6 mb-8" style={{ borderWidth: '0.5px' }}>
-        <h3 className="text-lg font-medium text-[#0d1b2a] mb-6">Your Action Plan</h3>
+        <h3 className="text-lg font-medium text-[#0d1b2a] mb-6">{t('quiz.results.action_plan')}</h3>
         
         <Tabs defaultValue="week" className="w-full">
           <TabsList className="w-full mb-6 bg-[#f5f7fa] p-1 rounded-lg">
             <TabsTrigger value="week" className="flex-1 gap-2 data-[state=active]:bg-white">
               <Clock className="h-4 w-4" />
-              This Week
+              {t('quiz.results.this_week')}
             </TabsTrigger>
             <TabsTrigger value="month" className="flex-1 gap-2 data-[state=active]:bg-white">
               <Calendar className="h-4 w-4" />
-              Next 30 Days
+              {t('quiz.results.next_30')}
             </TabsTrigger>
             <TabsTrigger value="year" className="flex-1 gap-2 data-[state=active]:bg-white">
               <Target className="h-4 w-4" />
-              This Year
+              {t('quiz.results.this_year')}
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="week" className="space-y-4">
             {result.action_plan.week.map((item, idx) => (
-              <ActionItem key={idx} {...item} accentColor={config.accentColor} />
+              <ActionItem
+                key={idx}
+                {...item}
+                accentColor={config.accentColor}
+                estimatedCostLabel={t('quiz.results.estimated_cost')}
+                translatePriority={translatePriority}
+              />
             ))}
           </TabsContent>
           
           <TabsContent value="month" className="space-y-4">
             {result.action_plan.month.map((item, idx) => (
-              <ActionItem key={idx} {...item} accentColor={config.accentColor} />
+              <ActionItem
+                key={idx}
+                {...item}
+                accentColor={config.accentColor}
+                estimatedCostLabel={t('quiz.results.estimated_cost')}
+                translatePriority={translatePriority}
+              />
             ))}
           </TabsContent>
           
           <TabsContent value="year" className="space-y-4">
             {result.action_plan.year.map((item, idx) => (
-              <ActionItem key={idx} {...item} accentColor={config.accentColor} />
+              <ActionItem
+                key={idx}
+                {...item}
+                accentColor={config.accentColor}
+                estimatedCostLabel={t('quiz.results.estimated_cost')}
+                translatePriority={translatePriority}
+              />
             ))}
           </TabsContent>
         </Tabs>
@@ -336,10 +382,10 @@ export function QuizResults({ quizType }: QuizResultsProps) {
 
       {/* Product Recommendations */}
       <div className="bg-white rounded-2xl border border-[#d4dce8] p-6 mb-8" style={{ borderWidth: '0.5px' }}>
-        <h3 className="text-lg font-medium text-[#0d1b2a] mb-6">Recommended Products</h3>
+        <h3 className="text-lg font-medium text-[#0d1b2a] mb-6">{t('quiz.results.recommended_products')}</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {result.product_recommendations.map((product, idx) => (
-            <ProductCard key={idx} {...product} accentColor={config.accentColor} />
+            <ProductCard key={idx} {...product} accentColor={config.accentColor} buyLabel={t('common.buy')} />
           ))}
         </div>
       </div>
@@ -353,21 +399,20 @@ export function QuizResults({ quizType }: QuizResultsProps) {
             <Mail className="h-5 w-5" style={{ color: config.accentColor }} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-medium text-[#0d1b2a]">Email my results</h3>
+            <h3 className="text-lg font-medium text-[#0d1b2a]">{t('quiz.results.email_title')}</h3>
             <p className="mt-1 text-sm text-[#3d5166] font-light">
-              Get your score, category breakdown, and personalized product recommendations by email. No account
-              required — or create an account later from the link in the email to save progress.
+              {t('quiz.results.email_sub')}
             </p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
               <div className="flex-1">
                 <label htmlFor="quiz-results-email" className="sr-only">
-                  Email address
+                  {t('auth.email')}
                 </label>
                 <input
                   id="quiz-results-email"
                   type="email"
                   autoComplete="email"
-                  placeholder="you@example.com"
+                  placeholder={t('auth.placeholder_email')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-lg border border-[#d4dce8] px-3 py-2 text-sm outline-none focus:border-[#009b70]"
@@ -380,7 +425,7 @@ export function QuizResults({ quizType }: QuizResultsProps) {
                 disabled={emailBusy || !email.trim()}
                 onClick={() => void sendResultsEmail()}
               >
-                {emailBusy ? 'Sending…' : 'Send to email'}
+                {emailBusy ? t('quiz.results.sending') : t('quiz.results.send_email')}
               </Button>
             </div>
             {emailError && <p className="mt-2 text-sm text-red-600">{emailError}</p>}
@@ -395,17 +440,17 @@ export function QuizResults({ quizType }: QuizResultsProps) {
         style={{ backgroundColor: `${otherQuizConfig.accentColor}08` }}
       >
         <h3 className="text-lg font-medium text-[#0d1b2a] mb-2">
-          Want the complete picture?
+          {t('quiz.results.complete_picture')}
         </h3>
         <p className="text-[#3d5166] font-light mb-6">
-          Take the {otherQuizConfig.title} to get a full assessment of your household readiness.
+          {format('quiz.results.take_other', { title: otherQuizTitle })}
         </p>
         <Link href={`/quiz/${otherQuizType}`}>
           <Button 
             className="text-white px-8"
             style={{ backgroundColor: otherQuizConfig.accentColor }}
           >
-            Take {otherQuizConfig.title}
+            {format('quiz.results.take_other_btn', { title: otherQuizTitle })}
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         </Link>

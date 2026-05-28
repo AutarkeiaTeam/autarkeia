@@ -1,5 +1,6 @@
 import type { QuizType, QuizAnswers } from '@/lib/quiz-data'
 import { getQuizConfig } from '@/lib/quiz-data'
+import { parseAcceptLanguage, translate, type Locale } from '@/lib/i18n-core'
 
 function formatAnswersForPrompt(quizType: QuizType, answers: QuizAnswers): string {
   const config = getQuizConfig(quizType)
@@ -25,39 +26,60 @@ function formatAnswersForPrompt(quizType: QuizType, answers: QuizAnswers): strin
   return `Quiz Type: ${quizType === 'self-sufficiency' ? 'Self-Sufficiency' : 'Emergency Readiness'}\n\n${formattedAnswers}`
 }
 
-const FALLBACK = {
-  overall_score: 35,
-  category_scores: { food: 30, water: 40, energy: 35, shelter: 40, resilience: 25 },
-  score_label: "Early stage",
-  action_plan: {
-    week: [
-      { title: "Store 72 hours of water", description: "Buy at minimum 9 litres per person.", estimated_cost: "€15-25", priority: "high" },
-      { title: "Audit your food supply", description: "Check how many days of food you have at home.", estimated_cost: "€0", priority: "high" },
-      { title: "Charge a power bank", description: "Keep a 20,000mAh power bank charged at all times.", estimated_cost: "€25-40", priority: "high" }
+function t(locale: Locale, key: string): string {
+  return translate(locale, key)
+}
+
+function buildFallback(locale: Locale, quizType: QuizType) {
+  const fallbackByCategory: Record<string, number> = {
+    Food: 30,
+    Water: 40,
+    Energy: 35,
+    Shelter: 40,
+    Skills: 25,
+    Medical: 35,
+    Power: 30,
+    Communication: 28,
+  }
+  const category_scores = Object.fromEntries(
+    getQuizConfig(quizType).categories.map((category) => [category, fallbackByCategory[category] ?? 30])
+  )
+
+  return {
+    overall_score: 35,
+    category_scores,
+    score_label: t(locale, 'quiz.fallback.score_label'),
+    action_plan: {
+      week: [
+        { title: t(locale, 'quiz.fallback.week.1.title'), description: t(locale, 'quiz.fallback.week.1.description'), estimated_cost: '€15-25', priority: 'high' },
+        { title: t(locale, 'quiz.fallback.week.2.title'), description: t(locale, 'quiz.fallback.week.2.description'), estimated_cost: '€0', priority: 'high' },
+        { title: t(locale, 'quiz.fallback.week.3.title'), description: t(locale, 'quiz.fallback.week.3.description'), estimated_cost: '€25-40', priority: 'high' },
+      ],
+      month: [
+        { title: t(locale, 'quiz.fallback.month.1.title'), description: t(locale, 'quiz.fallback.month.1.description'), estimated_cost: '€80-150', priority: 'medium' },
+        { title: t(locale, 'quiz.fallback.month.2.title'), description: t(locale, 'quiz.fallback.month.2.description'), estimated_cost: '€45-120', priority: 'medium' },
+        { title: t(locale, 'quiz.fallback.month.3.title'), description: t(locale, 'quiz.fallback.month.3.description'), estimated_cost: '€20-50', priority: 'medium' },
+      ],
+      year: [
+        { title: t(locale, 'quiz.fallback.year.1.title'), description: t(locale, 'quiz.fallback.year.1.description'), estimated_cost: '€800-2000', priority: 'low' },
+        { title: t(locale, 'quiz.fallback.year.2.title'), description: t(locale, 'quiz.fallback.year.2.description'), estimated_cost: '€50-100', priority: 'low' },
+        { title: t(locale, 'quiz.fallback.year.3.title'), description: t(locale, 'quiz.fallback.year.3.description'), estimated_cost: '€0-varies', priority: 'low' },
+      ],
+    },
+    product_recommendations: [
+      { category: t(locale, 'quiz.fallback.products.1.category'), name: t(locale, 'quiz.fallback.products.1.name'), why: t(locale, 'quiz.fallback.products.1.why'), estimated_price: '€320' },
+      { category: t(locale, 'quiz.fallback.products.2.category'), name: t(locale, 'quiz.fallback.products.2.name'), why: t(locale, 'quiz.fallback.products.2.why'), estimated_price: '€85' },
+      { category: t(locale, 'quiz.fallback.products.3.category'), name: t(locale, 'quiz.fallback.products.3.name'), why: t(locale, 'quiz.fallback.products.3.why'), estimated_price: '€499' },
+      { category: t(locale, 'quiz.fallback.products.4.category'), name: t(locale, 'quiz.fallback.products.4.name'), why: t(locale, 'quiz.fallback.products.4.why'), estimated_price: '€89' },
+      { category: t(locale, 'quiz.fallback.products.5.category'), name: t(locale, 'quiz.fallback.products.5.name'), why: t(locale, 'quiz.fallback.products.5.why'), estimated_price: '€49' },
+      { category: t(locale, 'quiz.fallback.products.6.category'), name: t(locale, 'quiz.fallback.products.6.name'), why: t(locale, 'quiz.fallback.products.6.why'), estimated_price: '€39' },
     ],
-    month: [
-      { title: "Build a 2-week food store", description: "Rice, lentils, pasta, canned goods.", estimated_cost: "€80-150", priority: "medium" },
-      { title: "Buy a water filter", description: "A gravity filter covers water quality.", estimated_cost: "€45-120", priority: "medium" },
-      { title: "Start a small garden", description: "Even herbs on a windowsill starts the habit.", estimated_cost: "€20-50", priority: "medium" }
-    ],
-    year: [
-      { title: "Install solar backup", description: "A 500W panel and battery covers essentials.", estimated_cost: "€800-2000", priority: "low" },
-      { title: "Learn food preservation", description: "Fermentation and dehydrating extend your harvest.", estimated_cost: "€50-100", priority: "low" },
-      { title: "Join an Autarkeia community", description: "Shared knowledge and shared land accelerates everything.", estimated_cost: "€0-varies", priority: "low" }
-    ]
-  },
-  product_recommendations: [
-    { category: "Water", name: "Berkey water filter", why: "Filters tap, well or collected water to drinking quality.", estimated_price: "€320" },
-    { category: "Food", name: "72-hour emergency food kit", why: "Freeze-dried, 5-year shelf life.", estimated_price: "€85" },
-    { category: "Energy", name: "Jackery 500 solar generator", why: "Entry-level solar and battery.", estimated_price: "€499" },
-    { category: "Food growing", name: "Raised bed starter kit", why: "Best first step for food production.", estimated_price: "€89" },
-    { category: "Medical", name: "Comprehensive first aid kit", why: "Covers burns, trauma, fractures.", estimated_price: "€49" },
-    { category: "Communications", name: "Solar wind-up radio", why: "No batteries needed. Weather alerts.", estimated_price: "€39" }
-  ]
+  }
 }
 
 export async function POST(req: Request) {
   try {
+    const locale = parseAcceptLanguage(req.headers.get('accept-language'))
     const { quizType, answers } = await req.json() as {
       quizType: QuizType
       answers: QuizAnswers
@@ -86,19 +108,19 @@ export async function POST(req: Request) {
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Anthropic API error:', response.status, errorText)
-      return Response.json({ result: FALLBACK })
+      return Response.json({ result: buildFallback(locale, quizType) })
     }
 
     const data = await response.json()
     const content = data.content?.[0]
     if (!content || content.type !== 'text') {
-      return Response.json({ result: FALLBACK })
+      return Response.json({ result: buildFallback(locale, quizType) })
     }
 
     const text = content.text.trim()
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      return Response.json({ result: FALLBACK })
+      return Response.json({ result: buildFallback(locale, quizType) })
     }
 
     const result = JSON.parse(jsonMatch[0])
@@ -106,6 +128,7 @@ export async function POST(req: Request) {
 
   } catch (error) {
     console.error('Quiz analysis error:', error)
-    return Response.json({ result: FALLBACK })
+    const locale = parseAcceptLanguage(req.headers.get('accept-language'))
+    return Response.json({ result: buildFallback(locale, 'self-sufficiency') })
   }
 }

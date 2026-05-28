@@ -1,24 +1,22 @@
-import { QuizFlow } from '@/components/quiz/quiz-flow'
-import { getQuizConfig } from '@/lib/quiz-data'
+import type { Metadata } from 'next'
+import { LocalizedQuizFlow } from '@/components/quiz/localized-quiz-flow'
+import { getLocale } from '@/lib/i18n-server'
+import { translate } from '@/lib/i18n-core'
 
-export const metadata = {
-  title: 'Emergency Readiness Quiz — Autarkeia',
-  description: 'Find out how ready you are for unexpected disruptions with our 7-question assessment.',
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  return {
+    title: `${translate(locale, 'quiz.emergency-readiness.title')} — Autarkeia`,
+    description: translate(locale, 'quiz.page.emergency.metadata_description'),
+  }
 }
 
 export default function EmergencyReadinessQuizPage() {
-  const config = getQuizConfig('emergency-readiness')
-
   return (
     <main className="min-h-screen flex flex-col">
       <div className="flex-1 bg-white py-12 sm:py-16">
         <div className="mx-auto max-w-4xl px-4 lg:px-8">
-          <QuizFlow
-            quizType="emergency-readiness"
-            title={config.title}
-            questions={config.questions}
-            accentColor={config.accentColor}
-          />
+          <LocalizedQuizFlow quizType="emergency-readiness" />
         </div>
       </div>
     </main>

@@ -1,8 +1,14 @@
 import { QuizResults } from '@/components/quiz/quiz-results'
+import type { Metadata } from 'next'
+import { getLocale } from '@/lib/i18n-server'
+import { translate } from '@/lib/i18n-core'
 
-export const metadata = {
-  title: 'Your Emergency Readiness Score — Autarkeia',
-  description: 'View your personalised emergency readiness assessment results and action plan.',
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  return {
+    title: `${translate(locale, 'quiz.results.meta_title_prefix')} ${translate(locale, 'quiz.emergency-readiness.title')} — Autarkeia`,
+    description: translate(locale, 'quiz.results.meta_description'),
+  }
 }
 
 export default function EmergencyReadinessResultsPage() {
