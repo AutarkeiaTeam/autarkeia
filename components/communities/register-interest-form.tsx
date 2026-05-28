@@ -2,12 +2,16 @@
 
 import { FormEvent, useState } from "react"
 import { LocationAutocomplete } from "@/components/communities/location-autocomplete"
+import { useI18n } from "@/components/i18n-provider"
 import {
   AGE_RANGES,
+  COMMUNITY_INTENTS,
   CLIMATE_PREFERENCES,
   DIETARY_PREFERENCES,
   DISTANCE_FROM_CITY,
   ENERGY_SOURCE_OPTIONS,
+  FOOD_FREQUENCIES,
+  FOOD_PRODUCT_OPTIONS,
   FOOD_PRODUCTION_OPTIONS,
   HOUSEHOLD_TYPES,
   INVESTMENT_CAPACITY,
@@ -51,6 +55,9 @@ const initialForm: RegisterFormState = {
   distanceFromCity: "30-60min",
   investmentCapacity: "€50k-€150k",
   investorType: "Individual/family",
+  intent: "live",
+  foodProducts: null,
+  foodFrequency: null,
   livingModel: "",
   energyOwnership: "",
   energyPreferences: [],
@@ -62,10 +69,13 @@ const initialForm: RegisterFormState = {
 }
 
 export function RegisterInterestForm() {
+  const { t } = useI18n()
   const [form, setForm] = useState(initialForm)
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [errorMessage, setErrorMessage] = useState("")
 
+  const requiresLiving = form.intent === "live" || form.intent === "both"
+  const requiresFoodBuyer = form.intent === "buy_food" || form.intent === "both"
   const showEnergySources = form.energyOwnership === "Resident-owned"
   const showFoodMethods = form.foodOwnership === "Resident-owned"
 
@@ -76,18 +86,32 @@ export function RegisterInterestForm() {
 
     if (form.preferredLocations.length === 0) {
       setStatus("error")
-      setErrorMessage("Add at least one location from the suggestions.")
+      setErrorMessage(t("communities.form.error_add_location"))
       return
     }
 
+    const livingModel = requiresLiving ? form.livingModel : null
+    const energyOwnership = requiresLiving ? form.energyOwnership : null
+    const foodOwnership = requiresLiving ? form.foodOwnership : null
+    const dietaryPreference = requiresLiving ? form.dietaryPreference : null
+    const foodProducts = requiresFoodBuyer ? (form.foodProducts ?? []) : null
+    const foodFrequency = requiresFoodBuyer ? form.foodFrequency : null
+
     const payload: CommunityInterestInput = {
       ...form,
-      livingModel: form.livingModel as CommunityInterestInput["livingModel"],
-      energyOwnership: form.energyOwnership as CommunityInterestInput["energyOwnership"],
-      foodOwnership: form.foodOwnership as CommunityInterestInput["foodOwnership"],
-      dietaryPreference: form.dietaryPreference as CommunityInterestInput["dietaryPreference"],
-      energyPreferences: showEnergySources ? (form.energyPreferences ?? []) : null,
-      foodPreferences: showFoodMethods ? (form.foodPreferences ?? []) : null,
+      livingModel: livingModel as CommunityInterestInput["livingModel"],
+      energyOwnership: energyOwnership as CommunityInterestInput["energyOwnership"],
+      foodOwnership: foodOwnership as CommunityInterestInput["foodOwnership"],
+      dietaryPreference: dietaryPreference as CommunityInterestInput["dietaryPreference"],
+      climatePreference: requiresLiving ? form.climatePreference : null,
+      distanceFromCity: requiresLiving ? form.distanceFromCity : null,
+      investmentCapacity: requiresLiving ? form.investmentCapacity : null,
+      investorType: requiresLiving ? form.investorType : null,
+      moveTimeline: requiresLiving ? form.moveTimeline : null,
+      energyPreferences: requiresLiving && showEnergySources ? (form.energyPreferences ?? []) : null,
+      foodPreferences: requiresLiving && showFoodMethods ? (form.foodPreferences ?? []) : null,
+      foodProducts,
+      foodFrequency,
     }
 
     try {
@@ -100,14 +124,14 @@ export function RegisterInterestForm() {
       const data = (await response.json().catch(() => null)) as { error?: string; ok?: boolean }
 
       if (!response.ok) {
-        throw new Error(data?.error || "Could not submit your interest.")
+        throw new Error(data?.error || t("communities.form.error_submit"))
       }
 
       setStatus("success")
       setForm(initialForm)
     } catch (err) {
       setStatus("error")
-      setErrorMessage(err instanceof Error ? err.message : "Could not submit your interest.")
+      setErrorMessage(err instanceof Error ? err.message : t("communities.form.error_submit"))
     }
   }
 
@@ -116,7 +140,7 @@ export function RegisterInterestForm() {
       <div className="grid gap-4 sm:grid-cols-2">
         <input
           className={inputClass}
-          placeholder="Full name"
+          placeholder={t("communities.form.full_name")}
           required
           value={form.fullName}
           onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))}
@@ -124,21 +148,21 @@ export function RegisterInterestForm() {
         <input
           type="email"
           className={inputClass}
-          placeholder="Email address"
+          placeholder={t("communities.form.email")}
           required
           value={form.email}
           onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
         />
         <input
           className={inputClass}
-          placeholder="Country of residence"
+          placeholder={t("communities.form.country")}
           required
           value={form.country}
           onChange={(e) => setForm((prev) => ({ ...prev, country: e.target.value }))}
         />
         <input
           className={inputClass}
-          placeholder="City/region of residence"
+          placeholder={t("communities.form.city")}
           required
           value={form.cityRegion}
           onChange={(e) => setForm((prev) => ({ ...prev, cityRegion: e.target.value }))}
@@ -152,7 +176,7 @@ export function RegisterInterestForm() {
           }
         >
           <option value="" disabled>
-            Age range
+            {t("communities.form.age_range")}
           </option>
           {AGE_RANGES.map((option) => (
             <option key={option} value={option}>
@@ -172,7 +196,7 @@ export function RegisterInterestForm() {
           }
         >
           <option value="" disabled>
-            Household type
+            {t("communities.form.household")}
           </option>
           {HOUSEHOLD_TYPES.map((option) => (
             <option key={option} value={option}>
@@ -182,8 +206,36 @@ export function RegisterInterestForm() {
         </select>
       </div>
 
+      <fieldset className={sectionClass}>
+        <legend className="font-medium text-[#0d1b2a]">{t("communities.form.intent")}</legend>
+        {COMMUNITY_INTENTS.map((intent) => (
+          <label key={intent} className="flex cursor-pointer gap-3 rounded-lg border border-transparent p-2 hover:border-[#d4dce8]">
+            <input
+              type="radio"
+              name="intent"
+              className="mt-1 shrink-0"
+              value={intent}
+              checked={form.intent === intent}
+              onChange={() =>
+                setForm((prev) => ({
+                  ...prev,
+                  intent,
+                  foodProducts: intent === "live" ? null : (prev.foodProducts ?? []),
+                  foodFrequency: intent === "live" ? null : (prev.foodFrequency ?? null),
+                }))
+              }
+            />
+            <span className="text-sm text-[#3d5166]">{t(`communities.form.intent_option.${intent}`)}</span>
+          </label>
+        ))}
+      </fieldset>
+
       <div className="space-y-4 rounded-xl border border-[#d4dce8] bg-white p-5">
-        <p className="font-medium text-[#0d1b2a]">Where would you like to live? (up to 10 locations)</p>
+        <p className="font-medium text-[#0d1b2a]">
+          {requiresLiving
+            ? t("communities.form.where_live")
+            : t("communities.form.food_location")}
+        </p>
         <LocationAutocomplete
           locations={form.preferredLocations}
           maxLocations={10}
@@ -192,11 +244,15 @@ export function RegisterInterestForm() {
             setForm((prev) => ({ ...prev, preferredLocations }))
           }
         />
+      </div>
+
+      {requiresLiving && (
+      <div className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <select
             className={selectClass}
-            required
-            value={form.climatePreference}
+            required={requiresLiving}
+            value={form.climatePreference ?? ""}
             onChange={(e) =>
               setForm((prev) => ({
                 ...prev,
@@ -205,7 +261,7 @@ export function RegisterInterestForm() {
             }
           >
             <option value="" disabled>
-              Climate preference
+              {t("communities.form.climate")}
             </option>
             {CLIMATE_PREFERENCES.map((option) => (
               <option key={option} value={option}>
@@ -215,8 +271,8 @@ export function RegisterInterestForm() {
           </select>
           <select
             className={selectClass}
-            required
-            value={form.distanceFromCity}
+            required={requiresLiving}
+            value={form.distanceFromCity ?? ""}
             onChange={(e) =>
               setForm((prev) => ({
                 ...prev,
@@ -225,7 +281,7 @@ export function RegisterInterestForm() {
             }
           >
             <option value="" disabled>
-              How far from a city?
+              {t("communities.form.distance_city")}
             </option>
             {DISTANCE_FROM_CITY.map((option) => (
               <option key={option} value={option}>
@@ -234,11 +290,8 @@ export function RegisterInterestForm() {
             ))}
           </select>
         </div>
-      </div>
-
-      <div className="space-y-6">
         <fieldset className={sectionClass}>
-          <legend className="font-medium text-[#0d1b2a]">Preferred living model</legend>
+          <legend className="font-medium text-[#0d1b2a]">{t("communities.form.living_model")}</legend>
           {LIVING_MODEL_OPTIONS.map((option) => (
             <label
               key={option.value}
@@ -248,7 +301,7 @@ export function RegisterInterestForm() {
                 type="radio"
                 name="livingModel"
                 className="mt-1 shrink-0"
-                required
+                required={requiresLiving}
                 value={option.value}
                 checked={form.livingModel === option.value}
                 onChange={() => setForm((prev) => ({ ...prev, livingModel: option.value }))}
@@ -262,7 +315,7 @@ export function RegisterInterestForm() {
         </fieldset>
 
         <fieldset className={sectionClass}>
-          <legend className="font-medium text-[#0d1b2a]">Energy ownership</legend>
+          <legend className="font-medium text-[#0d1b2a]">{t("communities.form.energy_ownership")}</legend>
           {OWNERSHIP_OPTIONS.map((option) => (
             <label
               key={`energy-${option.value}`}
@@ -272,7 +325,7 @@ export function RegisterInterestForm() {
                 type="radio"
                 name="energyOwnership"
                 className="mt-1 shrink-0"
-                required
+                required={requiresLiving}
                 value={option.value}
                 checked={form.energyOwnership === option.value}
                 onChange={() =>
@@ -294,8 +347,8 @@ export function RegisterInterestForm() {
 
         {showEnergySources && (
           <fieldset className={sectionClass}>
-            <legend className="font-medium text-[#0d1b2a]">Preferred energy sources</legend>
-            <p className="text-xs text-[#8a9bb0]">Select all that apply.</p>
+            <legend className="font-medium text-[#0d1b2a]">{t("communities.form.energy_sources")}</legend>
+            <p className="text-xs text-[#8a9bb0]">{t("communities.form.select_all")}</p>
             {ENERGY_SOURCE_OPTIONS.map((option) => (
               <label key={option} className="flex gap-2 text-sm text-[#3d5166]">
                 <input
@@ -319,7 +372,7 @@ export function RegisterInterestForm() {
         )}
 
         <fieldset className={sectionClass}>
-          <legend className="font-medium text-[#0d1b2a]">Food ownership</legend>
+          <legend className="font-medium text-[#0d1b2a]">{t("communities.form.food_ownership")}</legend>
           {OWNERSHIP_OPTIONS.map((option) => (
             <label
               key={`food-${option.value}`}
@@ -329,7 +382,7 @@ export function RegisterInterestForm() {
                 type="radio"
                 name="foodOwnership"
                 className="mt-1 shrink-0"
-                required
+                required={requiresLiving}
                 value={option.value}
                 checked={form.foodOwnership === option.value}
                 onChange={() =>
@@ -351,8 +404,8 @@ export function RegisterInterestForm() {
 
         {showFoodMethods && (
           <fieldset className={sectionClass}>
-            <legend className="font-medium text-[#0d1b2a]">Preferred food production methods</legend>
-            <p className="text-xs text-[#8a9bb0]">Select all that apply.</p>
+            <legend className="font-medium text-[#0d1b2a]">{t("communities.form.food_methods")}</legend>
+            <p className="text-xs text-[#8a9bb0]">{t("communities.form.select_all")}</p>
             {FOOD_PRODUCTION_OPTIONS.map((option) => (
               <label key={option} className="flex gap-2 text-sm text-[#3d5166]">
                 <input
@@ -376,14 +429,14 @@ export function RegisterInterestForm() {
         )}
 
         <fieldset className={sectionClass}>
-          <legend className="font-medium text-[#0d1b2a]">Dietary community preference</legend>
+          <legend className="font-medium text-[#0d1b2a]">{t("communities.form.dietary")}</legend>
           {DIETARY_PREFERENCES.map((option) => (
             <label key={option} className="flex cursor-pointer gap-3 p-2 text-sm text-[#3d5166]">
               <input
                 type="radio"
                 name="dietaryPreference"
                 className="mt-0.5 shrink-0"
-                required
+                required={requiresLiving}
                 value={option}
                 checked={form.dietaryPreference === option}
                 onChange={() => setForm((prev) => ({ ...prev, dietaryPreference: option }))}
@@ -393,12 +446,58 @@ export function RegisterInterestForm() {
           ))}
         </fieldset>
       </div>
+      )}
 
+      {requiresFoodBuyer && (
+        <fieldset className={sectionClass}>
+          <legend className="font-medium text-[#0d1b2a]">{t("communities.form.food_buyer_section")}</legend>
+          <p className="text-sm text-[#3d5166]">{t("communities.form.food_products")}</p>
+          {FOOD_PRODUCT_OPTIONS.map((option) => (
+            <label key={option} className="flex gap-2 text-sm text-[#3d5166]">
+              <input
+                type="checkbox"
+                checked={(form.foodProducts ?? []).includes(option)}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    foodProducts: toggleValue(prev.foodProducts ?? [], option, e.target.checked) as NonNullable<
+                      CommunityInterestInput["foodProducts"]
+                    >,
+                  }))
+                }
+              />
+              {t(`communities.form.food_product_option.${option}`)}
+            </label>
+          ))}
+          <select
+            className={selectClass}
+            required={requiresFoodBuyer}
+            value={form.foodFrequency ?? ""}
+            onChange={(e) =>
+              setForm((prev) => ({
+                ...prev,
+                foodFrequency: e.target.value as CommunityInterestInput["foodFrequency"],
+              }))
+            }
+          >
+            <option value="" disabled>
+              {t("communities.form.food_frequency")}
+            </option>
+            {FOOD_FREQUENCIES.map((option) => (
+              <option key={option} value={option}>
+                {t(`communities.form.food_frequency_option.${option}`)}
+              </option>
+            ))}
+          </select>
+        </fieldset>
+      )}
+
+      {requiresLiving && (
       <div className="grid gap-4 sm:grid-cols-2">
         <select
           className={selectClass}
-          required
-          value={form.investmentCapacity}
+          required={requiresLiving}
+          value={form.investmentCapacity ?? ""}
           onChange={(e) =>
             setForm((prev) => ({
               ...prev,
@@ -407,7 +506,7 @@ export function RegisterInterestForm() {
           }
         >
           <option value="" disabled>
-            Investment capacity
+            {t("communities.form.investment")}
           </option>
           {INVESTMENT_CAPACITY.map((option) => (
             <option key={option} value={option}>
@@ -417,8 +516,8 @@ export function RegisterInterestForm() {
         </select>
         <select
           className={selectClass}
-          required
-          value={form.investorType}
+          required={requiresLiving}
+          value={form.investorType ?? ""}
           onChange={(e) =>
             setForm((prev) => ({
               ...prev,
@@ -427,7 +526,7 @@ export function RegisterInterestForm() {
           }
         >
           <option value="" disabled>
-            Investor type
+            {t("communities.form.investor_type")}
           </option>
           {INVESTOR_TYPES.map((option) => (
             <option key={option} value={option}>
@@ -437,8 +536,8 @@ export function RegisterInterestForm() {
         </select>
         <select
           className={`${selectClass} sm:col-span-2`}
-          required
-          value={form.moveTimeline}
+          required={requiresLiving}
+          value={form.moveTimeline ?? ""}
           onChange={(e) =>
             setForm((prev) => ({
               ...prev,
@@ -447,7 +546,7 @@ export function RegisterInterestForm() {
           }
         >
           <option value="" disabled>
-            When are you thinking of making this move?
+            {t("communities.form.timeline")}
           </option>
           {MOVE_TIMELINES.map((option) => (
             <option key={option} value={option}>
@@ -455,21 +554,23 @@ export function RegisterInterestForm() {
             </option>
           ))}
         </select>
-        <textarea
-          className={`${inputClass} sm:col-span-2`}
-          rows={4}
-          placeholder="Additional notes"
-          value={form.notes}
-          onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
-        />
       </div>
+      )}
+
+      <textarea
+        className={inputClass}
+        rows={4}
+        placeholder={t("communities.form.notes")}
+        value={form.notes}
+        onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
+      />
 
       <button
         type="submit"
         disabled={status === "loading" || status === "success"}
         className="rounded-lg bg-[#009b70] px-6 py-3 font-medium text-white hover:bg-[#008060] disabled:opacity-60"
       >
-        {status === "loading" ? "Submitting…" : "Register my interest →"}
+        {status === "loading" ? t("communities.form.submitting") : t("communities.form.submit")}
       </button>
 
       {status === "error" && errorMessage && (
@@ -478,9 +579,7 @@ export function RegisterInterestForm() {
 
       {status === "success" && (
         <p className="rounded-lg border border-[#009b70]/40 bg-[#e8f8f3] p-4 text-sm text-[#0d1b2a]">
-          Thank you. We have received your interest and sent a confirmation to your email. We will be in
-          touch as we develop communities in your preferred locations. This data helps us demonstrate demand
-          to investors and partners.
+          {t("communities.form.success_email")}
         </p>
       )}
     </form>

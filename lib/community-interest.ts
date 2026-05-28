@@ -54,6 +54,18 @@ export const MOVE_TIMELINES = [
   "5+ years",
   "Just exploring",
 ] as const
+export const COMMUNITY_INTENTS = ["live", "buy_food", "both"] as const
+export const FOOD_PRODUCT_OPTIONS = [
+  "Vegetables",
+  "Fruit",
+  "Eggs",
+  "Dairy",
+  "Honey",
+  "Grains & legumes",
+  "Herbs",
+  "Preserves",
+] as const
+export const FOOD_FREQUENCIES = ["Weekly", "Monthly", "Yearly"] as const
 
 export const LIVING_MODELS = [
   "Single family plot",
@@ -145,52 +157,164 @@ export const communityInterestSchema = z
     investorType: z.enum(INVESTOR_TYPES),
     moveTimeline: z.enum(MOVE_TIMELINES),
     notes: z.string().trim().max(5000).optional().default(""),
+    intent: z.enum(COMMUNITY_INTENTS),
+    foodProducts: z
+      .array(z.enum(FOOD_PRODUCT_OPTIONS))
+      .max(FOOD_PRODUCT_OPTIONS.length)
+      .nullable()
+      .optional(),
+    foodFrequency: z.enum(FOOD_FREQUENCIES).nullable().optional(),
 
-    livingModel: z.enum(LIVING_MODELS),
-    energyOwnership: z.enum(OWNERSHIP_MODELS),
+    livingModel: z.enum(LIVING_MODELS).nullable().optional(),
+    energyOwnership: z.enum(OWNERSHIP_MODELS).nullable().optional(),
     energyPreferences: z
       .array(z.enum(ENERGY_SOURCE_OPTIONS))
       .max(ENERGY_SOURCE_OPTIONS.length)
       .nullable()
       .optional(),
-    foodOwnership: z.enum(OWNERSHIP_MODELS),
+    foodOwnership: z.enum(OWNERSHIP_MODELS).nullable().optional(),
     foodPreferences: z
       .array(z.enum(FOOD_PRODUCTION_OPTIONS))
       .max(FOOD_PRODUCTION_OPTIONS.length)
       .nullable()
       .optional(),
-    dietaryPreference: z.enum(DIETARY_PREFERENCES),
+    dietaryPreference: z.enum(DIETARY_PREFERENCES).nullable().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.energyOwnership === "Resident-owned") {
-      if (!data.energyPreferences?.length) {
+    const requiresLiving = data.intent === "live" || data.intent === "both"
+    const requiresFoodBuyer = data.intent === "buy_food" || data.intent === "both"
+
+    if (requiresLiving) {
+      if (!data.livingModel) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["livingModel"],
+          message: "Select your preferred living model",
+        })
+      }
+
+      if (!data.energyOwnership) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["energyOwnership"],
+          message: "Select your preferred energy ownership setup",
+        })
+      }
+
+      if (!data.foodOwnership) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["foodOwnership"],
+          message: "Select your preferred food ownership setup",
+        })
+      }
+
+      if (!data.dietaryPreference) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["dietaryPreference"],
+          message: "Select a dietary preference",
+        })
+      }
+
+      if (data.energyOwnership === "Resident-owned" && !data.energyPreferences?.length) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["energyPreferences"],
           message: "Select at least one preferred energy source",
         })
       }
-    } else if (data.energyPreferences != null && data.energyPreferences.length > 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["energyPreferences"],
-        message: "Energy sources are only applicable for resident-owned setups",
-      })
-    }
 
-    if (data.foodOwnership === "Resident-owned") {
-      if (!data.foodPreferences?.length) {
+      if (data.foodOwnership === "Resident-owned" && !data.foodPreferences?.length) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["foodPreferences"],
           message: "Select at least one preferred food production method",
         })
       }
-    } else if (data.foodPreferences?.length) {
+
+      if (!data.climatePreference) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["climatePreference"],
+          message: "Select a climate preference",
+        })
+      }
+
+      if (!data.distanceFromCity) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["distanceFromCity"],
+          message: "Select a preferred distance from city",
+        })
+      }
+
+      if (!data.investmentCapacity) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["investmentCapacity"],
+          message: "Select an investment capacity",
+        })
+      }
+
+      if (!data.investorType) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["investorType"],
+          message: "Select an investor type",
+        })
+      }
+
+      if (!data.moveTimeline) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["moveTimeline"],
+          message: "Select a move timeline",
+        })
+      }
+    }
+
+    if (requiresFoodBuyer) {
+      if (!data.foodProducts?.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["foodProducts"],
+          message: "Select at least one product",
+        })
+      }
+
+      if (!data.foodFrequency) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["foodFrequency"],
+          message: "Select a purchase frequency",
+        })
+      }
+    }
+
+    if (!requiresLiving) {
+      if (data.energyPreferences?.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["energyPreferences"],
+          message: "Energy sources are only applicable for resident-focused submissions",
+        })
+      }
+
+      if (data.foodPreferences?.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["foodPreferences"],
+          message: "Food production methods are only applicable for resident-focused submissions",
+        })
+      }
+    }
+
+    if (!requiresFoodBuyer && (data.foodProducts?.length || data.foodFrequency)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["foodPreferences"],
-        message: "Food production methods are only applicable for resident-owned setups",
+        path: ["foodProducts"],
+        message: "Food buyer fields are only applicable for food-buyer submissions",
       })
     }
   })
@@ -201,10 +325,12 @@ export function communityInterestToRow(
   data: CommunityInterestInput,
   userId: string | null
 ) {
+  const requiresLiving = data.intent === "live" || data.intent === "both"
+  const requiresFoodBuyer = data.intent === "buy_food" || data.intent === "both"
   const energyPreferences =
-    data.energyOwnership === "Resident-owned" ? (data.energyPreferences ?? []) : null
+    requiresLiving && data.energyOwnership === "Resident-owned" ? (data.energyPreferences ?? []) : null
   const foodPreferences =
-    data.foodOwnership === "Resident-owned" ? (data.foodPreferences ?? []) : null
+    requiresLiving && data.foodOwnership === "Resident-owned" ? (data.foodPreferences ?? []) : null
 
   return {
     user_id: userId,
@@ -215,17 +341,20 @@ export function communityInterestToRow(
     age_range: data.ageRange,
     household_type: data.householdType,
     preferred_locations: data.preferredLocations,
-    climate_preference: data.climatePreference,
-    distance_from_city: data.distanceFromCity,
-    investment_capacity: data.investmentCapacity,
-    investor_type: data.investorType,
-    move_timeline: data.moveTimeline,
+    climate_preference: requiresLiving ? data.climatePreference : null,
+    distance_from_city: requiresLiving ? data.distanceFromCity : null,
+    investment_capacity: requiresLiving ? data.investmentCapacity : null,
+    investor_type: requiresLiving ? data.investorType : null,
+    move_timeline: requiresLiving ? data.moveTimeline : null,
     notes: data.notes || null,
-    living_model: data.livingModel,
-    energy_ownership: data.energyOwnership,
+    intent: data.intent,
+    food_products: requiresFoodBuyer ? (data.foodProducts ?? []) : null,
+    food_frequency: requiresFoodBuyer ? (data.foodFrequency ?? null) : null,
+    living_model: requiresLiving ? data.livingModel : null,
+    energy_ownership: requiresLiving ? data.energyOwnership : null,
     energy_preferences: energyPreferences,
-    food_ownership: data.foodOwnership,
+    food_ownership: requiresLiving ? data.foodOwnership : null,
     food_preferences: foodPreferences,
-    dietary_preference: data.dietaryPreference,
+    dietary_preference: requiresLiving ? data.dietaryPreference : null,
   }
 }

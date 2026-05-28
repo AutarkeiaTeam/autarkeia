@@ -26,20 +26,39 @@ function buildSummary(data: CommunityInterestInput): string {
       ? formatList(data.foodPreferences)
       : "N/A (Autarkeia-managed)"
 
-  return [
-    `Preferred locations: ${locations}`,
-    `Living model: ${data.livingModel}`,
-    `Energy ownership: ${data.energyOwnership}`,
-    `Preferred energy sources: ${energySources}`,
-    `Food ownership: ${data.foodOwnership}`,
-    `Preferred food production: ${foodMethods}`,
-    `Dietary community preference: ${data.dietaryPreference}`,
-    `Climate: ${data.climatePreference}`,
-    `Distance from city: ${data.distanceFromCity}`,
-    `Investment capacity: ${data.investmentCapacity}`,
-    `Investor type: ${data.investorType}`,
-    `Timeline: ${data.moveTimeline}`,
-  ].join("\n")
+  const intentLabel =
+    data.intent === "live"
+      ? "Live in community"
+      : data.intent === "buy_food"
+      ? "Buy food only"
+      : "Live + buy food"
+
+  const lines = [`Preferred locations: ${locations}`, `Intent: ${intentLabel}`]
+
+  if (data.intent === "live" || data.intent === "both") {
+    lines.push(
+      `Living model: ${data.livingModel ?? "Not specified"}`,
+      `Energy ownership: ${data.energyOwnership ?? "Not specified"}`,
+      `Preferred energy sources: ${energySources}`,
+      `Food ownership: ${data.foodOwnership ?? "Not specified"}`,
+      `Preferred food production: ${foodMethods}`,
+      `Dietary community preference: ${data.dietaryPreference ?? "Not specified"}`,
+      `Climate: ${data.climatePreference ?? "Not specified"}`,
+      `Distance from city: ${data.distanceFromCity ?? "Not specified"}`,
+      `Investment capacity: ${data.investmentCapacity ?? "Not specified"}`,
+      `Investor type: ${data.investorType ?? "Not specified"}`,
+      `Timeline: ${data.moveTimeline ?? "Not specified"}`
+    )
+  }
+
+  if (data.intent === "buy_food" || data.intent === "both") {
+    lines.push(
+      `Food products of interest: ${formatList(data.foodProducts ?? [])}`,
+      `Purchase frequency: ${data.foodFrequency ?? "Not specified"}`
+    )
+  }
+
+  return lines.join("\n")
 }
 
 async function sendResendEmail(options: {
