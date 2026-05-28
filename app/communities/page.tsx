@@ -73,30 +73,6 @@ export default function Communities() {
         </div>
       </section>
 
-      <section className="py-14">
-        <div className="mx-auto max-w-6xl px-4 lg:px-8">
-          <div className="rounded-2xl border border-[#d4dce8] bg-white p-6 sm:p-8">
-            <h2 className="text-2xl sm:text-3xl font-light text-[#0d1b2a]">
-              {t("communities.market.title")}
-            </h2>
-            <p className="mt-4 text-sm leading-relaxed text-[#3d5166]">
-              {t("communities.market.body")}
-            </p>
-            <ul className="mt-5 space-y-2 text-sm text-[#3d5166]">
-              <li>• {t("communities.market.point_1")}</li>
-              <li>• {t("communities.market.point_2")}</li>
-              <li>• {t("communities.market.point_3")}</li>
-            </ul>
-            <Link
-              href="/communities?intent=buy_food#register-interest"
-              className="mt-6 inline-block rounded-lg bg-[#009b70] px-4 py-2 text-sm font-medium text-white hover:bg-[#008060]"
-            >
-              {t("communities.market.cta")}
-            </Link>
-          </div>
-        </div>
-      </section>
-
       <section className="py-14 bg-[#f5f7fa]">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
           <h2 className="text-2xl sm:text-3xl font-light text-[#0d1b2a]">{t("communities.model_every")}</h2>
