@@ -7,28 +7,28 @@ import { useI18n } from "@/components/i18n-provider"
 import { canManageSubscription, hasProSubscriptionStatus } from "@/lib/subscription-shared"
 import { startCheckout, openBillingPortal } from "@/lib/stripe-client"
 
-const freeFeatures = [
-  "Both quizzes (Emergency Readiness + Self-Sufficiency)",
-  "Basic score — overall percentage only",
-  "3 action items for this week only",
-  "Limited Marketplace access (only Amazon)",
-  "Limited library access",
-  "World News Watch headlines",
-  "Autarkeia Communities access — register interest, get updates on community development",
+const freeFeatureKeys = [
+  "plans.features.free.1",
+  "plans.features.free.2",
+  "plans.features.free.3",
+  "plans.features.free.4",
+  "plans.features.free.5",
+  "plans.features.free.6",
+  "plans.features.free.7",
 ]
 
-const proFeatures = [
-  "Everything in Free",
-  "Full score breakdown across all 5 categories",
-  "Complete action plan — this week, 30 days, 1 year",
-  "Plan saved to account and updated as you progress",
-  "Score history — track improvement over time",
-  "Full Marketplace access (all sellers)",
-  "Full library — all guides, books, films, courses, apps",
-  "World News Watch weekly email briefing every Monday",
-  "AI chat — ask Claude about your specific situation, location and household",
-  "Priority Autarkeia Communities access",
-  "Monthly Global Report & Newsletter",
+const proFeatureKeys = [
+  "plans.features.pro.1",
+  "plans.features.pro.2",
+  "plans.features.pro.3",
+  "plans.features.pro.4",
+  "plans.features.pro.5",
+  "plans.features.pro.6",
+  "plans.features.pro.7",
+  "plans.features.pro.8",
+  "plans.features.pro.9",
+  "plans.features.pro.10",
+  "plans.features.pro.11",
 ]
 
 type Props = {
@@ -49,6 +49,8 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
   const showManageOnly = hasManageableSubscription
   const checkoutCancelled = searchParams.get("checkout") === "cancelled"
   const fromMarketplace = searchParams.get("from") === "marketplace"
+  const translateError = (message: string) =>
+    message.startsWith("plans.") ? t(message) : message
 
   const cardClass = (tier: "free" | "pro") =>
     `rounded-2xl bg-white p-6 transition-all duration-200 ${
@@ -68,7 +70,8 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
       setError("")
       await startCheckout(plan)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Checkout failed")
+      const message = err instanceof Error ? err.message : "plans.error.checkout_failed"
+      setError(translateError(message))
       setLoadingPlan(null)
     }
   }
@@ -79,7 +82,8 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
       setError("")
       await openBillingPortal()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not open billing portal")
+      const message = err instanceof Error ? err.message : "plans.error.open_billing_portal"
+      setError(translateError(message))
       setLoadingPlan(null)
     }
   }
@@ -92,13 +96,12 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
 
         {fromMarketplace && !hasActivePro && (
           <p className="mt-4 rounded-lg border border-[#009b70] bg-[#e8f8f3] px-4 py-3 text-sm text-[#0d1b2a]">
-            Upgrade to Pro to access the marketplace — curated affiliate partners with geo-aware storefront
-            links.
+            {t("plans.banner.marketplace")}
           </p>
         )}
         {checkoutCancelled && (
           <p className="mt-4 rounded-lg border border-[#d4dce8] bg-white px-4 py-3 text-sm text-[#3d5166]">
-            Checkout cancelled. You can start a free trial whenever you&apos;re ready.
+            {t("plans.banner.checkout_cancelled")}
           </p>
         )}
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
@@ -112,15 +115,15 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
             <h2 className="text-xl font-medium text-[#0d1b2a]">{t("plans.free")}</h2>
             <p className="mt-2 text-3xl font-semibold text-[#0d1b2a]">€0</p>
             <ul className="mt-4 space-y-2 text-sm text-[#3d5166]">
-              {freeFeatures.map((feature) => (
-                <li key={feature}>• {feature}</li>
+              {freeFeatureKeys.map((featureKey) => (
+                <li key={featureKey}>• {t(featureKey)}</li>
               ))}
             </ul>
             <Link
               href="/signup"
               className="mt-6 inline-block rounded-lg bg-[#0d1b2a] px-5 py-2.5 text-sm font-medium text-white"
             >
-              Start free
+              {t("plans.cta.start_free")}
             </Link>
           </section>
 
@@ -131,14 +134,13 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
           >
             <h2 className="text-xl font-medium text-[#0d1b2a]">{t("plans.pro")}</h2>
             <p className="mt-1 text-xs font-medium uppercase tracking-wide text-[#009b70]">
-              {hasActivePro ? "Pro member" : "3-day free trial · card required"}
+              {hasActivePro ? t("plans.pro_status.member") : t("plans.pro_status.trial")}
             </p>
 
             {showManageOnly ? (
               <div className="mt-4 rounded-xl border border-[#009b70]/30 bg-[#e8f8f3] p-4">
                 <p className="text-sm text-[#3d5166]">
-                  You already have an active Pro subscription. Manage your plan, payment method, or
-                  cancellation in the billing portal.
+                  {t("plans.manage_block.copy")}
                 </p>
                 <button
                   type="button"
@@ -146,47 +148,47 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
                   disabled={loadingPlan !== null}
                   className="mt-4 w-full rounded-lg bg-[#009b70] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#007a58] disabled:opacity-60"
                 >
-                  {loadingPlan === "portal" ? "Opening…" : "Manage subscription"}
+                  {loadingPlan === "portal" ? t("plans.cta.opening") : t("plans.cta.manage_subscription")}
                 </button>
               </div>
             ) : (
               <div className="mt-4 space-y-4">
                 <div className="rounded-xl border border-[#d4dce8] bg-[#f9fafc] p-4">
                   <p className="text-2xl font-semibold text-[#0d1b2a]">
-                    €7<span className="text-base font-normal text-[#3d5166]">/month</span>
+                    €7<span className="text-base font-normal text-[#3d5166]">{t("plans.pricing.per_month")}</span>
                   </p>
-                  <p className="mt-1 text-xs text-[#8a9bb0]">Billed monthly after trial</p>
+                  <p className="mt-1 text-xs text-[#8a9bb0]">{t("plans.pricing.monthly_after_trial")}</p>
                   <button
                     type="button"
                     onClick={() => handleStartTrial("monthly")}
                     disabled={loadingPlan !== null}
                     className="mt-4 w-full rounded-lg bg-[#009b70] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#007a58] disabled:opacity-60"
                   >
-                    {loadingPlan === "monthly" ? "Redirecting…" : "Start free trial"}
+                    {loadingPlan === "monthly" ? t("plans.cta.redirecting") : t("plans.cta.start_trial")}
                   </button>
                 </div>
 
                 <div className="rounded-xl border border-[#009b70]/30 bg-[#e8f8f3] p-4">
                   <p className="text-2xl font-semibold text-[#0d1b2a]">
-                    €69<span className="text-base font-normal text-[#3d5166]">/year</span>
+                    €69<span className="text-base font-normal text-[#3d5166]">{t("plans.pricing.per_year")}</span>
                   </p>
-                  <p className="mt-1 text-sm font-medium text-[#009b70]">Save €15 vs monthly</p>
-                  <p className="mt-1 text-xs text-[#8a9bb0]">Billed annually after trial</p>
+                  <p className="mt-1 text-sm font-medium text-[#009b70]">{t("plans.pricing.save_vs_monthly")}</p>
+                  <p className="mt-1 text-xs text-[#8a9bb0]">{t("plans.pricing.annual_after_trial")}</p>
                   <button
                     type="button"
                     onClick={() => handleStartTrial("annual")}
                     disabled={loadingPlan !== null}
                     className="mt-4 w-full rounded-lg bg-[#0d1b2a] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#0d1b2a]/90 disabled:opacity-60"
                   >
-                    {loadingPlan === "annual" ? "Redirecting…" : "Start free trial"}
+                    {loadingPlan === "annual" ? t("plans.cta.redirecting") : t("plans.cta.start_trial")}
                   </button>
                 </div>
               </div>
             )}
 
             <ul className="mt-4 space-y-2 text-sm text-[#3d5166]">
-              {proFeatures.map((feature) => (
-                <li key={feature}>• {feature}</li>
+              {proFeatureKeys.map((featureKey) => (
+                <li key={featureKey}>• {t(featureKey)}</li>
               ))}
             </ul>
           </section>
