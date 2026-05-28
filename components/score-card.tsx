@@ -1,11 +1,13 @@
 "use client"
 
+import { useI18n } from "@/components/i18n-provider"
+
 const categories = [
-  { name: "Food", score: 42 },
-  { name: "Water", score: 80 },
-  { name: "Energy", score: 68 },
-  { name: "Shelter", score: 55 },
-  { name: "Resilience", score: 30 },
+  { nameKey: "quiz.category.Food", score: 42 },
+  { nameKey: "quiz.category.Water", score: 80 },
+  { nameKey: "quiz.category.Energy", score: 68 },
+  { nameKey: "quiz.category.Shelter", score: 55 },
+  { nameKey: "home.score.cat.resilience", score: 30 },
 ]
 
 function getScoreColor(score: number): string {
@@ -15,6 +17,7 @@ function getScoreColor(score: number): string {
 }
 
 export function ScoreCard() {
+  const { t } = useI18n()
   const overallScore = 67
 
   return (
@@ -26,7 +29,7 @@ export function ScoreCard() {
       }}
     >
       <div className="text-center mb-6">
-        <p className="text-sm font-normal text-[#3d5166] mb-2">Your Self-Sufficiency Score</p>
+        <p className="text-sm font-normal text-[#3d5166] mb-2">{t("home.score.title")}</p>
         
         {/* Circular Progress Ring */}
         <div className="relative inline-flex items-center justify-center">
@@ -52,7 +55,7 @@ export function ScoreCard() {
           </svg>
           <div className="absolute flex flex-col items-center">
             <span className="text-4xl font-light text-[#0d1b2a]">{overallScore}%</span>
-            <span className="text-xs font-light text-[#8a9bb0]">Overall</span>
+            <span className="text-xs font-light text-[#8a9bb0]">{t("common.overall")}</span>
           </div>
         </div>
       </div>
@@ -60,9 +63,9 @@ export function ScoreCard() {
       {/* Category Bars */}
       <div className="space-y-3">
         {categories.map((category) => (
-          <div key={category.name}>
+          <div key={category.nameKey}>
             <div className="flex justify-between text-sm mb-1">
-              <span className="font-normal text-[#0d1b2a]">{category.name}</span>
+              <span className="font-normal text-[#0d1b2a]">{t(category.nameKey)}</span>
               <span className="font-light text-[#8a9bb0]">{category.score}%</span>
             </div>
             <div className="h-2 rounded-full bg-[#f5f7fa]">
@@ -79,7 +82,7 @@ export function ScoreCard() {
       </div>
 
       <p className="mt-6 text-xs text-center font-light text-[#8a9bb0]">
-        Based on 47 factors across 5 categories
+        {t("home.score.footer")}
       </p>
     </div>
   )

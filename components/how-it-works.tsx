@@ -1,42 +1,47 @@
+"use client"
+
 import { ClipboardCheck, Target, TrendingUp, Shield } from "lucide-react"
+import { useI18n } from "@/components/i18n-provider"
 
 const steps = [
   {
     icon: ClipboardCheck,
     step: "01",
-    title: "Take the Assessment",
-    description: "Answer questions about your current situation, resources, and goals. Our AI analyzes 47 factors across 5 categories.",
+    titleKey: "home.how.1.title",
+    descriptionKey: "home.how.1.desc",
   },
   {
     icon: Target,
     step: "02",
-    title: "Get Your Roadmap",
-    description: "Receive a personalized plan with prioritized actions based on your location, budget, and timeline.",
+    titleKey: "home.how.2.title",
+    descriptionKey: "home.how.2.desc",
   },
   {
     icon: TrendingUp,
     step: "03",
-    title: "Track Progress",
-    description: "Monitor your self-sufficiency score as you complete tasks. Celebrate milestones and adjust your plan as needed.",
+    titleKey: "home.how.3.title",
+    descriptionKey: "home.how.3.desc",
   },
   {
     icon: Shield,
     step: "04",
-    title: "Build Resilience",
-    description: "Connect with community, access resources, and continuously improve. True independence is a journey, not a destination.",
+    titleKey: "home.how.4.title",
+    descriptionKey: "home.how.4.desc",
   },
 ]
 
 export function HowItWorks() {
+  const { t } = useI18n()
+
   return (
     <section className="bg-white py-20">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-light text-[#0d1b2a] sm:text-4xl">
-            How It <span className="text-[#009b70]">Works</span>
+            {t("home.how.title_prefix")} <span className="text-[#009b70]">{t("home.how.title_accent")}</span>
           </h2>
           <p className="mt-4 text-lg font-light text-[#3d5166] max-w-2xl mx-auto">
-            Start your journey to self-sufficiency in four simple steps.
+            {t("home.how.sub")}
           </p>
         </div>
 
@@ -57,8 +62,8 @@ export function HowItWorks() {
                     {item.step}
                   </span>
                 </div>
-                <h3 className="mt-6 text-lg font-normal text-[#0d1b2a]">{item.title}</h3>
-                <p className="mt-2 text-sm font-light text-[#3d5166] leading-relaxed">{item.description}</p>
+                <h3 className="mt-6 text-lg font-normal text-[#0d1b2a]">{t(item.titleKey)}</h3>
+                <p className="mt-2 text-sm font-light text-[#3d5166] leading-relaxed">{t(item.descriptionKey)}</p>
               </div>
             </div>
           ))}

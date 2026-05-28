@@ -1,42 +1,47 @@
+"use client"
+
 import { AlertTriangle, TrendingUp, Zap } from "lucide-react"
+import { useI18n } from "@/components/i18n-provider"
 
 const newsItems = [
   {
     icon: AlertTriangle,
-    category: "Supply Chain",
-    title: "European grain exports face new restrictions amid drought concerns",
-    summary: "Multiple EU countries announce export limitations as water levels drop to historic lows across major agricultural regions.",
-    whyItMatters: "Food prices likely to rise 15-20% in affected regions. Consider accelerating your food storage plans and exploring local grain alternatives.",
-    timeAgo: "2 hours ago",
+    categoryKey: "home.news.1.category",
+    titleKey: "home.news.1.title",
+    summaryKey: "home.news.1.summary",
+    whyItMattersKey: "home.news.1.why",
+    timeAgoKey: "home.news.1.time",
   },
   {
     icon: TrendingUp,
-    category: "Energy",
-    title: "Natural gas prices surge as winter demand increases",
-    summary: "Spot prices reach 18-month highs as storage facilities report below-average reserves heading into peak heating season.",
-    whyItMatters: "Now is the time to audit your heating backup systems. Those with wood stoves or solar thermal should ensure systems are operational.",
-    timeAgo: "5 hours ago",
+    categoryKey: "home.news.2.category",
+    titleKey: "home.news.2.title",
+    summaryKey: "home.news.2.summary",
+    whyItMattersKey: "home.news.2.why",
+    timeAgoKey: "home.news.2.time",
   },
   {
     icon: Zap,
-    category: "Infrastructure",
-    title: "Major grid upgrade delays announced for Eastern seaboard",
-    summary: "Utility companies push back modernization timelines by 3-5 years, citing supply chain issues and labor shortages.",
-    whyItMatters: "Grid reliability will remain a concern. Prioritize backup power solutions and consider expanding battery storage capacity.",
-    timeAgo: "8 hours ago",
+    categoryKey: "home.news.3.category",
+    titleKey: "home.news.3.title",
+    summaryKey: "home.news.3.summary",
+    whyItMattersKey: "home.news.3.why",
+    timeAgoKey: "home.news.3.time",
   },
 ]
 
 export function NewsWatch() {
+  const { t } = useI18n()
+
   return (
     <section className="bg-[#0d1b2a] py-20" id="news">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-light text-white sm:text-4xl">
-            World News <span className="text-[#009b70]">Watch</span>
+            {t("home.news.title_prefix")} <span className="text-[#009b70]">{t("home.news.title_accent")}</span>
           </h2>
           <p className="mt-4 text-lg font-light text-white/70 max-w-2xl mx-auto">
-            AI-curated global events that impact your self-sufficiency. Not just news - actionable intelligence.
+            {t("home.news.sub")}
           </p>
         </div>
 
@@ -52,22 +57,22 @@ export function NewsWatch() {
                 </div>
                 <div>
                   <span className="text-xs font-normal text-[#009b70] uppercase tracking-wide">
-                    {item.category}
+                    {t(item.categoryKey)}
                   </span>
-                  <p className="text-xs font-light text-white/50">{item.timeAgo}</p>
+                  <p className="text-xs font-light text-white/50">{t(item.timeAgoKey)}</p>
                 </div>
               </div>
 
               <h3 className="text-lg font-normal text-white mb-3 leading-snug">
-                {item.title}
+                {t(item.titleKey)}
               </h3>
-              <p className="text-sm font-light text-white/70 mb-4">{item.summary}</p>
+              <p className="text-sm font-light text-white/70 mb-4">{t(item.summaryKey)}</p>
 
               <div className="rounded-lg bg-[#009b70]/10 border border-[#009b70]/20 p-4">
                 <p className="text-xs font-normal text-[#009b70] uppercase tracking-wide mb-2">
-                  Why this matters
+                  {t("home.news.why_label")}
                 </p>
-                <p className="text-sm font-light text-white/80">{item.whyItMatters}</p>
+                <p className="text-sm font-light text-white/80">{t(item.whyItMattersKey)}</p>
               </div>
             </article>
           ))}
