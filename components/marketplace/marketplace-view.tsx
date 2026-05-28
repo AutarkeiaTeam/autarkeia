@@ -26,8 +26,8 @@ import {
   type MarketplaceCategory,
   type MarketplaceProduct,
 } from "@/lib/marketplace-data"
+import { formatAwinPrice, type AwinMarketplaceProduct } from "@/lib/marketplace-awin"
 import { getAwinSellerNames } from "@/lib/marketplace-brands"
-import { formatAwinPrice, type AwinMarketplaceProduct } from "@/lib/marketplace-db"
 import { useI18n } from "@/components/i18n-provider"
 
 const categoryMeta: Record<

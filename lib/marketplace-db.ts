@@ -1,21 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
-import type { MarketplaceCategory } from "@/lib/marketplace-data"
+import type { AwinMarketplaceProduct } from "@/lib/marketplace-awin"
 
-export type AwinMarketplaceProduct = {
-  id: string
-  advertiser_id: number
-  advertiser_name: string
-  product_name: string
-  description: string | null
-  price: number | null
-  currency: string
-  image_url: string | null
-  deep_link: string
-  category: MarketplaceCategory
-  country: string | null
-  in_stock: boolean
-  brand_slug: string
-}
+export type { AwinMarketplaceProduct } from "@/lib/marketplace-awin"
 
 export async function listAwinMarketplaceProducts(): Promise<AwinMarketplaceProduct[]> {
   const supabase = await createClient()
@@ -33,17 +19,4 @@ export async function listAwinMarketplaceProducts(): Promise<AwinMarketplaceProd
   }
 
   return (data ?? []) as AwinMarketplaceProduct[]
-}
-
-export function formatAwinPrice(price: number | null, currency: string): string {
-  if (price == null) return ""
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency: currency || "EUR",
-      maximumFractionDigits: 2,
-    }).format(price)
-  } catch {
-    return `${currency} ${price.toFixed(2)}`
-  }
 }
