@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { FormEvent, Suspense, useEffect, useState } from "react"
 import { useI18n } from "@/components/i18n-provider"
-import { CATEGORIES } from "@/lib/forums-store"
+import { CATEGORIES } from "@/lib/forums-shared"
 
 function NewThreadPageInner() {
   const { t } = useI18n()

@@ -1,7 +1,18 @@
+import "server-only"
+
 import { promises as fs } from "fs"
 import path from "path"
 import { randomUUID } from "crypto"
 import { fetchProfileAuthorLabels } from "@/lib/profiles"
+import {
+  CATEGORIES,
+  type ForumCategory,
+  type ForumPost,
+  type ForumThread,
+} from "@/lib/forums-shared"
+
+export type { ForumCategory, ForumThread, ForumPost } from "@/lib/forums-shared"
+export { CATEGORIES } from "@/lib/forums-shared"
 
 /**
  * Forums data store. Two backends are wired:
@@ -43,27 +54,6 @@ import { fetchProfileAuthorLabels } from "@/lib/profiles"
  *   );
  */
 
-export type ForumCategory = { id: string }
-export type ForumThread = {
-  id: string
-  title: string
-  description: string
-  author_id: string
-  author_name: string
-  category: string
-  created_at: string
-  updated_at: string
-}
-export type ForumPost = {
-  id: string
-  thread_id: string
-  author_id: string
-  author_name: string
-  content: string
-  created_at: string
-  updated_at: string
-}
-
 type ForumThreadRow = Omit<ForumThread, "author_name">
 type ForumPostRow = Omit<ForumPost, "author_name">
 
@@ -82,14 +72,6 @@ async function enrichPosts(posts: ForumPostRow[]): Promise<ForumPost[]> {
     author_name: labels.get(p.author_id) ?? "forums.member_fallback",
   }))
 }
-
-export const CATEGORIES: ForumCategory[] = [
-  { id: "housing-land" },
-  { id: "food-systems" },
-  { id: "energy-water" },
-  { id: "governance" },
-  { id: "general" },
-]
 
 const DATA_DIR = path.join(process.cwd(), ".data")
 const DATA_FILE = path.join(DATA_DIR, "forums.json")
