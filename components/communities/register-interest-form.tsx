@@ -1,6 +1,7 @@
 "use client"
 
-import { FormEvent, useState } from "react"
+import { FormEvent, useEffect, useRef, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { LocationAutocomplete } from "@/components/communities/location-autocomplete"
 import { useI18n } from "@/components/i18n-provider"
 import {
@@ -70,9 +71,23 @@ const initialForm: RegisterFormState = {
 
 export function RegisterInterestForm() {
   const { t } = useI18n()
+  const searchParams = useSearchParams()
   const [form, setForm] = useState(initialForm)
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [errorMessage, setErrorMessage] = useState("")
+  const intentOverriddenRef = useRef(false)
+
+  useEffect(() => {
+    if (intentOverriddenRef.current) return
+    const preset = searchParams.get("intent")
+    if (preset !== "live" && preset !== "buy_food" && preset !== "both") return
+    setForm((prev) => ({
+      ...prev,
+      intent: preset,
+      foodProducts: preset === "live" ? null : (prev.foodProducts ?? []),
+      foodFrequency: preset === "live" ? null : (prev.foodFrequency ?? null),
+    }))
+  }, [searchParams])
 
   const requiresLiving = form.intent === "live" || form.intent === "both"
   const requiresFoodBuyer = form.intent === "buy_food" || form.intent === "both"
@@ -216,14 +231,15 @@ export function RegisterInterestForm() {
               className="mt-1 shrink-0"
               value={intent}
               checked={form.intent === intent}
-              onChange={() =>
+              onChange={() => {
+                intentOverriddenRef.current = true
                 setForm((prev) => ({
                   ...prev,
                   intent,
                   foodProducts: intent === "live" ? null : (prev.foodProducts ?? []),
                   foodFrequency: intent === "live" ? null : (prev.foodFrequency ?? null),
                 }))
-              }
+              }}
             />
             <span className="text-sm text-[#3d5166]">{t(`communities.form.intent_option.${intent}`)}</span>
           </label>
