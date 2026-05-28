@@ -27,6 +27,7 @@ import {
   type MarketplaceProduct,
 } from "@/lib/marketplace-data"
 import { formatAwinPrice, type AwinMarketplaceProduct } from "@/lib/marketplace-awin"
+import { BRAND_PLACEHOLDER_COLORS, getBrandInitials } from "@/lib/marketplace-brand-ui"
 import {
   getAwinSellerDisplayNames,
   resolveAdvertiserDisplayName,
@@ -79,7 +80,9 @@ export function MarketplaceView({ hasPro, awinProducts }: Props) {
     if (!hasPro) return []
     return awinProducts.filter((p) => {
       const categoryMatch = active === "All" || p.category === active
-      const sellerMatch = activeSeller === "All" || p.advertiser_name === activeSeller
+      const sellerMatch =
+        activeSeller === "All" ||
+        resolveAdvertiserDisplayName(p.brand_slug, p.advertiser_name) === activeSeller
       return categoryMatch && sellerMatch
     })
   }, [active, activeSeller, awinProducts, hasPro])
@@ -274,6 +277,10 @@ function AmazonProductCard({ product }: { product: MarketplaceProduct }) {
 }
 
 function AwinProductCard({ product }: { product: AwinMarketplaceProduct }) {
+  if (product.is_store_card) {
+    return <AwinStoreCard product={product} />
+  }
+
   const meta = categoryMeta[product.category] ?? categoryMeta.Tools
   const Icon = meta.icon
   const priceLabel = formatAwinPrice(product.price, product.currency)
@@ -321,6 +328,44 @@ function AwinProductCard({ product }: { product: AwinMarketplaceProduct }) {
           Buy →
         </a>
       </div>
+      <p className="mt-2 text-[10px] uppercase tracking-wide text-[#8a9bb0]">Affiliate partner</p>
+    </article>
+  )
+}
+
+function AwinStoreCard({ product }: { product: AwinMarketplaceProduct }) {
+  const displayName = resolveAdvertiserDisplayName(product.brand_slug, product.advertiser_name)
+  const color = BRAND_PLACEHOLDER_COLORS[product.brand_slug] ?? "#009b70"
+
+  return (
+    <article className="rounded-xl border border-[#d4dce8] p-4 transition-colors hover:border-[#009b70]">
+      <div
+        className="flex h-14 w-14 items-center justify-center rounded-full text-sm font-semibold text-white"
+        style={{ backgroundColor: color }}
+        aria-hidden
+      >
+        {getBrandInitials(displayName)}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="rounded-full bg-[#f5f7fa] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#3d5166]">
+          Store
+        </span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
+          {product.category}
+        </span>
+      </div>
+      <h3 className="mt-2 text-sm font-medium text-[#0d1b2a]">{displayName}</h3>
+      {product.description && (
+        <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-[#3d5166]">{product.description}</p>
+      )}
+      <a
+        href={product.deep_link}
+        target="_blank"
+        rel="sponsored noopener noreferrer"
+        className="mt-4 inline-block rounded-lg bg-[#009b70] px-4 py-2 text-sm font-medium text-white hover:bg-[#007a58]"
+      >
+        Visit store
+      </a>
       <p className="mt-2 text-[10px] uppercase tracking-wide text-[#8a9bb0]">Affiliate partner</p>
     </article>
   )

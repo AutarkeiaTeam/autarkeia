@@ -1,4 +1,5 @@
 import { PREPAREDNESS_KEYWORD_WHITELIST } from "@/lib/marketplace-category-map"
+import type { MarketplaceCategory } from "@/lib/marketplace-data"
 
 export type AffiliateLink = { country: string; url: string }
 
@@ -19,6 +20,8 @@ export type Brand = {
   /** Shown in seller filter and product cards (defaults to name). */
   displayName?: string
   description: string
+  /** Primary marketplace category for store-card fallback rows. */
+  primaryCategory: MarketplaceCategory
   logoUrl?: string
   links: AffiliateLink[]
   feeds: BrandFeed[]
@@ -66,6 +69,7 @@ export const marketplaceBrands: Brand[] = [
   {
     id: "allpowers",
     name: "ALLPOWERS",
+    primaryCategory: "Energy",
     description:
       "Portable solar panels and power stations for off-grid backup and everyday outdoor power.",
     links: [
@@ -92,6 +96,7 @@ export const marketplaceBrands: Brand[] = [
   {
     id: "bluetti",
     name: "Bluetti",
+    primaryCategory: "Energy",
     description:
       "Expandable portable power stations and solar kits for home backup and van-life resilience.",
     links: [
@@ -110,6 +115,7 @@ export const marketplaceBrands: Brand[] = [
   {
     id: "alorair",
     name: "AlorAir",
+    primaryCategory: "Air Quality",
     description:
       "Commercial-grade dehumidifiers and drying equipment to protect buildings from moisture damage.",
     links: [
@@ -124,6 +130,7 @@ export const marketplaceBrands: Brand[] = [
   {
     id: "alorair-crawlspace",
     name: "AlorAir Crawlspace",
+    primaryCategory: "Air Quality",
     description:
       "Dedicated crawlspace and basement dehumidification systems for long-term structural health.",
     links: [
@@ -138,6 +145,7 @@ export const marketplaceBrands: Brand[] = [
   {
     id: "brisks-outdoors",
     name: "Brisks Outdoors",
+    primaryCategory: "Clothing",
     description:
       "UK outdoor and adventure gear for camping, hiking, and time spent off the beaten path.",
     links: [
@@ -153,6 +161,7 @@ export const marketplaceBrands: Brand[] = [
     id: "decathlon-ireland",
     name: "Decathlon Ireland",
     displayName: "Decathlon",
+    primaryCategory: "Tools",
     description:
       "Affordable outdoor, sports, and camping equipment from Ireland’s go-to active lifestyle retailer.",
     links: [
@@ -170,6 +179,7 @@ export const marketplaceBrands: Brand[] = [
   {
     id: "gardening-naturally",
     name: "Gardening Naturally",
+    primaryCategory: "Food",
     description:
       "Organic pest control, seeds, and supplies for chemical-free food growing at home.",
     links: [
@@ -184,6 +194,7 @@ export const marketplaceBrands: Brand[] = [
   {
     id: "survival-frog",
     name: "Survival Frog",
+    primaryCategory: "Security",
     description:
       "US preparedness gear — emergency kits, shelter, lighting, and supplies for shelter-in-place scenarios.",
     links: [
@@ -201,6 +212,7 @@ export const marketplaceBrands: Brand[] = [
   {
     id: "water-to-go",
     name: "Water to Go",
+    primaryCategory: "Water",
     description:
       "Filtered water bottles and purification systems for travel, hiking, and unreliable water sources.",
     links: [
@@ -221,19 +233,33 @@ export type MarketplaceSyncTarget = {
   brandSlug: string
   brandName: string
   displayName: string
+  brandDescription: string
+  affiliateUrl: string
+  primaryCategory: MarketplaceCategory
   advertiserId: number
   country: string
   productFilter: ProductFilterConfig
+}
+
+export function getBrandBySlug(slug: string): Brand | undefined {
+  return marketplaceBrands.find((b) => b.id === slug)
 }
 
 export function getMarketplaceSyncTargets(): MarketplaceSyncTarget[] {
   const targets: MarketplaceSyncTarget[] = []
   for (const brand of marketplaceBrands) {
     for (const feed of brand.feeds) {
+      const affiliateUrl =
+        brand.links.find((l) => l.country === feed.country)?.url ?? brand.links[0]?.url
+      if (!affiliateUrl) continue
+
       targets.push({
         brandSlug: brand.id,
         brandName: brand.name,
         displayName: getBrandDisplayName(brand),
+        brandDescription: brand.description,
+        affiliateUrl,
+        primaryCategory: brand.primaryCategory ?? "Tools",
         advertiserId: feed.advertiserId,
         country: feed.country,
         productFilter: brand.productFilter,

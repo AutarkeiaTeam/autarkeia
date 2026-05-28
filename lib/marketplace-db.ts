@@ -15,7 +15,7 @@ export async function listAwinMarketplaceProducts(): Promise<AwinMarketplaceProd
     const { data, error } = await supabase
       .from("marketplace_products")
       .select(
-        "id, advertiser_id, advertiser_name, product_name, description, price, currency, image_url, deep_link, category, country, in_stock, brand_slug"
+        "id, advertiser_id, advertiser_name, product_name, description, price, currency, image_url, deep_link, category, country, in_stock, brand_slug, is_store_card"
       )
       .eq("in_stock", true)
       .order("product_name")
@@ -31,6 +31,7 @@ export async function listAwinMarketplaceProducts(): Promise<AwinMarketplaceProd
     for (const row of data) {
       all.push({
         ...(row as AwinMarketplaceProduct),
+        is_store_card: row.is_store_card ?? false,
         category: normalizeMarketplaceCategory(
           row.category,
           row.product_name,

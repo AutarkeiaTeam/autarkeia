@@ -23,6 +23,7 @@ export type SyncSummary = {
   productsAdded: number
   productsUpdated: number
   productsRemoved: number
+  fallbacks: { advertiserId: number; brandSlug: string; message: string }[]
   errors: { advertiserId: number; brandSlug: string; message: string }[]
 }
 
@@ -41,7 +42,35 @@ type NormalizedRow = {
   in_stock: boolean
   aw_product_id: string
   brand_slug: string
+  is_store_card: boolean
   updated_at: string
+}
+
+const STORE_AW_PRODUCT_ID = "store"
+
+function storeCardId(advertiserId: number): string {
+  return `awin:${advertiserId}:store`
+}
+
+function buildStoreCardRow(target: MarketplaceSyncTarget): NormalizedRow {
+  return {
+    id: storeCardId(target.advertiserId),
+    advertiser_id: target.advertiserId,
+    advertiser_name: target.displayName,
+    product_name: target.displayName,
+    description: target.brandDescription,
+    price: null,
+    currency: "EUR",
+    image_url: null,
+    deep_link: target.affiliateUrl,
+    category: target.primaryCategory,
+    country: target.country,
+    in_stock: true,
+    aw_product_id: STORE_AW_PRODUCT_ID,
+    brand_slug: target.brandSlug,
+    is_store_card: true,
+    updated_at: new Date().toISOString(),
+  }
 }
 
 const FEED_LIST_URL = "https://productdata.awin.com/datafeed/list/apikey"
@@ -134,8 +163,58 @@ function normalizeRow(
     in_stock: inStock,
     aw_product_id: awProductId,
     brand_slug: target.brandSlug,
+    is_store_card: false,
     updated_at: new Date().toISOString(),
   }
+}
+
+async function upsertAdvertiserRows(
+  target: MarketplaceSyncTarget,
+  rows: NormalizedRow[]
+): Promise<{ added: number; updated: number; removed: number }> {
+  const admin = createAdminClient()
+  const existingRes = await admin
+    .from("marketplace_products")
+    .select("id")
+    .eq("advertiser_id", target.advertiserId)
+
+  const existingIds = new Set((existingRes.data ?? []).map((r) => r.id as string))
+  const syncedIds = new Set(rows.map((r) => r.id))
+
+  let added = 0
+  let updated = 0
+
+  if (rows.length > 0) {
+    const batchSize = 50
+    for (let i = 0; i < rows.length; i += batchSize) {
+      const batch = rows.slice(i, i + batchSize)
+      const { error } = await admin.from("marketplace_products").upsert(batch, { onConflict: "id" })
+      if (error) throw new Error(error.message)
+
+      for (const item of batch) {
+        if (existingIds.has(item.id)) updated++
+        else added++
+      }
+    }
+  }
+
+  const toRemove = [...existingIds].filter((id) => !syncedIds.has(id))
+  let removed = 0
+  if (toRemove.length > 0) {
+    const { error } = await admin.from("marketplace_products").delete().in("id", toRemove)
+    if (error) throw new Error(error.message)
+    removed = toRemove.length
+  }
+
+  return { added, updated, removed }
+}
+
+/** Advertiser has no Awin product feed — single synthetic store card. */
+async function syncStoreCardFallback(
+  target: MarketplaceSyncTarget
+): Promise<{ added: number; updated: number; removed: number }> {
+  const storeRow = buildStoreCardRow(target)
+  return upsertAdvertiserRows(target, [storeRow])
 }
 
 async function syncAdvertiserFeed(
@@ -143,7 +222,6 @@ async function syncAdvertiserFeed(
   downloadUrl: string,
   feedListName: string
 ): Promise<{ added: number; updated: number; removed: number }> {
-  const admin = createAdminClient()
   const csvText = await downloadFeedCsv(downloadUrl)
   const rows = parseCsv(csvText)
   const maxItems = target.productFilter.maxItems ?? 100
@@ -157,42 +235,7 @@ async function syncAdvertiserFeed(
     if (normalized.length >= maxItems) break
   }
 
-  const existingRes = await admin
-    .from("marketplace_products")
-    .select("id, aw_product_id")
-    .eq("advertiser_id", target.advertiserId)
-
-  const existingIds = new Set((existingRes.data ?? []).map((r) => r.id as string))
-  const syncedIds = new Set<string>()
-
-  let added = 0
-  let updated = 0
-
-  const batchSize = 50
-  for (let i = 0; i < normalized.length; i += batchSize) {
-    const batch = normalized.slice(i, i + batchSize)
-    const { error } = await admin.from("marketplace_products").upsert(batch, { onConflict: "id" })
-    if (error) throw new Error(error.message)
-
-    for (const item of batch) {
-      syncedIds.add(item.id)
-      if (existingIds.has(item.id)) updated++
-      else added++
-    }
-  }
-
-  const toRemove = [...existingIds].filter((id) => !syncedIds.has(id))
-  let removed = 0
-  if (toRemove.length > 0) {
-    const { error } = await admin
-      .from("marketplace_products")
-      .delete()
-      .in("id", toRemove)
-    if (error) throw new Error(error.message)
-    removed = toRemove.length
-  }
-
-  return { added, updated, removed }
+  return upsertAdvertiserRows(target, normalized)
 }
 
 export async function runMarketplaceSync(opts?: {
@@ -216,6 +259,7 @@ export async function runMarketplaceSync(opts?: {
     productsAdded: 0,
     productsUpdated: 0,
     productsRemoved: 0,
+    fallbacks: [],
     errors: [],
   }
 
@@ -245,15 +289,20 @@ export async function runMarketplaceSync(opts?: {
 
     try {
       const feedMeta = feedList.get(target.advertiserId)
+      let result: { added: number; updated: number; removed: number }
+
       if (!feedMeta) {
-        throw new Error(
-          `No feed in Awin list for advertiser ${target.advertiserId} (${target.brandName})`
-        )
+        result = await syncStoreCardFallback(target)
+        summary.fallbacks.push({
+          advertiserId: target.advertiserId,
+          brandSlug: target.brandSlug,
+          message: `No Awin product feed — inserted store card for ${target.displayName}`,
+        })
+      } else {
+        await new Promise((r) => setTimeout(r, 500 + Math.random() * 1500))
+        result = await syncAdvertiserFeed(target, feedMeta.downloadUrl, feedMeta.advertiserName)
       }
 
-      await new Promise((r) => setTimeout(r, 500 + Math.random() * 1500))
-
-      const result = await syncAdvertiserFeed(target, feedMeta.downloadUrl, feedMeta.advertiserName)
       summary.advertisersProcessed++
       summary.productsAdded += result.added
       summary.productsUpdated += result.updated
@@ -267,6 +316,7 @@ export async function runMarketplaceSync(opts?: {
             products_added: result.added,
             products_updated: result.updated,
             products_removed: result.removed,
+            error_message: null,
           })
           .eq("id", logRow.id)
       }

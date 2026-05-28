@@ -15,6 +15,7 @@ export type AwinMarketplaceProduct = {
   country: string | null
   in_stock: boolean
   brand_slug: string
+  is_store_card: boolean
 }
 
 export function formatAwinPrice(price: number | null, currency: string): string {
