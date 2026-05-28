@@ -122,7 +122,7 @@ function normalizeRow(
   return {
     id: `awin:${target.advertiserId}:${awProductId}`,
     advertiser_id: target.advertiserId,
-    advertiser_name: pickField(row, "merchant_name", "merchantname") || advertiserName || target.brandName,
+    advertiser_name: target.displayName,
     product_name: productName,
     description,
     price,

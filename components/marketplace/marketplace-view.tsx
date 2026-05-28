@@ -27,7 +27,10 @@ import {
   type MarketplaceProduct,
 } from "@/lib/marketplace-data"
 import { formatAwinPrice, type AwinMarketplaceProduct } from "@/lib/marketplace-awin"
-import { getAwinSellerNames } from "@/lib/marketplace-brands"
+import {
+  getAwinSellerDisplayNames,
+  resolveAdvertiserDisplayName,
+} from "@/lib/marketplace-brands"
 import { useI18n } from "@/components/i18n-provider"
 
 const categoryMeta: Record<
@@ -60,7 +63,7 @@ export function MarketplaceView({ hasPro, awinProducts }: Props) {
   const [bundlesOpen, setBundlesOpen] = useState(false)
 
   const allSellers = useMemo(
-    () => (hasPro ? buildMarketplaceSellers(getAwinSellerNames()) : ["Amazon"]),
+    () => (hasPro ? buildMarketplaceSellers(getAwinSellerDisplayNames()) : ["Amazon"]),
     [hasPro]
   )
 
@@ -297,7 +300,9 @@ function AwinProductCard({ product }: { product: AwinMarketplaceProduct }) {
         {product.category}
       </p>
       <h3 className="mt-1 line-clamp-2 text-sm font-medium text-[#0d1b2a]">{product.product_name}</h3>
-      <p className="mt-1 text-[11px] font-medium text-[#8a9bb0]">{product.advertiser_name}</p>
+      <p className="mt-1 text-[11px] font-medium text-[#8a9bb0]">
+        {resolveAdvertiserDisplayName(product.brand_slug, product.advertiser_name)}
+      </p>
       {product.description && (
         <p className="mt-2 line-clamp-2 text-xs text-[#3d5166]">{product.description}</p>
       )}

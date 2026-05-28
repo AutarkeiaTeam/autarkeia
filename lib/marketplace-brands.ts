@@ -16,11 +16,34 @@ export type BrandFeed = {
 export type Brand = {
   id: string
   name: string
+  /** Shown in seller filter and product cards (defaults to name). */
+  displayName?: string
   description: string
   logoUrl?: string
   links: AffiliateLink[]
   feeds: BrandFeed[]
   productFilter: ProductFilterConfig
+}
+
+const COUNTRY_SUFFIX_RE =
+  /\s+(Ireland|UK|United Kingdom|US|USA|DE|Germany|IT|Italy|NL|Netherlands|CA|Canada|Global)$/i
+
+export function stripAdvertiserCountrySuffix(name: string): string {
+  const stripped = name.replace(COUNTRY_SUFFIX_RE, "").trim()
+  return stripped || name
+}
+
+export function getBrandDisplayName(brand: Pick<Brand, "name" | "displayName">): string {
+  return brand.displayName?.trim() || stripAdvertiserCountrySuffix(brand.name)
+}
+
+export function resolveAdvertiserDisplayName(
+  brandSlug: string,
+  rawAdvertiserName: string
+): string {
+  const brand = marketplaceBrands.find((b) => b.id === brandSlug)
+  if (brand) return getBrandDisplayName(brand)
+  return stripAdvertiserCountrySuffix(rawAdvertiserName)
 }
 
 export function extractAwinAdvertiserId(url: string): number | null {
@@ -129,6 +152,7 @@ export const marketplaceBrands: Brand[] = [
   {
     id: "decathlon-ireland",
     name: "Decathlon Ireland",
+    displayName: "Decathlon",
     description:
       "Affordable outdoor, sports, and camping equipment from Ireland’s go-to active lifestyle retailer.",
     links: [
@@ -196,6 +220,7 @@ export const marketplaceBrands: Brand[] = [
 export type MarketplaceSyncTarget = {
   brandSlug: string
   brandName: string
+  displayName: string
   advertiserId: number
   country: string
   productFilter: ProductFilterConfig
@@ -208,6 +233,7 @@ export function getMarketplaceSyncTargets(): MarketplaceSyncTarget[] {
       targets.push({
         brandSlug: brand.id,
         brandName: brand.name,
+        displayName: getBrandDisplayName(brand),
         advertiserId: feed.advertiserId,
         country: feed.country,
         productFilter: brand.productFilter,
@@ -217,8 +243,13 @@ export function getMarketplaceSyncTargets(): MarketplaceSyncTarget[] {
   return targets
 }
 
+export function getAwinSellerDisplayNames(): string[] {
+  return marketplaceBrands.map((b) => getBrandDisplayName(b))
+}
+
+/** @deprecated Use getAwinSellerDisplayNames */
 export function getAwinSellerNames(): string[] {
-  return marketplaceBrands.map((b) => b.name)
+  return getAwinSellerDisplayNames()
 }
 
 const AFFILIATE_FALLBACK_ORDER = ["US", "UK", "IE", "DE", "IT", "NL", "CA", "Global"] as const
