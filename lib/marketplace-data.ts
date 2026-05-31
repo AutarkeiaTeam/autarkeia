@@ -91,6 +91,7 @@ const PRODUCTS_PER_CATEGORY = 36
 const EXPLICIT_PRODUCT_CATEGORIES = new Set<MarketplaceCategory>([
   "Garden & Harvest",
   "Fire & Cooking",
+  "Sanitation & Hygiene",
 ])
 
 export type MarketplaceProduct = {
@@ -334,28 +335,7 @@ const PRODUCT_NAMES: Record<MarketplaceCategory, string[]> = {
     "Damp proof membrane",
     "Air scrubber rental",
   ],
-  "Sanitation & Hygiene": [
-    "Portable camping toilet",
-    "Toilet seat bucket liner",
-    "Biodegradable waste bags",
-    "Wet wipes bulk pack",
-    "Hand sanitizer gallon",
-    "Bar soap multipack",
-    "Menstrual cup kit",
-    "Dental travel kit",
-    "Camp shower bag solar",
-    "Collapsible wash basin",
-    "Portable laundry wash bag",
-    "Toilet paper bulk roll",
-    "Bio gel waste treat",
-    "Privacy shelter tent",
-    "Foot pump sink camp",
-    "Portable bidet bottle",
-    "Hygiene first aid kit",
-    "Nail clippers set",
-    "SPF 50 sunscreen",
-    "Insect repellent lotion",
-  ],
+  "Sanitation & Hygiene": [],
   Lighting: [
     "LED flashlight tactical",
     "Headlamp rechargeable",
@@ -616,11 +596,51 @@ const FIRE_COOKING_PRODUCTS: { name: string; query: string }[] = [
   { name: "Cast iron griddle plate", query: "cast iron griddle plate camping" },
 ]
 
+const SANITATION_HYGIENE_PRODUCTS: { name: string; query: string }[] = [
+  { name: "Bar soap multipack", query: "bar soap multipack bulk" },
+  { name: "Liquid hand soap refills", query: "liquid hand soap refill bulk" },
+  { name: "Body wipes / no-rinse bathing wipes", query: "no rinse bathing wipes body" },
+  { name: "Travel shampoo and conditioner", query: "travel shampoo conditioner set" },
+  { name: "Toothbrush and toothpaste bulk pack", query: "toothbrush toothpaste bulk pack" },
+  { name: "Dental floss", query: "dental floss bulk pack" },
+  { name: "Menstrual cup", query: "menstrual cup reusable" },
+  { name: "Menstrual pad / tampon bulk", query: "menstrual pads tampons bulk" },
+  { name: "Deodorant (long-lasting)", query: "long lasting deodorant bulk" },
+  { name: "Disposable razors", query: "disposable razors bulk pack" },
+  { name: "Microfiber quick-dry towel", query: "microfiber quick dry travel towel" },
+  { name: "Nail clipper and grooming kit", query: "nail clipper grooming kit travel" },
+  { name: "Portable camping toilet (bucket-style)", query: "portable camping toilet bucket" },
+  { name: "Toilet seat for 5-gallon bucket", query: "toilet seat 5 gallon bucket" },
+  { name: "Heavy-duty waste bags (toilet liners)", query: "heavy duty toilet liner waste bags" },
+  { name: "Solid waste gelling agent / poo powder", query: "portable toilet waste gelling powder" },
+  { name: "RV/marine toilet chemicals", query: "RV marine toilet chemical treatment" },
+  { name: "Toilet paper bulk pack", query: "toilet paper bulk pack" },
+  { name: "Camp shower bag (solar)", query: "solar camp shower bag" },
+  { name: "Collapsible wash basin", query: "collapsible wash basin camping" },
+  { name: "Laundry detergent sheets", query: "laundry detergent sheets travel" },
+  { name: "Portable hand-crank washing machine", query: "portable hand crank washing machine" },
+  { name: "Drying clothesline kit", query: "portable clothesline drying kit" },
+  { name: "Bleach tablets / pool shock for sanitation", query: "bleach tablets pool shock sanitation" },
+  { name: "Disinfectant spray (bulk)", query: "disinfectant spray bulk" },
+  { name: "Heavy-duty trash bags (contractor grade)", query: "contractor grade heavy duty trash bags" },
+  { name: "Nitrile gloves bulk", query: "nitrile gloves bulk box" },
+  { name: "N95 / KN95 masks bulk", query: "N95 KN95 masks bulk box" },
+  { name: "Greywater management kit", query: "greywater management kit camping" },
+  { name: "Compostable waste bags", query: "compostable waste bags bulk" },
+  { name: "Snap traps and humane rodent traps", query: "snap traps humane rodent traps" },
+  { name: "Rodent bait stations", query: "rodent bait station outdoor" },
+  { name: "Mosquito head net", query: "mosquito head net camping" },
+  { name: "Permethrin clothing spray", query: "permethrin clothing insect spray" },
+  { name: "Tick removal tool", query: "tick removal tool kit" },
+  { name: "Ultrasonic pest repeller", query: "ultrasonic pest repeller plug in" },
+]
+
 const EXPLICIT_PRODUCT_LISTS: Partial<
   Record<MarketplaceCategory, { name: string; query: string }[]>
 > = {
   "Garden & Harvest": GARDEN_HARVEST_PRODUCTS,
   "Fire & Cooking": FIRE_COOKING_PRODUCTS,
+  "Sanitation & Hygiene": SANITATION_HYGIENE_PRODUCTS,
 }
 
 const EXPLICIT_PRODUCT_DESCRIPTIONS: Partial<Record<MarketplaceCategory, string>> = {
@@ -628,6 +648,8 @@ const EXPLICIT_PRODUCT_DESCRIPTIONS: Partial<Record<MarketplaceCategory, string>
     "Grow your own food and preserve the harvest — practical gear from seed to jar.",
   "Fire & Cooking":
     "Cook, boil water, and stay warm — stoves, fuel, and fire starters.",
+  "Sanitation & Hygiene":
+    "Stay clean and disease-free — personal hygiene, waste sanitation, and pest control.",
 }
 
 export const marketplaceBundles: MarketplaceBundle[] = [
@@ -873,9 +895,15 @@ function buildProducts(): MarketplaceProduct[] {
   }
 
   for (const cat of MARKETPLACE_PRO_ONLY_CATEGORIES) {
-    const products = buildRotatingCategoryProducts(cat, id)
-    out.push(...products)
-    id += products.length
+    if (EXPLICIT_PRODUCT_CATEGORIES.has(cat)) {
+      const products = buildExplicitCategoryProducts(cat, id)
+      out.push(...products)
+      id += products.length
+    } else {
+      const products = buildRotatingCategoryProducts(cat, id)
+      out.push(...products)
+      id += products.length
+    }
   }
 
   return out
