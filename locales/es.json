@@ -455,7 +455,7 @@
   "marketplace.intro": "Equipamiento y productos de preparación de emergencia y autosuficiencia, seleccionados para una resiliencia práctica.",
   "marketplace.browse_category": "Explorar por categoría",
   "marketplace.browse_seller": "Explorar por vendedor",
-  "marketplace.unlock_sellers": "Desbloquea más vendedores mejorando a Pro.",
+  "marketplace.sellers.pro_unlock": "Desbloquea más vendedores mejorando a Pro.",
   "marketplace.all_products": "Todos los productos",
   "marketplace.in_category": " en {category}",
   "marketplace.bundles": "Paquetes",

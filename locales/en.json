@@ -455,7 +455,7 @@
   "marketplace.intro": "Emergency readiness and self-sufficiency gear and products curated for practical resilience.",
   "marketplace.browse_category": "Browse by category",
   "marketplace.browse_seller": "Browse by seller",
-  "marketplace.unlock_sellers": "Unlock more sellers by upgrading to Pro.",
+  "marketplace.sellers.pro_unlock": "Unlock more sellers by upgrading to Pro.",
   "marketplace.all_products": "All Products",
   "marketplace.in_category": " in {category}",
   "marketplace.bundles": "Bundles",

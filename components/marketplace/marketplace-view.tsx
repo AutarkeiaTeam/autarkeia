@@ -153,6 +153,17 @@ export function MarketplaceView({ hasPro, awinProducts }: Props) {
               />
             ))}
           </div>
+          {!hasPro && (
+            <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <p className="text-xs text-[#8a9bb0]">{t("marketplace.sellers.pro_unlock")}</p>
+              <Link
+                href="/plans?from=marketplace"
+                className="text-xs font-medium text-[#009b70] hover:underline"
+              >
+                {t("plans.go_pro")} →
+              </Link>
+            </div>
+          )}
         </section>
 
         <section className="mt-10">
