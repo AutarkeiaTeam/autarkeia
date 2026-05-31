@@ -514,7 +514,7 @@ const PRODUCT_NAMES: Record<MarketplaceCategory, string[]> = {
   ],
 }
 
-function amazonSearchUrl(query: string): string {
+export function amazonSearchUrl(query: string): string {
   return `https://www.amazon.es/s?k=${encodeURIComponent(query)}&tag=autarkeia-es`
 }
 
@@ -652,7 +652,8 @@ const EXPLICIT_PRODUCT_DESCRIPTIONS: Partial<Record<MarketplaceCategory, string>
     "Stay clean and disease-free — personal hygiene, waste sanitation, and pest control.",
 }
 
-export const marketplaceBundles: MarketplaceBundle[] = [
+/** Free-tier bundle cards (22) — unchanged set for visitors and all members. */
+export const marketplaceBundlesFree: MarketplaceBundle[] = [
   {
     name: "72-Hour Emergency Kit",
     items: "water + food + medical + light + comms",
@@ -830,6 +831,9 @@ export const marketplaceBundles: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("vehicle emergency kit get home bag"),
   },
 ]
+
+/** @deprecated Use marketplaceBundlesFree — kept for existing imports. */
+export const marketplaceBundles = marketplaceBundlesFree
 
 function buildRotatingCategoryProducts(
   cat: MarketplaceCategory,

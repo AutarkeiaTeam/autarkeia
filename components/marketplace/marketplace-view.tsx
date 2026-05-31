@@ -33,10 +33,13 @@ import {
   getCategorySlug,
   getMarketplaceFilterCategories,
   buildMarketplaceSellers,
-  marketplaceBundles,
   type MarketplaceCategory,
   type MarketplaceProduct,
 } from "@/lib/marketplace-data"
+import {
+  getBundlesForAccess,
+  resolveProMarketplaceBundles,
+} from "@/lib/marketplace-bundles"
 import { formatAwinPrice, type AwinMarketplaceProduct } from "@/lib/marketplace-awin"
 import { BRAND_PLACEHOLDER_COLORS, getBrandInitials } from "@/lib/marketplace-brand-ui"
 import {
@@ -103,6 +106,13 @@ export function MarketplaceView({
     () => getMarketplaceFilterCategories(hasPro),
     [hasPro]
   )
+
+  const bundles = useMemo(() => {
+    const resolvedPro = hasPro
+      ? resolveProMarketplaceBundles({ awinProducts })
+      : []
+    return getBundlesForAccess(hasPro, resolvedPro)
+  }, [hasPro, awinProducts])
 
   const availableCategories = useMemo(
     () =>
@@ -267,7 +277,7 @@ export function MarketplaceView({
             <span className="text-2xl font-light text-[#0d1b2a]">
               {formatMessage(
                 t("marketplace.bundles_heading"),
-                { count: marketplaceBundles.length },
+                { count: bundles.length },
                 locale
               )}
             </span>
@@ -277,7 +287,7 @@ export function MarketplaceView({
           </button>
           {bundlesOpen && (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {marketplaceBundles.map((bundle) => (
+              {bundles.map((bundle) => (
                 <article
                   key={bundle.name}
                   className="rounded-xl border-2 border-[#009b70]/25 bg-[#f5f7fa] p-5"
