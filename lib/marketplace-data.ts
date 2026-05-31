@@ -5,14 +5,48 @@ export type MarketplaceCategory =
   | "Energy"
   | "Medical"
   | "Tools"
-  | "Clothing"
   | "Security"
   | "Communications"
-  | "Navigation"
   | "Garden & Harvest"
+  | "Fire & Cooking"
   | "Air Quality"
+  | "Sanitation & Hygiene"
+  | "Lighting"
+  | "Navigation"
+  | "Transportation & Vehicle"
+  | "Pet Preparedness"
+  | "Children & Family"
+  | "Documents & Finance"
+  | "Clothing"
+  | "Bartering & Currency"
 
-export const GARDEN_HARVEST_SLUG = "garden-harvest"
+/** Locale slug per category (`marketplace.categories.{slug}.name`). */
+export const CATEGORY_SLUGS: Record<MarketplaceCategory, string> = {
+  Water: "water",
+  Food: "food",
+  Shelter: "shelter",
+  Energy: "energy",
+  Medical: "medical",
+  Tools: "tools",
+  Security: "security",
+  Communications: "communications",
+  "Garden & Harvest": "garden-harvest",
+  "Fire & Cooking": "fire-cooking",
+  "Air Quality": "aloair",
+  "Sanitation & Hygiene": "sanitation-hygiene",
+  Lighting: "lighting",
+  Navigation: "navigation",
+  "Transportation & Vehicle": "transportation-vehicle",
+  "Pet Preparedness": "pet-preparedness",
+  "Children & Family": "children-family",
+  "Documents & Finance": "documents-finance",
+  Clothing: "clothing",
+  "Bartering & Currency": "bartering-currency",
+}
+
+export function getCategorySlug(category: MarketplaceCategory): string {
+  return CATEGORY_SLUGS[category]
+}
 
 /** Visible category chips for free members and visitors (10 categories). */
 export const MARKETPLACE_FILTER_CATEGORIES: MarketplaceCategory[] = [
@@ -24,18 +58,40 @@ export const MARKETPLACE_FILTER_CATEGORIES: MarketplaceCategory[] = [
   "Tools",
   "Security",
   "Communications",
-  "Clothing",
   "Garden & Harvest",
+  "Fire & Cooking",
 ]
 
-/** Pro-only Amazon category (AlorAir / dehumidifiers — not shown in free filter chips). */
-export const MARKETPLACE_PRO_ONLY_CATEGORIES: MarketplaceCategory[] = ["Air Quality"]
+/** Pro-only Amazon categories (10 categories — chips shown only to Pro members). */
+export const MARKETPLACE_PRO_ONLY_CATEGORIES: MarketplaceCategory[] = [
+  "Air Quality",
+  "Sanitation & Hygiene",
+  "Lighting",
+  "Navigation",
+  "Transportation & Vehicle",
+  "Pet Preparedness",
+  "Children & Family",
+  "Documents & Finance",
+  "Clothing",
+  "Bartering & Currency",
+]
 
 export const MARKETPLACE_FREE_AMAZON_CATEGORIES: MarketplaceCategory[] = [
   ...MARKETPLACE_FILTER_CATEGORIES,
 ]
 
+export function getMarketplaceFilterCategories(hasPro: boolean): MarketplaceCategory[] {
+  return hasPro
+    ? [...MARKETPLACE_FILTER_CATEGORIES, ...MARKETPLACE_PRO_ONLY_CATEGORIES]
+    : MARKETPLACE_FILTER_CATEGORIES
+}
+
 const PRODUCTS_PER_CATEGORY = 36
+
+const EXPLICIT_PRODUCT_CATEGORIES = new Set<MarketplaceCategory>([
+  "Garden & Harvest",
+  "Fire & Cooking",
+])
 
 export type MarketplaceProduct = {
   id: number
@@ -210,28 +266,6 @@ const PRODUCT_NAMES: Record<MarketplaceCategory, string[]> = {
     "Rope hoist 400kg",
     "Workbench vise portable",
   ],
-  Clothing: [
-    "Merino base layer top",
-    "Merino base layer bottom",
-    "Insulated parka",
-    "Rain shell jacket",
-    "Rain pants",
-    "Wool socks 6-pack",
-    "Leather work gloves",
-    "Winter balaclava",
-    "Gaiters pair",
-    "Boot waterproof spray",
-    "Heated insoles USB",
-    "Bandana multipack",
-    "Sun hat wide brim",
-    "UV arm sleeves",
-    "Thermal liner gloves",
-    "Down vest packable",
-    "Hiking boots mid",
-    "Steel toe boots",
-    "Reflective vest",
-    "Moisture-wicking tee",
-  ],
   Security: [
     "Door reinforcement kit",
     "Window security film",
@@ -276,29 +310,8 @@ const PRODUCT_NAMES: Record<MarketplaceCategory, string[]> = {
     "Notebook waterproof",
     "Pencil mechanical field",
   ],
-  Navigation: [
-    "Topographic map regional",
-    "Compass baseplate",
-    "GPS handheld rugged",
-    "Altimeter watch",
-    "Pace beads",
-    "Protractor map",
-    "UTM grid tool",
-    "Headlamp red mode",
-    "Binoculars 8x42",
-    "Rangefinder monocular",
-    "Star chart laminated",
-    "Celestial navigation book",
-    "Offline maps SD card",
-    "Vehicle atlas spiral",
-    "Road flare LED",
-    "Reflective trail tape",
-    "GPS mount handlebar",
-    "Lensatic compass",
-    "Clinometer pocket",
-    "Declination adjustment tool",
-  ],
   "Garden & Harvest": [],
+  "Fire & Cooking": [],
   "Air Quality": [
     "Dehumidifier compact",
     "Crawlspace fan kit",
@@ -320,6 +333,204 @@ const PRODUCT_NAMES: Record<MarketplaceCategory, string[]> = {
     "MERV filter pack",
     "Damp proof membrane",
     "Air scrubber rental",
+  ],
+  "Sanitation & Hygiene": [
+    "Portable camping toilet",
+    "Toilet seat bucket liner",
+    "Biodegradable waste bags",
+    "Wet wipes bulk pack",
+    "Hand sanitizer gallon",
+    "Bar soap multipack",
+    "Menstrual cup kit",
+    "Dental travel kit",
+    "Camp shower bag solar",
+    "Collapsible wash basin",
+    "Portable laundry wash bag",
+    "Toilet paper bulk roll",
+    "Bio gel waste treat",
+    "Privacy shelter tent",
+    "Foot pump sink camp",
+    "Portable bidet bottle",
+    "Hygiene first aid kit",
+    "Nail clippers set",
+    "SPF 50 sunscreen",
+    "Insect repellent lotion",
+  ],
+  Lighting: [
+    "LED flashlight tactical",
+    "Headlamp rechargeable",
+    "Camping lantern LED",
+    "Solar garden light",
+    "Glow sticks 12 hour",
+    "Beeswax candles pack",
+    "USB rechargeable light",
+    "Motion sensor light solar",
+    "Strobe signal light",
+    "Penlight medical",
+    "Clip book reading light",
+    "Solar string lights",
+    "Emergency backup bulb",
+    "Hat clip light",
+    "Bike light set",
+    "Under-cabinet LED strip",
+    "COB work light",
+    "Glass candle lantern",
+    "Military light sticks",
+    "D-cell battery lantern",
+  ],
+  Navigation: [
+    "Topographic map regional",
+    "Compass baseplate",
+    "GPS handheld rugged",
+    "Altimeter watch",
+    "Pace beads",
+    "Map protractor",
+    "UTM grid tool",
+    "Map case waterproof",
+    "Vehicle road atlas",
+    "Lensatic compass",
+    "Celestial navigation book",
+    "Offline maps SD card",
+    "Reflective trail tape",
+    "GPS handlebar mount",
+    "Clinometer pocket",
+    "Declination adjustment tool",
+    "Signal mirror glass",
+    "Star chart laminated",
+    "Rangefinder monocular",
+    "Binoculars 8x42",
+  ],
+  "Transportation & Vehicle": [
+    "Car emergency kit",
+    "Jumper cables heavy duty",
+    "Tire repair kit",
+    "Jerry can fuel 20L",
+    "Recovery tow strap",
+    "Kinetic tow rope",
+    "Vehicle tool kit",
+    "Roof cargo bag",
+    "Window breaker cutter",
+    "12V air compressor",
+    "Portable tyre inflator",
+    "Lithium jump starter",
+    "Ice scraper set",
+    "Folding shovel car",
+    "Reflective triangle kit",
+    "Dash cam hardwired",
+    "Dual USB car charger",
+    "Engine antifreeze coolant",
+    "Oil funnel kit",
+    "Battery terminal cleaner",
+  ],
+  "Pet Preparedness": [
+    "Pet go bag backpack",
+    "Pet food storage airtight",
+    "Pet first aid kit",
+    "Soft-sided pet carrier",
+    "Heavy duty retractable leash",
+    "Pet travel water bottle",
+    "Engraved pet ID tag",
+    "Vaccination record wallet",
+    "Dog booties set",
+    "Portable cat litter box",
+    "Pet calming anxiety vest",
+    "Pet life jacket",
+    "Portable pet playpen",
+    "Pet heating pad",
+    "Pet waste scooper",
+    "Travel pet grooming kit",
+    "Treat pouch training",
+    "Collapsible pet bowl",
+    "Pet tick remover tool",
+    "Pet emergency info card",
+  ],
+  "Children & Family": [
+    "Infant formula powder",
+    "Diapers bulk pack",
+    "Ergonomic baby carrier",
+    "Kid hiking backpack",
+    "Infant first aid kit",
+    "Sensitive baby wipes",
+    "Child safety harness",
+    "Organic baby food pouches",
+    "Multi-use nursing cover",
+    "Pacifier sterilizer case",
+    "Child ear defenders",
+    "Kids rain poncho",
+    "Family camp board games",
+    "All-terrain stroller",
+    "Battery baby monitor",
+    "Nursery night light",
+    "Child ID bracelet",
+    "Kids hydration pack",
+    "Thermal baby blanket",
+    "Portable travel crib",
+  ],
+  "Documents & Finance": [
+    "Fireproof document bag",
+    "Waterproof document pouch",
+    "Faraday laptop bag",
+    "Small fire safe",
+    "Cash organizer envelope",
+    "Portable document scanner",
+    "ID copy laminator kit",
+    "Encrypted USB drive",
+    "RFID passport holder",
+    "Checkbook register",
+    "Emergency contact cards",
+    "Document binder organizer",
+    "Manual portable shredder",
+    "Notary stamp seal kit",
+    "Archive storage box",
+    "Portable label maker",
+    "Ledger and pen set",
+    "Property deed holder",
+    "Backup encrypted hard drive",
+    "Home inventory logbook",
+  ],
+  Clothing: [
+    "Merino base layer top",
+    "Merino base layer bottom",
+    "Insulated parka",
+    "Rain shell jacket",
+    "Rain pants",
+    "Wool socks 6-pack",
+    "Leather work gloves",
+    "Winter balaclava",
+    "Gaiters pair",
+    "Boot waterproof spray",
+    "Heated insoles USB",
+    "Bandana multipack",
+    "Sun hat wide brim",
+    "UV arm sleeves",
+    "Thermal liner gloves",
+    "Down vest packable",
+    "Hiking boots mid",
+    "Steel toe boots",
+    "Reflective vest",
+    "Moisture-wicking tee",
+  ],
+  "Bartering & Currency": [
+    "Silver round storage tube",
+    "Gold bar storage capsule",
+    "Fireproof cash organizer",
+    "Coin tube assortment",
+    "Precious metals digital scale",
+    "Barter goods variety kit",
+    "Pre-1965 silver coin roll",
+    "Copper bullion bar",
+    "Trade silver dime tube",
+    "Emergency cash stash box",
+    "Coin collector album",
+    "Silver eagle capsule",
+    "Gold tester acid kit",
+    "Stainless money clip",
+    "Currency band straps",
+    "Safe deposit document bag",
+    "Green coffee beans bulk",
+    "Salt bulk storage bucket",
+    "Soap bar bulk pack",
+    "Manual hand crank grinder",
   ],
 }
 
@@ -365,6 +576,59 @@ const GARDEN_HARVEST_PRODUCTS: { name: string; query: string }[] = [
   { name: "Root vegetable mesh storage bags", query: "root vegetable mesh storage bags" },
   { name: "Freeze dryer (Harvest Right small)", query: "Harvest Right freeze dryer small" },
 ]
+
+const FIRE_COOKING_PRODUCTS: { name: string; query: string }[] = [
+  { name: "Portable camp stove single burner", query: "portable camp stove single burner" },
+  { name: "Rocket stove biomass", query: "rocket stove biomass camping" },
+  { name: "Butane camp stove", query: "butane camp stove" },
+  { name: "Propane camp stove 2-burner", query: "propane camp stove 2 burner" },
+  { name: "Alcohol spirit stove", query: "alcohol spirit camping stove" },
+  { name: "Wood burning camping stove", query: "wood burning camping stove" },
+  { name: "Butane fuel canister 4-pack", query: "butane fuel canister 4 pack camping" },
+  { name: "Propane fuel cylinder camping", query: "propane fuel cylinder camping" },
+  { name: "Kiln-dried firewood bundle", query: "kiln dried firewood bundle" },
+  { name: "Ferro rod fire starter", query: "ferro rod fire starter" },
+  { name: "Magnesium fire starter block", query: "magnesium fire starter block" },
+  { name: "Waterproof match case", query: "waterproof match case survival" },
+  { name: "Stormproof matches tube", query: "stormproof matches tube" },
+  { name: "Windproof lighter refillable", query: "windproof lighter refillable" },
+  { name: "Tinder fire starter cubes", query: "tinder fire starter cubes" },
+  { name: "Collapsible fire pit", query: "collapsible fire pit camping" },
+  { name: "Cast iron skillet 10 inch", query: "cast iron skillet 10 inch" },
+  { name: "Cast iron dutch oven", query: "cast iron dutch oven camping" },
+  { name: "Camping pot set nested", query: "camping pot set nested" },
+  { name: "Camping kettle stainless", query: "camping kettle stainless" },
+  { name: "Mess kit stainless 2-person", query: "mess kit stainless 2 person camping" },
+  { name: "Camping utensil set spork", query: "camping utensil set spork" },
+  { name: "Pot gripper handle camp", query: "pot gripper handle camping" },
+  { name: "Windscreen stove foldable", query: "windscreen stove foldable camping" },
+  { name: "Pot stand alcohol stove", query: "pot stand alcohol stove" },
+  { name: "Biofuel tab stove fuel", query: "biofuel tab stove fuel" },
+  { name: "Charcoal chimney starter", query: "charcoal chimney starter" },
+  { name: "Grill grate campfire", query: "grill grate campfire" },
+  { name: "Coffee percolator camp", query: "coffee percolator camping" },
+  { name: "Tea kettle whistling camp", query: "whistling tea kettle camping" },
+  { name: "Insulated camp mug", query: "insulated camp mug" },
+  { name: "Plate bowl set camping", query: "plate bowl set camping" },
+  { name: "Mini cutting board camp", query: "mini cutting board camping" },
+  { name: "Camp spice kit", query: "camp spice kit" },
+  { name: "Heat resistant fire gloves", query: "heat resistant fire gloves" },
+  { name: "Cast iron griddle plate", query: "cast iron griddle plate camping" },
+]
+
+const EXPLICIT_PRODUCT_LISTS: Partial<
+  Record<MarketplaceCategory, { name: string; query: string }[]>
+> = {
+  "Garden & Harvest": GARDEN_HARVEST_PRODUCTS,
+  "Fire & Cooking": FIRE_COOKING_PRODUCTS,
+}
+
+const EXPLICIT_PRODUCT_DESCRIPTIONS: Partial<Record<MarketplaceCategory, string>> = {
+  "Garden & Harvest":
+    "Grow your own food and preserve the harvest — practical gear from seed to jar.",
+  "Fire & Cooking":
+    "Cook, boil water, and stay warm — stoves, fuel, and fire starters.",
+}
 
 export const marketplaceBundles: MarketplaceBundle[] = [
   {
@@ -570,16 +834,22 @@ function buildRotatingCategoryProducts(
   return out
 }
 
-function buildGardenHarvestProducts(startId: number): MarketplaceProduct[] {
-  return GARDEN_HARVEST_PRODUCTS.map((item, i) => {
-    const euros = 12 + ((i * 7 + 17 * 3) % 340)
+function buildExplicitCategoryProducts(
+  cat: MarketplaceCategory,
+  startId: number
+): MarketplaceProduct[] {
+  const items = EXPLICIT_PRODUCT_LISTS[cat] ?? []
+  const description =
+    EXPLICIT_PRODUCT_DESCRIPTIONS[cat] ??
+    `Practical ${cat.toLowerCase()} item for household resilience.`
+  return items.map((item, i) => {
+    const euros = 12 + ((i * 7 + cat.length * 3) % 340)
     return {
       id: startId + i,
-      category: "Garden & Harvest" as const,
-      seller: "Amazon" as const,
+      category: cat,
+      seller: "Amazon",
       name: item.name,
-      description:
-        "Grow your own food and preserve the harvest — practical gear from seed to jar.",
+      description,
       price: `€${euros}`,
       affiliate: amazonSearchUrl(item.query),
     }
@@ -591,8 +861,8 @@ function buildProducts(): MarketplaceProduct[] {
   let id = 1
 
   for (const cat of MARKETPLACE_FREE_AMAZON_CATEGORIES) {
-    if (cat === "Garden & Harvest") {
-      const products = buildGardenHarvestProducts(id)
+    if (EXPLICIT_PRODUCT_CATEGORIES.has(cat)) {
+      const products = buildExplicitCategoryProducts(cat, id)
       out.push(...products)
       id += products.length
     } else {

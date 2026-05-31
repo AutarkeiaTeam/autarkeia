@@ -4,26 +4,35 @@ import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import {
+  Baby,
   BatteryCharging,
+  Car,
   ChevronDown,
+  Coins,
   Compass,
+  Dog,
   Droplets,
+  FileText,
+  Flame,
   HeartPulse,
   Home,
   Leaf,
+  Lightbulb,
   Radio,
   Shield,
   Shirt,
+  ShowerHead,
   Sprout,
   Wind,
   Wrench,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import {
-  MARKETPLACE_FILTER_CATEGORIES,
-  buildMarketplaceSellers,
   getAmazonProductCount,
   getAmazonProductsForAccess,
+  getCategorySlug,
+  getMarketplaceFilterCategories,
+  buildMarketplaceSellers,
   marketplaceBundles,
   type MarketplaceCategory,
   type MarketplaceProduct,
@@ -47,12 +56,20 @@ const categoryMeta: Record<
   Energy: { icon: BatteryCharging, bg: "bg-yellow-50", color: "text-yellow-700" },
   Medical: { icon: HeartPulse, bg: "bg-red-50", color: "text-red-600" },
   Tools: { icon: Wrench, bg: "bg-slate-100", color: "text-slate-700" },
-  Clothing: { icon: Shirt, bg: "bg-rose-50", color: "text-rose-700" },
   Security: { icon: Shield, bg: "bg-orange-50", color: "text-orange-700" },
   Communications: { icon: Radio, bg: "bg-violet-50", color: "text-violet-700" },
-  Navigation: { icon: Compass, bg: "bg-cyan-50", color: "text-cyan-700" },
   "Garden & Harvest": { icon: Sprout, bg: "bg-green-50", color: "text-green-700" },
+  "Fire & Cooking": { icon: Flame, bg: "bg-orange-50", color: "text-orange-700" },
   "Air Quality": { icon: Wind, bg: "bg-sky-50", color: "text-sky-700" },
+  "Sanitation & Hygiene": { icon: ShowerHead, bg: "bg-teal-50", color: "text-teal-700" },
+  Lighting: { icon: Lightbulb, bg: "bg-yellow-50", color: "text-yellow-700" },
+  Navigation: { icon: Compass, bg: "bg-cyan-50", color: "text-cyan-700" },
+  "Transportation & Vehicle": { icon: Car, bg: "bg-slate-100", color: "text-slate-700" },
+  "Pet Preparedness": { icon: Dog, bg: "bg-amber-50", color: "text-amber-700" },
+  "Children & Family": { icon: Baby, bg: "bg-pink-50", color: "text-pink-700" },
+  "Documents & Finance": { icon: FileText, bg: "bg-stone-100", color: "text-stone-700" },
+  Clothing: { icon: Shirt, bg: "bg-rose-50", color: "text-rose-700" },
+  "Bartering & Currency": { icon: Coins, bg: "bg-amber-50", color: "text-amber-800" },
 }
 
 type Props = {
@@ -82,12 +99,17 @@ export function MarketplaceView({
     [hasPro, amazonProducts, awinProducts]
   )
 
+  const filterCategories = useMemo(
+    () => getMarketplaceFilterCategories(hasPro),
+    [hasPro]
+  )
+
   const availableCategories = useMemo(
     () =>
-      MARKETPLACE_FILTER_CATEGORIES.filter((cat) =>
+      filterCategories.filter((cat) =>
         visibleProducts.some((p) => p.category === cat)
       ),
-    [visibleProducts]
+    [filterCategories, visibleProducts]
   )
 
   useEffect(() => {
@@ -132,7 +154,7 @@ export function MarketplaceView({
   const categoryLabel =
     active !== "All"
       ? formatMessage(t("marketplace.in_category"), {
-          category: t(`marketplace.category.${active}`),
+          category: t(`marketplace.categories.${getCategorySlug(active)}.name`),
         })
       : ""
 
@@ -153,7 +175,7 @@ export function MarketplaceView({
             {availableCategories.map((cat) => (
               <CategoryPill
                 key={cat}
-                label={t(`marketplace.category.${cat}`)}
+                label={t(`marketplace.categories.${getCategorySlug(cat)}.name`)}
                 active={active === cat}
                 onClick={() => setActive(cat)}
               />
