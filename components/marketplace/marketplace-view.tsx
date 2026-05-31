@@ -14,6 +14,7 @@ import {
   Radio,
   Shield,
   Shirt,
+  Sprout,
   Wind,
   Wrench,
 } from "lucide-react"
@@ -21,8 +22,9 @@ import type { LucideIcon } from "lucide-react"
 import {
   MARKETPLACE_FILTER_CATEGORIES,
   buildMarketplaceSellers,
+  getAmazonProductCount,
+  getAmazonProductsForAccess,
   marketplaceBundles,
-  marketplaceProducts,
   type MarketplaceCategory,
   type MarketplaceProduct,
 } from "@/lib/marketplace-data"
@@ -33,6 +35,7 @@ import {
   resolveAdvertiserDisplayName,
 } from "@/lib/marketplace-brands"
 import { useI18n } from "@/components/i18n-provider"
+import { formatMessage } from "@/lib/i18n-format"
 
 const categoryMeta: Record<
   MarketplaceCategory,
@@ -48,27 +51,35 @@ const categoryMeta: Record<
   Security: { icon: Shield, bg: "bg-orange-50", color: "text-orange-700" },
   Communications: { icon: Radio, bg: "bg-violet-50", color: "text-violet-700" },
   Navigation: { icon: Compass, bg: "bg-cyan-50", color: "text-cyan-700" },
+  "Garden & Harvest": { icon: Sprout, bg: "bg-green-50", color: "text-green-700" },
   "Air Quality": { icon: Wind, bg: "bg-sky-50", color: "text-sky-700" },
 }
 
 type Props = {
   hasPro: boolean
   awinProducts: AwinMarketplaceProduct[]
+  awinProductCount: number
 }
 
-export function MarketplaceView({ hasPro, awinProducts }: Props) {
-  const { t } = useI18n()
+export function MarketplaceView({
+  hasPro,
+  awinProducts,
+  awinProductCount,
+}: Props) {
+  const { locale, t } = useI18n()
   const [active, setActive] = useState<MarketplaceCategory | "All">("All")
   const [activeSeller, setActiveSeller] = useState<string>("All")
   const [productsOpen, setProductsOpen] = useState(true)
   const [bundlesOpen, setBundlesOpen] = useState(false)
 
+  const amazonProducts = useMemo(
+    () => getAmazonProductsForAccess(hasPro),
+    [hasPro]
+  )
+
   const visibleProducts = useMemo(
-    () =>
-      hasPro
-        ? [...marketplaceProducts, ...awinProducts]
-        : marketplaceProducts,
-    [hasPro, awinProducts]
+    () => (hasPro ? [...amazonProducts, ...awinProducts] : amazonProducts),
+    [hasPro, amazonProducts, awinProducts]
   )
 
   const availableCategories = useMemo(
@@ -91,12 +102,12 @@ export function MarketplaceView({ hasPro, awinProducts }: Props) {
   )
 
   const filteredAmazon = useMemo(() => {
-    return marketplaceProducts.filter((p) => {
+    return amazonProducts.filter((p) => {
       const categoryMatch = active === "All" || p.category === active
       const sellerMatch = activeSeller === "All" || p.seller === activeSeller
       return categoryMatch && sellerMatch
     })
-  }, [active, activeSeller])
+  }, [active, activeSeller, amazonProducts])
 
   const filteredAwin = useMemo(() => {
     if (!hasPro) return []
@@ -111,22 +122,38 @@ export function MarketplaceView({ hasPro, awinProducts }: Props) {
 
   const totalCount = filteredAmazon.length + filteredAwin.length
 
+  const unfilteredCount = hasPro
+    ? getAmazonProductCount(true) + awinProductCount
+    : getAmazonProductCount(false)
+
+  const displayCount =
+    active === "All" && activeSeller === "All" ? unfilteredCount : totalCount
+
+  const categoryLabel =
+    active !== "All"
+      ? formatMessage(t("marketplace.in_category"), {
+          category: t(`marketplace.category.${active}`),
+        })
+      : ""
+
   return (
     <main className="min-h-screen bg-white">
       <div className="mx-auto max-w-6xl px-4 py-12 lg:px-8">
         <h1 className="text-3xl font-light text-[#0d1b2a]">{t("marketplace.title")}</h1>
-        <p className="mt-3 max-w-2xl text-sm text-[#3d5166]">{t("marketplace.intro")}</p>
+        <p className="mt-3 max-w-2xl text-sm text-[#3d5166]">
+          {formatMessage(t("marketplace.intro"), { count: awinProductCount }, locale)}
+        </p>
 
         <section className="mt-8 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
-            Browse by category
+            {t("marketplace.browse_category")}
           </p>
           <div className="flex flex-wrap gap-2">
             <CategoryPill label="All" active={active === "All"} onClick={() => setActive("All")} />
             {availableCategories.map((cat) => (
               <CategoryPill
                 key={cat}
-                label={cat}
+                label={t(`marketplace.category.${cat}`)}
                 active={active === cat}
                 onClick={() => setActive(cat)}
               />
@@ -136,7 +163,7 @@ export function MarketplaceView({ hasPro, awinProducts }: Props) {
 
         <section className="mt-4 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
-            Browse by seller
+            {t("marketplace.browse_seller")}
           </p>
           <div className="flex flex-wrap gap-2">
             <CategoryPill
@@ -174,8 +201,12 @@ export function MarketplaceView({ hasPro, awinProducts }: Props) {
             aria-expanded={productsOpen}
           >
             <span className="text-2xl font-light text-[#0d1b2a]">
-              All Products ({totalCount}
-              {active !== "All" ? ` in ${active}` : ""})
+              {formatMessage(
+                t("marketplace.all_products_heading"),
+                { count: displayCount },
+                locale
+              )}
+              {categoryLabel}
             </span>
             <ChevronDown
               className={`h-5 w-5 text-[#3d5166] transition-transform ${productsOpen ? "rotate-180" : ""}`}
@@ -212,7 +243,11 @@ export function MarketplaceView({ hasPro, awinProducts }: Props) {
             aria-expanded={bundlesOpen}
           >
             <span className="text-2xl font-light text-[#0d1b2a]">
-              Bundles ({marketplaceBundles.length})
+              {formatMessage(
+                t("marketplace.bundles_heading"),
+                { count: marketplaceBundles.length },
+                locale
+              )}
             </span>
             <ChevronDown
               className={`h-5 w-5 text-[#3d5166] transition-transform ${bundlesOpen ? "rotate-180" : ""}`}

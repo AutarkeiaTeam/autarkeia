@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { MarketplaceView } from "@/components/marketplace/marketplace-view"
 import { getProAccess } from "@/lib/subscription"
-import { listAwinMarketplaceProducts } from "@/lib/marketplace-db"
+import { countAwinMarketplaceProducts, listAwinMarketplaceProducts } from "@/lib/marketplace-db"
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -12,7 +12,16 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function MarketplacePage() {
   const hasPro = await getProAccess()
-  const awinProducts = hasPro ? await listAwinMarketplaceProducts() : []
+  const [awinProductCount, awinProducts] = await Promise.all([
+    countAwinMarketplaceProducts(),
+    hasPro ? listAwinMarketplaceProducts() : Promise.resolve([]),
+  ])
 
-  return <MarketplaceView hasPro={hasPro} awinProducts={awinProducts} />
+  return (
+    <MarketplaceView
+      hasPro={hasPro}
+      awinProducts={awinProducts}
+      awinProductCount={awinProductCount}
+    />
+  )
 }

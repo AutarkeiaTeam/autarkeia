@@ -6,6 +6,22 @@ export type { AwinMarketplaceProduct } from "@/lib/marketplace-awin"
 
 const PAGE_SIZE = 1000
 
+/** Count in-stock rows in marketplace_products (Awin feed + store cards). */
+export async function countAwinMarketplaceProducts(): Promise<number> {
+  const supabase = await createClient()
+  const { count, error } = await supabase
+    .from("marketplace_products")
+    .select("*", { count: "exact", head: true })
+    .eq("in_stock", true)
+
+  if (error) {
+    console.error("countAwinMarketplaceProducts:", error.message)
+    return 0
+  }
+
+  return count ?? 0
+}
+
 export async function listAwinMarketplaceProducts(): Promise<AwinMarketplaceProduct[]> {
   const supabase = await createClient()
   const all: AwinMarketplaceProduct[] = []

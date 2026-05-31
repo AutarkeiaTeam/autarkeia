@@ -1,11 +1,12 @@
 import {
   MARKETPLACE_FILTER_CATEGORIES,
+  MARKETPLACE_PRO_ONLY_CATEGORIES,
   type MarketplaceCategory,
 } from "@/lib/marketplace-data"
 
 const ALL_CATEGORIES: MarketplaceCategory[] = [
   ...MARKETPLACE_FILTER_CATEGORIES,
-  "Navigation",
+  ...MARKETPLACE_PRO_ONLY_CATEGORIES,
 ]
 
 const CATEGORY_KEYWORDS: Record<MarketplaceCategory, string[]> = {
@@ -35,6 +36,20 @@ const CATEGORY_KEYWORDS: Record<MarketplaceCategory, string[]> = {
   Security: ["security", "lock", "alarm", "survival", "emergency", "preparedness", "defense", "prepper"],
   Communications: ["radio", "communication", "antenna", "satellite", "signal", "walkie"],
   Navigation: ["navigation", "compass", "map", "gps", "headlamp", "torch", "flashlight", "lantern"],
+  "Garden & Harvest": [
+    "seed",
+    "garden",
+    "greenhouse",
+    "compost",
+    "canning",
+    "preserv",
+    "sprout",
+    "hydroponic",
+    "harvest",
+    "planter",
+    "irrigation",
+    "ferment",
+  ],
   "Air Quality": [
     "dehumid",
     "humid",

@@ -9,9 +9,12 @@ export type MarketplaceCategory =
   | "Security"
   | "Communications"
   | "Navigation"
+  | "Garden & Harvest"
   | "Air Quality"
 
-/** Chips shown at top of marketplace (Navigation products still appear under "All") */
+export const GARDEN_HARVEST_SLUG = "garden-harvest"
+
+/** Visible category chips for free members and visitors (10 categories). */
 export const MARKETPLACE_FILTER_CATEGORIES: MarketplaceCategory[] = [
   "Water",
   "Food",
@@ -22,8 +25,17 @@ export const MARKETPLACE_FILTER_CATEGORIES: MarketplaceCategory[] = [
   "Security",
   "Communications",
   "Clothing",
-  "Air Quality",
+  "Garden & Harvest",
 ]
+
+/** Pro-only Amazon category (AlorAir / dehumidifiers — not shown in free filter chips). */
+export const MARKETPLACE_PRO_ONLY_CATEGORIES: MarketplaceCategory[] = ["Air Quality"]
+
+export const MARKETPLACE_FREE_AMAZON_CATEGORIES: MarketplaceCategory[] = [
+  ...MARKETPLACE_FILTER_CATEGORIES,
+]
+
+const PRODUCTS_PER_CATEGORY = 36
 
 export type MarketplaceProduct = {
   id: number
@@ -286,6 +298,7 @@ const PRODUCT_NAMES: Record<MarketplaceCategory, string[]> = {
     "Clinometer pocket",
     "Declination adjustment tool",
   ],
+  "Garden & Harvest": [],
   "Air Quality": [
     "Dehumidifier compact",
     "Crawlspace fan kit",
@@ -313,6 +326,45 @@ const PRODUCT_NAMES: Record<MarketplaceCategory, string[]> = {
 function amazonSearchUrl(query: string): string {
   return `https://www.amazon.es/s?k=${encodeURIComponent(query)}&tag=autarkeia-es`
 }
+
+const GARDEN_HARVEST_PRODUCTS: { name: string; query: string }[] = [
+  { name: "Heirloom vegetable seed vault (survival pack)", query: "heirloom vegetable seed vault survival pack" },
+  { name: "Survival seed kit non-GMO", query: "survival seed kit non GMO" },
+  { name: "Culinary herb seed collection", query: "culinary herb seed collection" },
+  { name: "Sprouting seed mix (alfalfa, broccoli, radish)", query: "sprouting seed mix alfalfa broccoli radish" },
+  { name: "Microgreens seed variety pack", query: "microgreens seed variety pack" },
+  { name: "Seed starting tray with humidity dome", query: "seed starting tray humidity dome" },
+  { name: "Seedling heat mat with thermostat", query: "seedling heat mat thermostat" },
+  { name: "Full-spectrum LED grow light", query: "full spectrum LED grow light" },
+  { name: "Coco coir starter pucks", query: "coco coir starter pucks" },
+  { name: "Raised garden bed (cedar or galvanized)", query: "raised garden bed cedar galvanized" },
+  { name: "Self-watering planter", query: "self watering planter" },
+  { name: "Garden tool set (trowel, fork, pruner)", query: "garden tool set trowel fork pruner" },
+  { name: "Dual-chamber compost tumbler", query: "dual chamber compost tumbler" },
+  { name: "Bypass pruning shears", query: "bypass pruning shears" },
+  { name: "Galvanized watering can", query: "galvanized watering can" },
+  { name: "Expandable garden hose", query: "expandable garden hose" },
+  { name: "Soil pH and moisture meter", query: "soil pH moisture meter" },
+  { name: "Leather garden gloves", query: "leather garden gloves" },
+  { name: "Vertical garden tower / stackable planter", query: "vertical garden tower stackable planter" },
+  { name: "Pop-up mini greenhouse", query: "pop up mini greenhouse" },
+  { name: "Drip irrigation kit", query: "drip irrigation kit garden" },
+  { name: "Hydroponics starter kit", query: "hydroponics starter kit" },
+  { name: "Countertop hydroponic herb garden", query: "countertop hydroponic herb garden" },
+  { name: "Wide-mouth sprouting jar kit with lids", query: "wide mouth sprouting jar kit lids" },
+  { name: "Mushroom growing kit (oyster or lion's mane)", query: "mushroom growing kit oyster lions mane" },
+  { name: "Electric food dehydrator (stackable trays)", query: "electric food dehydrator stackable trays" },
+  { name: "Pressure canner (All American or Presto style)", query: "pressure canner All American Presto" },
+  { name: "Water bath canner with rack", query: "water bath canner with rack" },
+  { name: "Wide-mouth mason jars (case of 12)", query: "wide mouth mason jars case 12" },
+  { name: "Canning lids and bands (bulk)", query: "canning lids bands bulk" },
+  { name: "Canning utensil set (jar lifter, funnel, magnetic lid lifter)", query: "canning utensil set jar lifter funnel" },
+  { name: "Vacuum sealer with bag rolls", query: "vacuum sealer bag rolls" },
+  { name: "Fermentation crock with weights", query: "fermentation crock with weights" },
+  { name: "Fermentation airlock lids for mason jars", query: "fermentation airlock lids mason jars" },
+  { name: "Root vegetable mesh storage bags", query: "root vegetable mesh storage bags" },
+  { name: "Freeze dryer (Harvest Right small)", query: "Harvest Right freeze dryer small" },
+]
 
 export const marketplaceBundles: MarketplaceBundle[] = [
   {
@@ -493,42 +545,81 @@ export const marketplaceBundles: MarketplaceBundle[] = [
   },
 ]
 
-function buildProducts(): MarketplaceProduct[] {
-  const cats: MarketplaceCategory[] = [
-    "Water",
-    "Food",
-    "Shelter",
-    "Energy",
-    "Medical",
-    "Tools",
-    "Clothing",
-    "Security",
-    "Communications",
-    "Navigation",
-  ]
+function buildRotatingCategoryProducts(
+  cat: MarketplaceCategory,
+  startId: number
+): MarketplaceProduct[] {
+  const names = PRODUCT_NAMES[cat]
   const out: MarketplaceProduct[] = []
-  let id = 1
-  for (const cat of cats) {
-    const names = PRODUCT_NAMES[cat]
-    for (let i = 0; i < 36; i++) {
-      const base = names[i % names.length]
-      const tier = ADJ[i % ADJ.length]
-      const name = `${tier} ${base}`
-      const description = `Practical ${cat.toLowerCase()} item for household resilience — ${base.toLowerCase()} variant ${Math.floor(i / names.length) + 1}.`
-      const euros = 12 + ((i * 7 + cat.length * 3) % 340)
-      const price = `€${euros}`
-      out.push({
-        id: id++,
-        category: cat,
-        seller: "Amazon",
-        name,
-        description,
-        price,
-        affiliate: amazonSearchUrl(name),
-      })
-    }
+  for (let i = 0; i < PRODUCTS_PER_CATEGORY; i++) {
+    const base = names[i % names.length]
+    const tier = ADJ[i % ADJ.length]
+    const name = `${tier} ${base}`
+    const description = `Practical ${cat.toLowerCase()} item for household resilience — ${base.toLowerCase()} variant ${Math.floor(i / names.length) + 1}.`
+    const euros = 12 + ((i * 7 + cat.length * 3) % 340)
+    out.push({
+      id: startId + i,
+      category: cat,
+      seller: "Amazon",
+      name,
+      description,
+      price: `€${euros}`,
+      affiliate: amazonSearchUrl(name),
+    })
   }
   return out
 }
 
+function buildGardenHarvestProducts(startId: number): MarketplaceProduct[] {
+  return GARDEN_HARVEST_PRODUCTS.map((item, i) => {
+    const euros = 12 + ((i * 7 + 17 * 3) % 340)
+    return {
+      id: startId + i,
+      category: "Garden & Harvest" as const,
+      seller: "Amazon" as const,
+      name: item.name,
+      description:
+        "Grow your own food and preserve the harvest — practical gear from seed to jar.",
+      price: `€${euros}`,
+      affiliate: amazonSearchUrl(item.query),
+    }
+  })
+}
+
+function buildProducts(): MarketplaceProduct[] {
+  const out: MarketplaceProduct[] = []
+  let id = 1
+
+  for (const cat of MARKETPLACE_FREE_AMAZON_CATEGORIES) {
+    if (cat === "Garden & Harvest") {
+      const products = buildGardenHarvestProducts(id)
+      out.push(...products)
+      id += products.length
+    } else {
+      const products = buildRotatingCategoryProducts(cat, id)
+      out.push(...products)
+      id += products.length
+    }
+  }
+
+  for (const cat of MARKETPLACE_PRO_ONLY_CATEGORIES) {
+    const products = buildRotatingCategoryProducts(cat, id)
+    out.push(...products)
+    id += products.length
+  }
+
+  return out
+}
+
 export const marketplaceProducts: MarketplaceProduct[] = buildProducts()
+
+export function getAmazonProductsForAccess(hasPro: boolean): MarketplaceProduct[] {
+  if (hasPro) return marketplaceProducts
+  return marketplaceProducts.filter(
+    (p) => !MARKETPLACE_PRO_ONLY_CATEGORIES.includes(p.category)
+  )
+}
+
+export function getAmazonProductCount(hasPro: boolean): number {
+  return getAmazonProductsForAccess(hasPro).length
+}
