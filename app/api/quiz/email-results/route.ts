@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   try {
     const quiz = quizType as QuizType
     const deterministic = scoreQuiz(quiz, answers)
-    const advice = await buildQuizAdvice(quiz, answers, locale)
+    const { advice } = await buildQuizAdvice(quiz, answers, locale)
 
     await sendQuizResultsEmail({
       to: email,
