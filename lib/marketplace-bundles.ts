@@ -716,6 +716,7 @@ export function resolveProMarketplaceBundles(
       (def.amazonTerms?.[0] ? amazonSearchUrl(def.amazonTerms[0]) : "#")
 
     return {
+      id: def.id,
       name: def.name,
       items: def.items,
       original: def.original,

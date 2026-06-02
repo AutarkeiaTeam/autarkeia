@@ -273,6 +273,10 @@ export function getAwinSellerDisplayNames(): string[] {
   return marketplaceBrands.map((b) => getBrandDisplayName(b))
 }
 
+export function getMarketplaceBrandDescriptionKey(brandSlug: string): string {
+  return `marketplace.brands.${brandSlug}.description`
+}
+
 /** @deprecated Use getAwinSellerDisplayNames */
 export function getAwinSellerNames(): string[] {
   return getAwinSellerDisplayNames()

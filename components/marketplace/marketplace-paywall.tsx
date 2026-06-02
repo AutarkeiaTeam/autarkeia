@@ -1,24 +1,28 @@
+"use client"
+
 import Link from "next/link"
-const TEASER_CATEGORIES = [
-  "Power",
-  "Outdoor",
-  "Gardening",
-  "Water",
-  "Air Quality",
-  "Preparedness",
-]
+import { useI18n } from "@/components/i18n-provider"
 
 export function MarketplacePaywall() {
-  const teaserCategories = TEASER_CATEGORIES
+  const { t } = useI18n()
+  const teaserCategories = [
+    t("marketplace.paywall.teaser.power"),
+    t("marketplace.paywall.teaser.outdoor"),
+    t("marketplace.paywall.teaser.gardening"),
+    t("marketplace.paywall.teaser.water"),
+    t("marketplace.paywall.teaser.air_quality"),
+    t("marketplace.paywall.teaser.preparedness"),
+  ]
 
   return (
     <main className="min-h-screen bg-white">
       <div className="mx-auto max-w-3xl px-4 py-14 lg:px-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">Pro members only</p>
-        <h1 className="mt-3 text-3xl font-light text-[#0d1b2a]">Marketplace</h1>
+        <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
+          {t("marketplace.paywall.badge")}
+        </p>
+        <h1 className="mt-3 text-3xl font-light text-[#0d1b2a]">{t("marketplace.paywall.title")}</h1>
         <p className="mt-4 text-sm leading-relaxed text-[#3d5166]">
-          Upgrade to Pro to access curated affiliate partners for power, water, outdoor gear, gardening,
-          air quality, and preparedness — with geo-aware storefront links.
+          {t("marketplace.paywall.description")}
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-2">
@@ -36,12 +40,12 @@ export function MarketplacePaywall() {
           href="/plans?from=marketplace"
           className="mt-8 inline-block rounded-lg bg-[#009b70] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#007a58]"
         >
-          Upgrade to Pro to access the marketplace
+          {t("marketplace.paywall.cta")}
         </Link>
         <p className="mt-4 text-xs text-[#8a9bb0]">
-          Already subscribed?{" "}
+          {t("marketplace.paywall.already_subscribed")}{" "}
           <Link href="/login" className="text-[#009b70] hover:underline">
-            Sign in
+            {t("marketplace.paywall.sign_in")}
           </Link>
         </p>
       </div>

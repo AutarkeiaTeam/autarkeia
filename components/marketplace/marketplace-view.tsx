@@ -28,6 +28,7 @@ import {
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import {
+  AMAZON_ADJECTIVE_SLUGS,
   getAmazonProductCount,
   getAmazonProductsForAccess,
   getCategorySlug,
@@ -43,6 +44,7 @@ import {
 import { formatAwinPrice, type AwinMarketplaceProduct } from "@/lib/marketplace-awin"
 import { BRAND_PLACEHOLDER_COLORS, getBrandInitials } from "@/lib/marketplace-brand-ui"
 import {
+  getMarketplaceBrandDescriptionKey,
   getAwinSellerDisplayNames,
   resolveAdvertiserDisplayName,
 } from "@/lib/marketplace-brands"
@@ -181,7 +183,11 @@ export function MarketplaceView({
             {t("marketplace.browse_category")}
           </p>
           <div className="flex flex-wrap gap-2">
-            <CategoryPill label="All" active={active === "All"} onClick={() => setActive("All")} />
+            <CategoryPill
+              label={t("common.all")}
+              active={active === "All"}
+              onClick={() => setActive("All")}
+            />
             {availableCategories.map((cat) => (
               <CategoryPill
                 key={cat}
@@ -199,7 +205,7 @@ export function MarketplaceView({
           </p>
           <div className="flex flex-wrap gap-2">
             <CategoryPill
-              label="All"
+              label={t("common.all")}
               active={activeSeller === "All"}
               onClick={() => setActiveSeller("All")}
             />
@@ -219,7 +225,7 @@ export function MarketplaceView({
                 href="/plans?from=marketplace"
                 className="text-xs font-medium text-[#009b70] hover:underline"
               >
-                {t("plans.go_pro")} →
+                {t("marketplace.go_pro_cta")}
               </Link>
             </div>
           )}
@@ -254,11 +260,11 @@ export function MarketplaceView({
               ))}
               {totalCount === 0 && (
                 <p className="col-span-full py-8 text-center text-sm text-[#8a9bb0]">
-                  No products match these filters.
+                  {t("marketplace.empty.no_match")}
                   {awinProducts.length === 0 && hasPro && (
                     <>
                       {" "}
-                      Awin catalog is empty — run a feed sync from the admin panel.
+                      {t("marketplace.empty.awin_catalog")}
                     </>
                   )}
                 </p>
@@ -292,12 +298,14 @@ export function MarketplaceView({
                   key={bundle.name}
                   className="rounded-xl border-2 border-[#009b70]/25 bg-[#f5f7fa] p-5"
                 >
-                  <h3 className="font-medium text-[#0d1b2a]">{bundle.name}</h3>
-                  <p className="mt-1 text-sm text-[#3d5166]">{bundle.items}</p>
+                  <h3 className="font-medium text-[#0d1b2a]">{bundleName(bundle.id, bundle.name, t)}</h3>
+                  <p className="mt-1 text-sm text-[#3d5166]">{bundleItems(bundle.id, bundle.items, t)}</p>
                   <div className="mt-3 flex items-end gap-3">
                     <span className="text-sm text-[#8a9bb0] line-through">{bundle.original}</span>
                     <span className="text-xl font-semibold text-[#0d1b2a]">{bundle.price}</span>
-                    <span className="text-sm font-medium text-[#009b70]">Save {bundle.savings}</span>
+                    <span className="text-sm font-medium text-[#009b70]">
+                      {formatMessage(t("marketplace.bundle_save"), { amount: bundle.savings }, locale)}
+                    </span>
                   </div>
                   <a
                     href={bundle.affiliate}
@@ -305,7 +313,7 @@ export function MarketplaceView({
                     rel="noopener noreferrer"
                     className="mt-4 inline-block rounded-lg bg-[#009b70] px-4 py-2 text-sm font-medium text-white hover:bg-[#007a58]"
                   >
-                    View bundle →
+                    {t("marketplace.view_bundle")}
                   </a>
                 </article>
               ))}
@@ -314,9 +322,7 @@ export function MarketplaceView({
         </section>
 
         <p className="mt-10 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] px-4 py-3 text-xs leading-relaxed text-[#3d5166]">
-          Autarkeia earns commission from purchases made through affiliate links on this page. This
-          helps fund the platform. We only feature brands and products we believe serve our
-          community.
+          {t("marketplace.disclosure")}
         </p>
       </div>
     </main>
@@ -348,19 +354,22 @@ function CategoryPill({
 }
 
 function AmazonProductCard({ product }: { product: MarketplaceProduct }) {
+  const { locale, t } = useI18n()
   const meta = categoryMeta[product.category]
   const Icon = meta.icon
+  const categoryName = t(`marketplace.categories.${getCategorySlug(product.category)}.name`)
+  const localized = getLocalizedAmazonProductCopy(product, categoryName, t, locale)
   return (
     <article className="rounded-xl border border-[#d4dce8] p-4 transition-colors hover:border-[#009b70]">
       <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${meta.bg}`}>
         <Icon className={`h-5 w-5 ${meta.color}`} />
       </div>
       <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
-        {product.category}
+        {categoryName}
       </p>
-      <h3 className="mt-1 text-sm font-medium text-[#0d1b2a]">{product.name}</h3>
+      <h3 className="mt-1 text-sm font-medium text-[#0d1b2a]">{localized.name}</h3>
       <p className="mt-1 text-[11px] font-medium text-[#8a9bb0]">{product.seller}</p>
-      <p className="mt-2 line-clamp-3 text-xs text-[#3d5166]">{product.description}</p>
+      <p className="mt-2 line-clamp-3 text-xs text-[#3d5166]">{localized.description}</p>
       <div className="mt-3 flex items-center justify-between">
         <span className="font-semibold text-[#0d1b2a]">{product.price}</span>
         <a
@@ -369,7 +378,7 @@ function AmazonProductCard({ product }: { product: MarketplaceProduct }) {
           rel="noopener noreferrer"
           className="rounded-lg bg-[#009b70] px-3 py-1.5 text-xs text-white hover:bg-[#007a58]"
         >
-          Buy →
+          {t("common.buy")}
         </a>
       </div>
     </article>
@@ -377,6 +386,7 @@ function AmazonProductCard({ product }: { product: MarketplaceProduct }) {
 }
 
 function AwinProductCard({ product }: { product: AwinMarketplaceProduct }) {
+  const { t } = useI18n()
   if (product.is_store_card) {
     return <AwinStoreCard product={product} />
   }
@@ -404,7 +414,7 @@ function AwinProductCard({ product }: { product: AwinMarketplaceProduct }) {
         </div>
       )}
       <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
-        {product.category}
+        {t(`marketplace.categories.${getCategorySlug(product.category)}.name`)}
       </p>
       <h3 className="mt-1 line-clamp-2 text-sm font-medium text-[#0d1b2a]">{product.product_name}</h3>
       <p className="mt-1 text-[11px] font-medium text-[#8a9bb0]">
@@ -417,7 +427,7 @@ function AwinProductCard({ product }: { product: AwinMarketplaceProduct }) {
         {priceLabel ? (
           <span className="font-semibold text-[#0d1b2a]">{priceLabel}</span>
         ) : (
-          <span className="text-xs text-[#8a9bb0]">See store</span>
+          <span className="text-xs text-[#8a9bb0]">{t("marketplace.card.see_store")}</span>
         )}
         <a
           href={product.deep_link}
@@ -425,15 +435,18 @@ function AwinProductCard({ product }: { product: AwinMarketplaceProduct }) {
           rel="sponsored noopener noreferrer"
           className="shrink-0 rounded-lg bg-[#009b70] px-3 py-1.5 text-xs text-white hover:bg-[#007a58]"
         >
-          Buy →
+          {t("common.buy")}
         </a>
       </div>
-      <p className="mt-2 text-[10px] uppercase tracking-wide text-[#8a9bb0]">Affiliate partner</p>
+      <p className="mt-2 text-[10px] uppercase tracking-wide text-[#8a9bb0]">
+        {t("marketplace.card.affiliate_partner")}
+      </p>
     </article>
   )
 }
 
 function AwinStoreCard({ product }: { product: AwinMarketplaceProduct }) {
+  const { t } = useI18n()
   const displayName = resolveAdvertiserDisplayName(product.brand_slug, product.advertiser_name)
   const color = BRAND_PLACEHOLDER_COLORS[product.brand_slug] ?? "#009b70"
 
@@ -448,25 +461,70 @@ function AwinStoreCard({ product }: { product: AwinMarketplaceProduct }) {
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-[#f5f7fa] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#3d5166]">
-          Store
+          {t("marketplace.card.store_badge")}
         </span>
         <span className="text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
-          {product.category}
+          {t(`marketplace.categories.${getCategorySlug(product.category)}.name`)}
         </span>
       </div>
       <h3 className="mt-2 text-sm font-medium text-[#0d1b2a]">{displayName}</h3>
-      {product.description && (
-        <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-[#3d5166]">{product.description}</p>
-      )}
+      <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-[#3d5166]">
+        {t(getMarketplaceBrandDescriptionKey(product.brand_slug))}
+      </p>
       <a
         href={product.deep_link}
         target="_blank"
         rel="sponsored noopener noreferrer"
         className="mt-4 inline-block rounded-lg bg-[#009b70] px-4 py-2 text-sm font-medium text-white hover:bg-[#007a58]"
       >
-        Visit store
+        {t("marketplace.card.visit_store")}
       </a>
-      <p className="mt-2 text-[10px] uppercase tracking-wide text-[#8a9bb0]">Affiliate partner</p>
+      <p className="mt-2 text-[10px] uppercase tracking-wide text-[#8a9bb0]">
+        {t("marketplace.card.affiliate_partner")}
+      </p>
     </article>
   )
+}
+
+function bundleName(id: string | undefined, fallback: string, t: (key: string) => string): string {
+  if (!id) return fallback
+  return t(`marketplace.bundles.${id.startsWith("pro-") ? "pro" : "free"}.${id}.name`)
+}
+
+function bundleItems(id: string | undefined, fallback: string, t: (key: string) => string): string {
+  if (!id) return fallback
+  return t(`marketplace.bundles.${id.startsWith("pro-") ? "pro" : "free"}.${id}.items`)
+}
+
+function getLocalizedAmazonProductCopy(
+  product: MarketplaceProduct,
+  categoryLabel: string,
+  t: (key: string) => string,
+  locale: string
+): { name: string; description: string } {
+  if (!product.i18n) {
+    return { name: product.name, description: product.description }
+  }
+
+  if (product.i18n.kind === "explicit") {
+    const key = `marketplace.amazon.explicit.${product.i18n.categorySlug}.${product.i18n.explicitIndex}`
+    return {
+      name: t(`${key}.name`),
+      description: t(`marketplace.amazon.explicit.${product.i18n.categorySlug}.description`),
+    }
+  }
+
+  const adjSlug = AMAZON_ADJECTIVE_SLUGS[product.i18n.adjectiveIndex]
+  const base = t(
+    `marketplace.amazon.base.${product.i18n.categorySlug}.${product.i18n.baseIndex}`
+  )
+  const adj = t(`marketplace.amazon.adj.${adjSlug}`)
+  return {
+    name: formatMessage(t("marketplace.amazon.rotating.name_template"), { base, adj }, locale),
+    description: formatMessage(
+      t("marketplace.amazon.rotating.description_template"),
+      { category: categoryLabel, base, variant: product.i18n.variant },
+      locale
+    ),
+  }
 }

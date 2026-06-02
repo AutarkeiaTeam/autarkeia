@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getUserId } from "@/lib/auth-server"
+import { parseAcceptLanguage, translate } from "@/lib/i18n-core"
 import { getAwinMarketplaceProductStats } from "@/lib/marketplace-db"
 import { runMarketplaceSync } from "@/lib/marketplace-sync"
 import { isAdmin } from "@/lib/profiles"
@@ -7,13 +8,18 @@ import { isAdmin } from "@/lib/profiles"
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
 
-export async function GET() {
+function localizedError(request: Request, key: string, status: number) {
+  const locale = parseAcceptLanguage(request.headers.get("accept-language"))
+  return NextResponse.json({ errorKey: key, error: translate(locale, key) }, { status })
+}
+
+export async function GET(request: Request) {
   const userId = await getUserId()
   if (!userId) {
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    return localizedError(request, "admin.marketplace_sync.error.auth_required", 401)
   }
   if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    return localizedError(request, "admin.marketplace_sync.error.forbidden", 403)
   }
 
   const stats = await getAwinMarketplaceProductStats()
@@ -32,11 +38,11 @@ export async function GET() {
 export async function POST(request: Request) {
   const userId = await getUserId()
   if (!userId) {
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    return localizedError(request, "admin.marketplace_sync.error.auth_required", 401)
   }
 
   if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    return localizedError(request, "admin.marketplace_sync.error.forbidden", 403)
   }
 
   let body: { advertiserIds?: number[] } = {}
@@ -53,9 +59,9 @@ export async function POST(request: Request) {
     return NextResponse.json(summary)
   } catch (err) {
     console.error("[admin/sync-marketplace-now]", err)
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Sync failed" },
-      { status: 500 }
-    )
+    if (err instanceof Error) {
+      return NextResponse.json({ errorKey: "admin.marketplace_sync.error.sync_failed", error: err.message }, { status: 500 })
+    }
+    return localizedError(request, "admin.marketplace_sync.error.sync_failed", 500)
   }
 }

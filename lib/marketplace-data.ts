@@ -102,6 +102,7 @@ export type MarketplaceProduct = {
   description: string
   price: string
   affiliate: string
+  i18n?: AmazonProductI18nMeta
 }
 
 export type MarketplaceSeller = "Amazon" | (string & {})
@@ -113,6 +114,7 @@ export function buildMarketplaceSellers(awinSellerNames: string[]): MarketplaceS
 }
 
 export type MarketplaceBundle = {
+  id?: string
   name: string
   items: string
   original: string
@@ -120,6 +122,20 @@ export type MarketplaceBundle = {
   savings: string
   affiliate: string
 }
+
+export type AmazonProductI18nMeta =
+  | {
+      kind: "rotating"
+      categorySlug: string
+      baseIndex: number
+      adjectiveIndex: number
+      variant: number
+    }
+  | {
+      kind: "explicit"
+      categorySlug: string
+      explicitIndex: number
+    }
 
 const ADJ = [
   "Field",
@@ -133,6 +149,19 @@ const ADJ = [
   "Backup",
   "Modular",
 ]
+
+export const AMAZON_ADJECTIVE_SLUGS = [
+  "field",
+  "compact",
+  "pro",
+  "tactical",
+  "home",
+  "trail",
+  "resilience",
+  "rural",
+  "backup",
+  "modular",
+] as const
 
 const PRODUCT_NAMES: Record<MarketplaceCategory, string[]> = {
   Water: [
@@ -655,6 +684,7 @@ const EXPLICIT_PRODUCT_DESCRIPTIONS: Partial<Record<MarketplaceCategory, string>
 /** Free-tier bundle cards (22) — unchanged set for visitors and all members. */
 export const marketplaceBundlesFree: MarketplaceBundle[] = [
   {
+    id: "72-hour-emergency",
     name: "72-Hour Emergency Kit",
     items: "water + food + medical + light + comms",
     original: "€234",
@@ -663,6 +693,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("72 hour emergency kit"),
   },
   {
+    id: "home-energy-starter",
     name: "Home Energy Independence Starter",
     items: "solar panel + power station + MPPT controller",
     original: "€674",
@@ -671,6 +702,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("home solar starter kit portable power station"),
   },
   {
+    id: "food-resilience-starter",
     name: "Food Resilience Starter",
     items: "raised bed + seeds + tools + soil meter",
     original: "€184",
@@ -679,6 +711,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("food growing starter kit raised bed"),
   },
   {
+    id: "complete-emergency-readiness",
     name: "Complete Emergency Readiness",
     items: "water filter + 30-day food + first aid + communications",
     original: "€544",
@@ -687,6 +720,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("complete emergency readiness kit"),
   },
   {
+    id: "off-grid-water",
     name: "Off-Grid Water System",
     items: "gravity filter + rain barrel + storage + hand pump",
     original: "€470",
@@ -695,6 +729,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("off grid water system rain collection"),
   },
   {
+    id: "shelter-cold-weather",
     name: "Shelter & Cold Weather",
     items: "4p tent + sleeping bags + tarps + stove",
     original: "€612",
@@ -703,6 +738,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("winter emergency shelter tent sleeping bag"),
   },
   {
+    id: "medical-trauma-core",
     name: "Medical Trauma Core",
     items: "tourniquets + chest seals + bandages + airway kit",
     original: "€298",
@@ -711,6 +747,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("trauma first aid kit tourniquet"),
   },
   {
+    id: "communications-redundancy",
     name: "Communications Redundancy",
     items: "GMRS radios + solar charger + crank radio",
     original: "€356",
@@ -719,6 +756,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("emergency radio gmrs handheld"),
   },
   {
+    id: "security-perimeter",
     name: "Security Perimeter Pack",
     items: "motion lights + trail camera + door reinforcement",
     original: "€412",
@@ -727,6 +765,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("home security motion sensor camera"),
   },
   {
+    id: "navigation-evacuation",
     name: "Navigation & Evacuation",
     items: "topo maps + compass + rugged GPS + road atlas",
     original: "€428",
@@ -735,6 +774,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("gps handheld topo map compass"),
   },
   {
+    id: "tools-field-repair",
     name: "Tools & Field Repair",
     items: "multitool + saw + sockets + multimeter + cordage",
     original: "€318",
@@ -743,6 +783,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("survival tool kit multimeter saw"),
   },
   {
+    id: "clothing-layering",
     name: "Clothing Layering System",
     items: "merino base + rain shell + insulated jacket + boots",
     original: "€524",
@@ -751,6 +792,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("outdoor layering merino rain jacket"),
   },
   {
+    id: "water-purification-pro",
     name: "Water Purification Pro",
     items: "ceramic filter + UV pen + test strips + storage",
     original: "€389",
@@ -759,6 +801,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("water purification ceramic filter uv"),
   },
   {
+    id: "long-term-food-storage",
     name: "Long-Term Food Storage",
     items: "buckets + mylar + O2 absorbers + sealer",
     original: "€276",
@@ -767,6 +810,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("long term food storage mylar buckets"),
   },
   {
+    id: "backup-power-week",
     name: "Backup Power Week",
     items: "LiFePO4 + inverter + solar folding + cables",
     original: "€1,120",
@@ -775,6 +819,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("lifepo4 battery solar inverter kit"),
   },
   {
+    id: "homestead-food-preservation",
     name: "Homestead Food Preservation",
     items: "pressure canner + dehydrator + jars + labels",
     original: "€398",
@@ -783,6 +828,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("pressure canner dehydrator preserving"),
   },
   {
+    id: "natural-building-starter",
     name: "Natural Building Starter",
     items: "straw needles + plaster hawk + levels + moisture meter",
     original: "€244",
@@ -791,6 +837,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("natural building tools plaster straw bale"),
   },
   {
+    id: "rainwater-harvest",
     name: "Rainwater Harvest Complete",
     items: "gutters kit + first flush + IBC fittings + pump",
     original: "€512",
@@ -799,6 +846,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("rainwater harvesting kit first flush"),
   },
   {
+    id: "wind-solar-hybrid-mini",
     name: "Wind + Solar Hybrid Mini",
     items: "400W turbine + MPPT hybrid + dump load + battery",
     original: "€1,340",
@@ -807,6 +855,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("small wind turbine solar hybrid mppt"),
   },
   {
+    id: "family-hygiene-sanitation",
     name: "Family Hygiene & Sanitation",
     items: "portable toilet + waste bags + wash station + soap",
     original: "€198",
@@ -815,6 +864,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("camping portable toilet wash station"),
   },
   {
+    id: "cyber-outage-analog",
     name: "Cyber-Outage Analog Kit",
     items: "maps + cash envelope + radio + paper logs + candles",
     original: "€167",
@@ -823,6 +873,7 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
     affiliate: amazonSearchUrl("emergency radio maps analog preparedness"),
   },
   {
+    id: "vehicle-get-home",
     name: "Vehicle Get-Home Bag",
     items: "tools + water + food + blanket + light + charger",
     original: "€286",
@@ -841,6 +892,7 @@ function buildRotatingCategoryProducts(
 ): MarketplaceProduct[] {
   const names = PRODUCT_NAMES[cat]
   const out: MarketplaceProduct[] = []
+  const categorySlug = getCategorySlug(cat)
   for (let i = 0; i < PRODUCTS_PER_CATEGORY; i++) {
     const base = names[i % names.length]
     const tier = ADJ[i % ADJ.length]
@@ -855,6 +907,13 @@ function buildRotatingCategoryProducts(
       description,
       price: `€${euros}`,
       affiliate: amazonSearchUrl(name),
+      i18n: {
+        kind: "rotating",
+        categorySlug,
+        baseIndex: i % names.length,
+        adjectiveIndex: i % ADJ.length,
+        variant: Math.floor(i / names.length) + 1,
+      },
     })
   }
   return out
@@ -865,6 +924,7 @@ function buildExplicitCategoryProducts(
   startId: number
 ): MarketplaceProduct[] {
   const items = EXPLICIT_PRODUCT_LISTS[cat] ?? []
+  const categorySlug = getCategorySlug(cat)
   const description =
     EXPLICIT_PRODUCT_DESCRIPTIONS[cat] ??
     `Practical ${cat.toLowerCase()} item for household resilience.`
@@ -878,6 +938,11 @@ function buildExplicitCategoryProducts(
       description,
       price: `€${euros}`,
       affiliate: amazonSearchUrl(item.query),
+      i18n: {
+        kind: "explicit",
+        categorySlug,
+        explicitIndex: i,
+      },
     }
   })
 }
