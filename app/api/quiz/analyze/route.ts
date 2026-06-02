@@ -84,13 +84,17 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
     const fallbackAdvice = buildFallback(locale, quizType)
-    if (!apiKey) {
-      return Response.json({
+    const fallbackResult = (reason: string) =>
+      Response.json({
         result: {
           ...deterministic,
           ...fallbackAdvice,
         },
+        _fallback_reason: reason,
       })
+    if (!apiKey) {
+      console.error('[quiz/analyze] fallback:', 'ANTHROPIC_API_KEY missing')
+      return fallbackResult('ANTHROPIC_API_KEY missing')
     }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -110,49 +114,48 @@ export async function POST(req: Request) {
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Anthropic API error:', response.status, errorText)
-      return Response.json({
-        result: {
-          ...deterministic,
-          ...fallbackAdvice,
-        },
-      })
+      const reason = `Anthropic returned non-200: ${response.status} ${errorText.slice(0, 300)}`
+      console.error('[quiz/analyze] fallback:', reason)
+      return fallbackResult(reason)
     }
 
     const data = await response.json()
     const content = data.content?.[0]
     if (!content || content.type !== 'text') {
-      return Response.json({
-        result: {
-          ...deterministic,
-          ...fallbackAdvice,
-        },
-      })
+      const reason = 'Anthropic returned 200 but shape validation failed'
+      console.error('[quiz/analyze] fallback:', reason)
+      return fallbackResult(reason)
     }
 
     const text = content.text.trim()
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      return Response.json({
-        result: {
-          ...deterministic,
-          ...fallbackAdvice,
-        },
-      })
+      const reason = 'Anthropic returned 200 but parse failed: missing JSON object in text'
+      console.error('[quiz/analyze] fallback:', reason)
+      return fallbackResult(reason)
     }
 
-    const aiResult = JSON.parse(jsonMatch[0]) as {
+    let aiResult: {
       action_plan?: unknown
       product_recommendations?: unknown
     }
+    try {
+      aiResult = JSON.parse(jsonMatch[0]) as {
+        action_plan?: unknown
+        product_recommendations?: unknown
+      }
+    } catch (parseError) {
+      const reason = `Anthropic returned 200 but parse failed: ${
+        parseError instanceof Error ? parseError.message : 'unknown parse error'
+      }`
+      console.error('[quiz/analyze] fallback:', reason)
+      return fallbackResult(reason)
+    }
 
     if (!aiResult.action_plan || !aiResult.product_recommendations) {
-      return Response.json({
-        result: {
-          ...deterministic,
-          ...fallbackAdvice,
-        },
-      })
+      const reason = 'Anthropic returned 200 but shape validation failed'
+      console.error('[quiz/analyze] fallback:', reason)
+      return fallbackResult(reason)
     }
 
     return Response.json({
@@ -164,7 +167,9 @@ export async function POST(req: Request) {
     })
 
   } catch (error) {
-    console.error('Quiz analysis error:', error)
+    console.error('[quiz/analyze] fallback:', `Unhandled exception: ${
+      error instanceof Error ? error.message : 'unknown'
+    }`)
     const locale = parseAcceptLanguage(req.headers.get('accept-language'))
     const deterministic = scoreQuiz(requestQuizType, requestAnswers)
     return Response.json({
