@@ -1,6 +1,7 @@
 import type { ContactMessageInput } from "@/lib/contact"
 import type { CommunityInterestInput } from "@/lib/community-interest"
 import { formatPreferredLocationsForDisplay } from "@/lib/community-interest-location"
+import type { QuizResult, QuizType } from "@/lib/quiz-data"
 
 const FROM_EMAIL = "Autarkeia <noreply@send.autarkeia.world>"
 const CONTACT_NOTIFY_EMAIL = process.env.CONTACT_NOTIFY_EMAIL ?? "hello@autarkeia.world"
@@ -90,6 +91,184 @@ async function sendResendEmail(options: {
     const body = await response.text().catch(() => "")
     throw new Error(`Resend API error (${response.status}): ${body}`)
   }
+}
+
+export async function sendQuizResultsEmail(options: {
+  to: string
+  subject: string
+  overallScore: number
+  scoreLabel: string
+  categoryScores: Record<string, number>
+  actionPlan: QuizResult["action_plan"]
+  productRecommendations: QuizResult["product_recommendations"]
+  labels: {
+    title: string
+    subtitle: string
+    scoreSummary: string
+    overallScore: string
+    scoreLabel: string
+    categoryBreakdown: string
+    actionPlan: string
+    week: string
+    month: string
+    year: string
+    estimatedCost: string
+    priority: string
+    products: string
+    estimatedPrice: string
+    footerNote: string
+    footerSignature: string
+    viewOnAutarkeia: string
+  }
+  appUrl: string
+  quizType: QuizType
+}): Promise<void> {
+  const { labels } = options
+  const actionSection = (heading: string, items: QuizResult["action_plan"]["week"]) => `
+    <h3 style="margin:16px 0 8px;font-size:16px;color:#0d1b2a;">${escapeHtml(heading)}</h3>
+    ${items
+      .map(
+        (item) => `
+      <div style="border:1px solid #d4dce8;border-radius:10px;padding:12px;margin-bottom:10px;background:#ffffff;">
+        <p style="margin:0 0 6px;font-weight:600;color:#0d1b2a;">${escapeHtml(item.title)}</p>
+        <p style="margin:0 0 8px;color:#3d5166;font-size:14px;">${escapeHtml(item.description)}</p>
+        <p style="margin:0;color:#8a9bb0;font-size:12px;">
+          ${escapeHtml(labels.estimatedCost)}: ${escapeHtml(item.estimated_cost)} · ${escapeHtml(
+          labels.priority
+        )}: ${escapeHtml(item.priority)}
+        </p>
+      </div>`
+      )
+      .join("")}
+  `
+
+  const recRows = options.productRecommendations
+    .map((rec) => {
+      const linkHtml = ""
+      return `
+      <tr>
+        <td style="padding:10px;border-bottom:1px solid #eef2f6;">
+          <p style="margin:0 0 4px;font-size:12px;color:#8a9bb0;text-transform:uppercase;">${escapeHtml(
+            rec.category
+          )}</p>
+          <p style="margin:0 0 4px;font-weight:600;color:#0d1b2a;">${escapeHtml(rec.name)}</p>
+          <p style="margin:0 0 4px;font-size:14px;color:#3d5166;">${escapeHtml(rec.why)}</p>
+          <p style="margin:0;font-size:12px;color:#8a9bb0;">${escapeHtml(
+            labels.estimatedPrice
+          )}: ${escapeHtml(rec.estimated_price)}</p>
+          ${linkHtml}
+        </td>
+      </tr>
+    `
+    })
+    .join("")
+
+  const categories = Object.entries(options.categoryScores)
+    .map(
+      ([category, pct]) => `
+      <tr>
+        <td style="padding:8px 10px;border-bottom:1px solid #eef2f6;color:#0d1b2a;">${escapeHtml(
+          category
+        )}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #eef2f6;color:#0d1b2a;text-align:right;">${pct}%</td>
+      </tr>`
+    )
+    .join("")
+
+  const resultsPath =
+    options.quizType === "self-sufficiency"
+      ? "/quiz/self-sufficiency/results"
+      : "/quiz/emergency-readiness/results"
+  const viewUrl = `${options.appUrl.replace(/\/$/, "")}${resultsPath}`
+
+  const html = `
+    <div style="margin:0;padding:0;background:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f7fa;padding:24px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #d4dce8;border-radius:14px;overflow:hidden;">
+              <tr>
+                <td style="padding:24px 24px 12px;background:#ffffff;">
+                  <p style="margin:0 0 8px;color:#009b70;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Autarkeia</p>
+                  <h1 style="margin:0 0 8px;font-size:24px;color:#0d1b2a;font-weight:500;">${escapeHtml(
+                    labels.title
+                  )}</h1>
+                  <p style="margin:0;color:#3d5166;font-size:14px;">${escapeHtml(labels.subtitle)}</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:12px 24px 8px;">
+                  <h2 style="margin:0 0 10px;font-size:18px;color:#0d1b2a;">${escapeHtml(
+                    labels.scoreSummary
+                  )}</h2>
+                  <div style="border:1px solid #d4dce8;border-radius:12px;background:#ffffff;padding:14px;">
+                    <p style="margin:0 0 6px;color:#8a9bb0;font-size:12px;">${escapeHtml(
+                      labels.overallScore
+                    )}</p>
+                    <p style="margin:0 0 10px;color:#0d1b2a;font-size:30px;font-weight:600;">${
+                      options.overallScore
+                    }%</p>
+                    <p style="margin:0;color:#3d5166;font-size:14px;">${escapeHtml(
+                      labels.scoreLabel
+                    )}: ${escapeHtml(options.scoreLabel)}</p>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:12px 24px 8px;">
+                  <h2 style="margin:0 0 10px;font-size:18px;color:#0d1b2a;">${escapeHtml(
+                    labels.categoryBreakdown
+                  )}</h2>
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #d4dce8;border-radius:10px;overflow:hidden;">
+                    ${categories}
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:12px 24px 8px;">
+                  <h2 style="margin:0 0 10px;font-size:18px;color:#0d1b2a;">${escapeHtml(
+                    labels.actionPlan
+                  )}</h2>
+                  ${actionSection(labels.week, options.actionPlan.week)}
+                  ${actionSection(labels.month, options.actionPlan.month)}
+                  ${actionSection(labels.year, options.actionPlan.year)}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:12px 24px 16px;">
+                  <h2 style="margin:0 0 10px;font-size:18px;color:#0d1b2a;">${escapeHtml(
+                    labels.products
+                  )}</h2>
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #d4dce8;border-radius:10px;overflow:hidden;">
+                    ${recRows}
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:16px 24px 24px;border-top:1px solid #eef2f6;background:#fafbfc;">
+                  <p style="margin:0 0 10px;font-size:13px;color:#3d5166;">${escapeHtml(labels.footerNote)}</p>
+                  <p style="margin:0 0 12px;font-size:13px;color:#3d5166;">${escapeHtml(
+                    labels.footerSignature
+                  )}</p>
+                  <a href="${escapeHtml(
+                    viewUrl
+                  )}" style="display:inline-block;background:#009b70;color:#ffffff;text-decoration:none;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;">${escapeHtml(
+                    labels.viewOnAutarkeia
+                  )}</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `.trim()
+
+  await sendResendEmail({
+    to: [options.to],
+    subject: options.subject,
+    html,
+  })
 }
 
 export async function sendCommunityInterestConfirmation(

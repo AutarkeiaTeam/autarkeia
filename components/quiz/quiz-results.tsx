@@ -163,10 +163,11 @@ function ProductCard({
 }
 
 export function QuizResults({ quizType }: QuizResultsProps) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [result, setResult] = useState<QuizResult | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [answers, setAnswers] = useState<QuizAnswers | null>(null)
   const [email, setEmail] = useState('')
   const [emailBusy, setEmailBusy] = useState(false)
   const [emailFeedback, setEmailFeedback] = useState<string | null>(null)
@@ -199,6 +200,7 @@ export function QuizResults({ quizType }: QuizResultsProps) {
         }
 
         const answers: QuizAnswers = JSON.parse(storedAnswers)
+        setAnswers(answers)
 
         // Add artificial delay for better UX
         await new Promise(resolve => setTimeout(resolve, 2000))
@@ -227,7 +229,7 @@ export function QuizResults({ quizType }: QuizResultsProps) {
   }, [quizType, t])
 
   async function sendResultsEmail() {
-    if (!result) return
+    if (!result || !answers) return
     setEmailBusy(true)
     setEmailError(null)
     setEmailFeedback(null)
@@ -238,16 +240,18 @@ export function QuizResults({ quizType }: QuizResultsProps) {
         body: JSON.stringify({
           email,
           quizType,
-          overall_score: result.overall_score,
-          score_label: result.score_label,
-          category_scores: result.category_scores,
-          action_plan: result.action_plan,
-          product_recommendations: result.product_recommendations,
+          answers,
+          locale,
         }),
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {
-        setEmailError(typeof data.error === 'string' ? data.error : t('quiz.results.email_error'))
+        const translatedByKey =
+          typeof data.errorKey === 'string' ? t(data.errorKey) : null
+        setEmailError(
+          translatedByKey ||
+            (typeof data.error === 'string' ? data.error : t('quiz.results.email_error'))
+        )
         return
       }
       setEmailFeedback(typeof data.message === 'string' ? data.message : t('quiz.results.email_success'))
@@ -322,6 +326,50 @@ export function QuizResults({ quizType }: QuizResultsProps) {
         </div>
       </div>
 
+      <div className="bg-white rounded-2xl border border-[#d4dce8] p-6 mb-8" style={{ borderWidth: '0.5px' }}>
+        <div className="flex items-start gap-3">
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+            style={{ backgroundColor: `${config.accentColor}18` }}
+          >
+            <Mail className="h-5 w-5" style={{ color: config.accentColor }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-medium text-[#0d1b2a]">{t('quiz.results.email_title')}</h3>
+            <p className="mt-1 text-sm text-[#3d5166] font-light">
+              {t('quiz.results.email_sub')}
+            </p>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <label htmlFor="quiz-results-email" className="sr-only">
+                  {t('auth.email')}
+                </label>
+                <input
+                  id="quiz-results-email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder={t('auth.placeholder_email')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-lg border border-[#d4dce8] px-3 py-2 text-sm outline-none focus:border-[#009b70]"
+                />
+              </div>
+              <Button
+                type="button"
+                className="text-white shrink-0"
+                style={{ backgroundColor: config.accentColor }}
+                disabled={emailBusy || !email.trim() || !answers}
+                onClick={() => void sendResultsEmail()}
+              >
+                {emailBusy ? t('quiz.results.sending') : t('quiz.results.send_email')}
+              </Button>
+            </div>
+            {emailError && <p className="mt-2 text-sm text-red-600">{emailError}</p>}
+            {emailFeedback && <p className="mt-2 text-sm text-[#009b70]">{emailFeedback}</p>}
+          </div>
+        </div>
+      </div>
+
       {/* Action Plan */}
       <div className="bg-white rounded-2xl border border-[#d4dce8] p-6 mb-8" style={{ borderWidth: '0.5px' }}>
         <h3 className="text-lg font-medium text-[#0d1b2a] mb-6">{t('quiz.results.action_plan')}</h3>
@@ -387,50 +435,6 @@ export function QuizResults({ quizType }: QuizResultsProps) {
           {result.product_recommendations.map((product, idx) => (
             <ProductCard key={idx} {...product} accentColor={config.accentColor} buyLabel={t('common.buy')} />
           ))}
-        </div>
-      </div>
-
-      <div className="bg-white rounded-2xl border border-[#d4dce8] p-6 mb-8" style={{ borderWidth: '0.5px' }}>
-        <div className="flex items-start gap-3">
-          <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-            style={{ backgroundColor: `${config.accentColor}18` }}
-          >
-            <Mail className="h-5 w-5" style={{ color: config.accentColor }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-medium text-[#0d1b2a]">{t('quiz.results.email_title')}</h3>
-            <p className="mt-1 text-sm text-[#3d5166] font-light">
-              {t('quiz.results.email_sub')}
-            </p>
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
-              <div className="flex-1">
-                <label htmlFor="quiz-results-email" className="sr-only">
-                  {t('auth.email')}
-                </label>
-                <input
-                  id="quiz-results-email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder={t('auth.placeholder_email')}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-[#d4dce8] px-3 py-2 text-sm outline-none focus:border-[#009b70]"
-                />
-              </div>
-              <Button
-                type="button"
-                className="text-white shrink-0"
-                style={{ backgroundColor: config.accentColor }}
-                disabled={emailBusy || !email.trim()}
-                onClick={() => void sendResultsEmail()}
-              >
-                {emailBusy ? t('quiz.results.sending') : t('quiz.results.send_email')}
-              </Button>
-            </div>
-            {emailError && <p className="mt-2 text-sm text-red-600">{emailError}</p>}
-            {emailFeedback && <p className="mt-2 text-sm text-[#009b70]">{emailFeedback}</p>}
-          </div>
         </div>
       </div>
 
