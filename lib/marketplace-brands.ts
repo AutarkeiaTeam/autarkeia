@@ -64,6 +64,23 @@ function feedsFromLinks(links: AffiliateLink[]): BrandFeed[] {
 }
 
 /** Max SKUs imported per Awin advertiser feed (feed-backed brands only). */
+export const FEED_BACKED_ADVERTISER_IDS = [
+  30413, // Jackery UK
+  30415, // Jackery DE
+  32269, // Bluetti CA
+  32271, // Bluetti AU
+  37550, // Decathlon Ireland
+  38934, // ALLPOWERS International
+  40342, // ALLPOWERS US
+  51793, // EcoFlow DE
+  59271, // Bluetti US
+  88727, // Survival Frog
+  107466, // ALLPOWERS IT
+  107468, // ALLPOWERS ES
+  110350, // Indevolt DE
+  123332, // EcoFlow NL
+] as const
+
 const DEFAULT_MAX = 500
 
 export const marketplaceBrands: Brand[] = [
