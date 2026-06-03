@@ -123,7 +123,7 @@ function ActionItem({
       </div>
       <p className="text-sm text-[#3d5166] font-light mb-3">{description}</p>
       <p className="text-xs text-[#8a9bb0]">{estimatedCostLabel} {estimated_cost}</p>
-      {linked_product ? (
+      {linked_product?.name ? (
         <div className="mt-4 pt-4 border-t border-[#e8edf2]">
           <p className="text-[10px] font-medium uppercase tracking-wide text-[#8a9bb0] mb-2">
             {recommendedLabel}

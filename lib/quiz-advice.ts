@@ -2,7 +2,10 @@ import type { QuizAnswers, QuizResult, QuizType } from "@/lib/quiz-data"
 import { getQuizConfig } from "@/lib/quiz-data"
 import type { Locale } from "@/lib/i18n-core"
 import { scoreQuiz } from "@/lib/quiz-scoring"
-import { buildScoreAwareFallback } from "@/lib/quiz-advice-bank"
+import {
+  buildScoreAwareFallback,
+  enrichQuizAdviceWithBankProducts,
+} from "@/lib/quiz-advice-bank"
 
 function formatAnswersForPrompt(quizType: QuizType, answers: QuizAnswers): string {
   const config = getQuizConfig(quizType)
@@ -135,8 +138,16 @@ export async function buildQuizAdvice(
         reason: "Anthropic returned 200 but shape validation failed",
       }
     }
+    const orderedCategories = getQuizConfig(quizType).categories
     return {
-      advice: parsed,
+      advice: enrichQuizAdviceWithBankProducts({
+        quizType,
+        locale,
+        overallScore: deterministic.overall_score,
+        categoryScores: deterministic.category_scores,
+        orderedCategories,
+        action_plan: parsed.action_plan,
+      }),
       usedFallback: false,
     }
   } catch {

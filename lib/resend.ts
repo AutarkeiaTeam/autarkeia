@@ -140,7 +140,7 @@ export async function sendQuizResultsEmail(options: {
         )}: ${escapeHtml(item.priority)}
         </p>
         ${
-          item.linked_product
+          item.linked_product?.name
             ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8edf2;">
           <p style="margin:0 0 4px;font-size:11px;color:#8a9bb0;text-transform:uppercase;">${escapeHtml(
             labels.actionRecommended

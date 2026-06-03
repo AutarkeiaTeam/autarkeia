@@ -448,6 +448,120 @@ function rankWeakestCategories(
   })
 }
 
+function defaultProductForCategory(
+  quizType: QuizType,
+  band: AdviceBand,
+  category: string
+): ProductItem | null {
+  const pool = poolForProduct(quizType, band, category)
+  return pool[0] ?? null
+}
+
+function pickBeyondProducts(
+  quizType: QuizType,
+  band: AdviceBand,
+  neighborBand: AdviceBand,
+  weakest1: string,
+  weakest2: string,
+  excludeNameKeys: Set<string>
+): Array<{ item: ProductItem; category: string }> {
+  const usedProducts = new Set(excludeNameKeys)
+  const selectedProducts: Array<{ item: ProductItem; category: string }> = []
+  const productSlots: { category: string; band: AdviceBand; slot: number }[] = [
+    { category: weakest1, band, slot: 0 },
+    { category: weakest1, band, slot: 1 },
+    { category: weakest2, band, slot: 0 },
+    { category: weakest2, band, slot: 1 },
+    { category: weakest1, band: neighborBand, slot: 0 },
+    { category: weakest1, band: neighborBand, slot: 1 },
+    { category: weakest2, band: neighborBand, slot: 0 },
+    { category: weakest2, band: neighborBand, slot: 1 },
+  ]
+  for (const { category, band: slotBand, slot } of productSlots) {
+    if (selectedProducts.length >= 6) break
+    const pool = poolForProduct(quizType, slotBand, category)
+    for (let i = slot; i < pool.length; i++) {
+      const item = pool[i]
+      if (usedProducts.has(item.nameKey)) continue
+      usedProducts.add(item.nameKey)
+      selectedProducts.push({ item, category })
+      break
+    }
+    for (const item of pool) {
+      if (selectedProducts.length >= 6) break
+      if (usedProducts.has(item.nameKey)) continue
+      usedProducts.add(item.nameKey)
+      selectedProducts.push({ item, category })
+    }
+  }
+  return selectedProducts.slice(0, 6)
+}
+
+/**
+ * Attach bank-sourced inline products to Haiku (or any) action_plan items and rebuild
+ * the "Beyond this week" product list + Pro bundle upsells from score context.
+ */
+export function enrichQuizAdviceWithBankProducts(options: {
+  quizType: QuizType
+  locale: Locale
+  overallScore: number
+  categoryScores: Record<string, number>
+  orderedCategories: string[]
+  action_plan: QuizResult["action_plan"]
+}): Pick<QuizResult, "action_plan" | "product_recommendations" | "pro_bundle_upsells"> {
+  const { quizType, locale, overallScore, categoryScores, orderedCategories, action_plan } =
+    options
+  const band = bandFromScore(overallScore)
+  const ranked = rankWeakestCategories(categoryScores, orderedCategories)
+  const weakest1 = ranked[0] ?? orderedCategories[0]
+  const weakest2 = ranked[1] ?? orderedCategories[1] ?? weakest1
+  const neighborBand = neighborBandForVariety(band)
+  const inlineProductNameKeys = new Set<string>()
+
+  const enrichedPlan: QuizResult["action_plan"] = {
+    week: [],
+    month: [],
+    year: [],
+  }
+
+  for (const horizon of HORIZONS) {
+    const slots = HORIZON_ACTION_SLOTS[horizon]
+    const actions = action_plan[horizon] ?? []
+    enrichedPlan[horizon] = actions.slice(0, 3).map((action, index) => {
+      const slot = slots[index] ?? slots[slots.length - 1]
+      const category = slot.category === "weakest1" ? weakest1 : weakest2
+      const slotBand = slot.band === "primary" ? band : neighborBand
+      const product = defaultProductForCategory(quizType, slotBand, category)
+      if (product) inlineProductNameKeys.add(product.nameKey)
+      return {
+        ...action,
+        linked_product: product ? localizedLinkedProduct(locale, product) : null,
+      }
+    })
+  }
+
+  const selectedProducts = pickBeyondProducts(
+    quizType,
+    band,
+    neighborBand,
+    weakest1,
+    weakest2,
+    inlineProductNameKeys
+  )
+
+  return {
+    action_plan: enrichedPlan,
+    product_recommendations: selectedProducts.map((entry) =>
+      localizedProduct(
+        locale,
+        entry.category === "General" ? weakest1 : entry.category,
+        entry.item
+      )
+    ),
+    pro_bundle_upsells: proBundlesForWeakest(weakest1, weakest2),
+  }
+}
+
 export function buildScoreAwareFallback(options: {
   quizType: QuizType
   locale: Locale
@@ -501,47 +615,24 @@ export function buildScoreAwareFallback(options: {
     })
   }
 
-  const usedProducts = new Set(inlineProductNameKeys)
-  const selectedProducts: Array<{ item: ProductItem; category: string }> = []
-  const productSlots: { category: string; band: AdviceBand; slot: number }[] = [
-    { category: weakest1, band, slot: 0 },
-    { category: weakest1, band, slot: 1 },
-    { category: weakest2, band, slot: 0 },
-    { category: weakest2, band, slot: 1 },
-    { category: weakest1, band: neighborBand, slot: 0 },
-    { category: weakest1, band: neighborBand, slot: 1 },
-    { category: weakest2, band: neighborBand, slot: 0 },
-    { category: weakest2, band: neighborBand, slot: 1 },
-  ]
-  for (const { category, band: slotBand, slot } of productSlots) {
-    if (selectedProducts.length >= 6) break
-    const pool = poolForProduct(quizType, slotBand, category)
-    for (let i = slot; i < pool.length; i++) {
-      const item = pool[i]
-      if (usedProducts.has(item.nameKey)) continue
-      usedProducts.add(item.nameKey)
-      selectedProducts.push({ item, category })
-      break
-    }
-    for (const item of pool) {
-      if (selectedProducts.length >= 6) break
-      if (usedProducts.has(item.nameKey)) continue
-      usedProducts.add(item.nameKey)
-      selectedProducts.push({ item, category })
-    }
-  }
+  const selectedProducts = pickBeyondProducts(
+    quizType,
+    band,
+    neighborBand,
+    weakest1,
+    weakest2,
+    inlineProductNameKeys
+  )
 
   return {
     action_plan: actionPlan,
-    product_recommendations: selectedProducts
-      .slice(0, 6)
-      .map((entry) =>
-        localizedProduct(
-          locale,
-          entry.category === "General" ? weakest1 : entry.category,
-          entry.item
-        )
-      ),
+    product_recommendations: selectedProducts.map((entry) =>
+      localizedProduct(
+        locale,
+        entry.category === "General" ? weakest1 : entry.category,
+        entry.item
+      )
+    ),
     pro_bundle_upsells: proBundlesForWeakest(weakest1, weakest2),
   }
 }
