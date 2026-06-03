@@ -67,6 +67,8 @@ export async function POST(request: Request) {
         estimatedCost: t("quiz.email.label.estimated_cost"),
         priority: t("quiz.email.label.priority"),
         products: t("quiz.email.section.products"),
+        beyondProducts: t("quiz.results.beyond_this_week.title"),
+        actionRecommended: t("quiz.results.action.recommended_label"),
         estimatedPrice: t("quiz.email.label.estimated_price"),
         footerNote: t("quiz.email.footer.note"),
         footerSignature: t("quiz.email.footer.signature"),

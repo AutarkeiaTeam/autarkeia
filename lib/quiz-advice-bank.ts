@@ -1,5 +1,12 @@
 import { translate, type Locale } from "@/lib/i18n-core"
-import type { QuizResult, QuizType } from "@/lib/quiz-data"
+import { marketplaceBundlesProDefinitions } from "@/lib/marketplace-bundles"
+import { QUIZ_ADVICE_PRODUCT_OVERRIDES } from "@/lib/quiz-advice-product-overrides"
+import type {
+  LinkedProductRecommendation,
+  ProBundleUpsell,
+  QuizResult,
+  QuizType,
+} from "@/lib/quiz-data"
 
 export type AdviceBand = "foundational" | "intermediate" | "advanced" | "refinement"
 export type AdvicePriority = "high" | "medium" | "low"
@@ -301,12 +308,119 @@ function poolForProduct(quizType: QuizType, band: AdviceBand, category: string):
   return PRODUCT_BANK[quizType][band][category] ?? []
 }
 
-function localizedAction(locale: Locale, item: AdviceItem): QuizResult["action_plan"]["week"][number] {
+function findProductByNameKey(
+  quizType: QuizType,
+  category: string,
+  nameKey: string
+): ProductItem | undefined {
+  for (const band of BANDS) {
+    const found = poolForProduct(quizType, band, category).find((p) => p.nameKey === nameKey)
+    if (found) return found
+  }
+  return undefined
+}
+
+function actionIndexInPool(
+  quizType: QuizType,
+  band: AdviceBand,
+  category: string,
+  horizon: AdviceHorizon,
+  action: AdviceItem
+): number {
+  const pool = poolForAction(quizType, band, category, horizon)
+  const idx = pool.findIndex((a) => a.titleKey === action.titleKey)
+  return idx >= 0 ? idx : 0
+}
+
+export function resolveLinkedProduct(
+  quizType: QuizType,
+  band: AdviceBand,
+  category: string,
+  horizon: AdviceHorizon,
+  action: AdviceItem
+): ProductItem | null {
+  const overrideNameKey = QUIZ_ADVICE_PRODUCT_OVERRIDES[action.titleKey]
+  if (overrideNameKey) {
+    const overridden = findProductByNameKey(quizType, category, overrideNameKey)
+    if (overridden) return overridden
+  }
+
+  const pool = poolForProduct(quizType, band, category)
+  const idx = actionIndexInPool(quizType, band, category, horizon, action)
+  return pool[idx] ?? pool[0] ?? null
+}
+
+const PRIMARY_BUNDLE_BY_CATEGORY: Record<string, string> = {
+  Food: "pro-pantry-one-year",
+  Water: "pro-deep-well-system",
+  Energy: "pro-whole-house-solar",
+  Shelter: "pro-homestead-foundation",
+  Skills: "pro-reference-library-physical",
+  Medical: "pro-trauma-response",
+  Power: "pro-dc-power-network",
+  Communication: "pro-family-document-vault",
+}
+
+const SECONDARY_BUNDLE_BY_CATEGORY: Record<string, string> = {
+  Food: "pro-seed-library-two-year",
+  Water: "pro-greywater-reuse",
+  Energy: "pro-wind-turbine-kit",
+  Shelter: "pro-greenhouse-year-round",
+  Skills: "pro-family-document-vault",
+  Medical: "pro-prescription-continuity",
+  Power: "pro-wood-heat-cooking",
+  Communication: "pro-perimeter-surveillance",
+}
+
+function proBundlesForWeakest(weakest1: string, weakest2: string): ProBundleUpsell[] {
+  const ids: string[] = []
+  const primary = PRIMARY_BUNDLE_BY_CATEGORY[weakest1]
+  const secondary = SECONDARY_BUNDLE_BY_CATEGORY[weakest2]
+  if (primary) ids.push(primary)
+  if (secondary && secondary !== primary) ids.push(secondary)
+  if (ids.length < 2) {
+    const alt = PRIMARY_BUNDLE_BY_CATEGORY[weakest2]
+    if (alt && !ids.includes(alt)) ids.push(alt)
+  }
+
+  return [...new Set(ids)]
+    .slice(0, 2)
+    .map((id) => {
+      const def = marketplaceBundlesProDefinitions.find((b) => b.id === id)
+      if (!def) return null
+      return {
+        id: def.id,
+        name: def.name,
+        items: def.items,
+        price: def.price,
+        href: `/marketplace?bundle=${def.id}`,
+      }
+    })
+    .filter((b): b is ProBundleUpsell => b !== null)
+}
+
+function localizedLinkedProduct(
+  locale: Locale,
+  item: ProductItem
+): LinkedProductRecommendation {
+  return {
+    name: translate(locale, item.nameKey),
+    why: translate(locale, item.whyKey),
+    estimated_price: item.price,
+  }
+}
+
+function localizedAction(
+  locale: Locale,
+  item: AdviceItem,
+  linked: ProductItem | null
+): QuizResult["action_plan"]["week"][number] {
   return {
     title: translate(locale, item.titleKey),
     description: translate(locale, item.descriptionKey),
     estimated_cost: item.cost,
     priority: item.priority,
+    linked_product: linked ? localizedLinkedProduct(locale, linked) : null,
   }
 }
 
@@ -340,7 +454,7 @@ export function buildScoreAwareFallback(options: {
   overallScore: number
   categoryScores: Record<string, number>
   orderedCategories: string[]
-}): Pick<QuizResult, "action_plan" | "product_recommendations"> {
+}): Pick<QuizResult, "action_plan" | "product_recommendations" | "pro_bundle_upsells"> {
   const { quizType, locale, overallScore, categoryScores, orderedCategories } = options
   const band = bandFromScore(overallScore)
   const ranked = rankWeakestCategories(categoryScores, orderedCategories)
@@ -354,15 +468,18 @@ export function buildScoreAwareFallback(options: {
   }
 
   const neighborBand = neighborBandForVariety(band)
+  const inlineProductNameKeys = new Set<string>()
+
+  type PickedAction = { item: AdviceItem; band: AdviceBand; category: string }
 
   for (const horizon of HORIZONS) {
     const used = new Set<string>()
-    const selected: AdviceItem[] = []
+    const selected: PickedAction[] = []
     for (const slot of HORIZON_ACTION_SLOTS[horizon]) {
       const category = slot.category === "weakest1" ? weakest1 : weakest2
       const slotBand = slot.band === "primary" ? band : neighborBand
       const item = pickOneAction(quizType, slotBand, category, horizon, slot.slot, used)
-      if (item) selected.push(item)
+      if (item) selected.push({ item, band: slotBand, category })
     }
     if (selected.length < 3) {
       const fallback = pickUnique(
@@ -373,14 +490,18 @@ export function buildScoreAwareFallback(options: {
       for (const item of fallback) {
         if (!used.has(item.titleKey)) {
           used.add(item.titleKey)
-          selected.push(item)
+          selected.push({ item, band, category: weakest1 })
         }
       }
     }
-    actionPlan[horizon] = selected.map((item) => localizedAction(locale, item))
+    actionPlan[horizon] = selected.map(({ item, band: actionBand, category }) => {
+      const linked = resolveLinkedProduct(quizType, actionBand, category, horizon, item)
+      if (linked) inlineProductNameKeys.add(linked.nameKey)
+      return localizedAction(locale, item, linked)
+    })
   }
 
-  const usedProducts = new Set<string>()
+  const usedProducts = new Set(inlineProductNameKeys)
   const selectedProducts: Array<{ item: ProductItem; category: string }> = []
   const productSlots: { category: string; band: AdviceBand; slot: number }[] = [
     { category: weakest1, band, slot: 0 },
@@ -389,17 +510,39 @@ export function buildScoreAwareFallback(options: {
     { category: weakest2, band, slot: 1 },
     { category: weakest1, band: neighborBand, slot: 0 },
     { category: weakest1, band: neighborBand, slot: 1 },
+    { category: weakest2, band: neighborBand, slot: 0 },
+    { category: weakest2, band: neighborBand, slot: 1 },
   ]
   for (const { category, band: slotBand, slot } of productSlots) {
-    const item = pickOneProduct(quizType, slotBand, category, slot, usedProducts)
-    if (item) selectedProducts.push({ item, category })
+    if (selectedProducts.length >= 6) break
+    const pool = poolForProduct(quizType, slotBand, category)
+    for (let i = slot; i < pool.length; i++) {
+      const item = pool[i]
+      if (usedProducts.has(item.nameKey)) continue
+      usedProducts.add(item.nameKey)
+      selectedProducts.push({ item, category })
+      break
+    }
+    for (const item of pool) {
+      if (selectedProducts.length >= 6) break
+      if (usedProducts.has(item.nameKey)) continue
+      usedProducts.add(item.nameKey)
+      selectedProducts.push({ item, category })
+    }
   }
 
   return {
     action_plan: actionPlan,
-    product_recommendations: selectedProducts.map((entry) =>
-      localizedProduct(locale, entry.category === "General" ? weakest1 : entry.category, entry.item)
-    ),
+    product_recommendations: selectedProducts
+      .slice(0, 6)
+      .map((entry) =>
+        localizedProduct(
+          locale,
+          entry.category === "General" ? weakest1 : entry.category,
+          entry.item
+        )
+      ),
+    pro_bundle_upsells: proBundlesForWeakest(weakest1, weakest2),
   }
 }
 

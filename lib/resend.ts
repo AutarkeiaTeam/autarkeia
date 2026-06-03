@@ -115,6 +115,8 @@ export async function sendQuizResultsEmail(options: {
     estimatedCost: string
     priority: string
     products: string
+    beyondProducts: string
+    actionRecommended: string
     estimatedPrice: string
     footerNote: string
     footerSignature: string
@@ -132,11 +134,26 @@ export async function sendQuizResultsEmail(options: {
       <div style="border:1px solid #d4dce8;border-radius:10px;padding:12px;margin-bottom:10px;background:#ffffff;">
         <p style="margin:0 0 6px;font-weight:600;color:#0d1b2a;">${escapeHtml(item.title)}</p>
         <p style="margin:0 0 8px;color:#3d5166;font-size:14px;">${escapeHtml(item.description)}</p>
-        <p style="margin:0;color:#8a9bb0;font-size:12px;">
+        <p style="margin:0 0 8px;color:#8a9bb0;font-size:12px;">
           ${escapeHtml(labels.estimatedCost)}: ${escapeHtml(item.estimated_cost)} · ${escapeHtml(
           labels.priority
         )}: ${escapeHtml(item.priority)}
         </p>
+        ${
+          item.linked_product
+            ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8edf2;">
+          <p style="margin:0 0 4px;font-size:11px;color:#8a9bb0;text-transform:uppercase;">${escapeHtml(
+            labels.actionRecommended
+          )}</p>
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#3d5166;">${escapeHtml(
+            item.linked_product.name
+          )}</p>
+          <p style="margin:0;font-size:12px;color:#8a9bb0;">${escapeHtml(
+            labels.estimatedPrice
+          )}: ${escapeHtml(item.linked_product.estimated_price)}</p>
+        </div>`
+            : ""
+        }
       </div>`
       )
       .join("")}
@@ -237,7 +254,7 @@ export async function sendQuizResultsEmail(options: {
               <tr>
                 <td style="padding:12px 24px 16px;">
                   <h2 style="margin:0 0 10px;font-size:18px;color:#0d1b2a;">${escapeHtml(
-                    labels.products
+                    labels.beyondProducts
                   )}</h2>
                   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #d4dce8;border-radius:10px;overflow:hidden;">
                     ${recRows}

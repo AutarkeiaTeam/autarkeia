@@ -27,6 +27,13 @@ export interface QuizResult {
     year: ActionItem[]
   }
   product_recommendations: ProductRecommendation[]
+  pro_bundle_upsells?: ProBundleUpsell[]
+}
+
+export interface LinkedProductRecommendation {
+  name: string
+  why: string
+  estimated_price: string
 }
 
 export interface ActionItem {
@@ -34,6 +41,7 @@ export interface ActionItem {
   description: string
   estimated_cost: string
   priority: 'high' | 'medium' | 'low'
+  linked_product?: LinkedProductRecommendation | null
 }
 
 export interface ProductRecommendation {
@@ -41,6 +49,14 @@ export interface ProductRecommendation {
   name: string
   why: string
   estimated_price: string
+}
+
+export interface ProBundleUpsell {
+  id: string
+  name: string
+  items: string
+  price: string
+  href: string
 }
 
 export const selfSufficiencyQuestions: QuizQuestion[] = [

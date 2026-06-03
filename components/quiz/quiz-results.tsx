@@ -9,6 +9,8 @@ import { useI18n } from '@/components/i18n-provider'
 import type { QuizType, QuizResult, QuizAnswers } from '@/lib/quiz-data'
 import { getQuizConfig } from '@/lib/quiz-data'
 import { amazonSearchUrl } from '@/lib/marketplace-data'
+import { useTier } from '@/lib/use-tier'
+import type { ActionItem as QuizActionItem, ProBundleUpsell } from '@/lib/quiz-data'
 
 interface QuizResultsProps {
   quizType: QuizType
@@ -84,21 +86,22 @@ function CategoryBar({ name, score }: { name: string; score: number }) {
   )
 }
 
-function ActionItem({ 
-  title, 
-  description, 
-  estimated_cost, 
+function ActionItem({
+  title,
+  description,
+  estimated_cost,
   priority,
+  linked_product,
   accentColor,
   estimatedCostLabel,
+  recommendedLabel,
+  buyLabel,
   translatePriority,
-}: { 
-  title: string
-  description: string
-  estimated_cost: string
-  priority: string
+}: QuizActionItem & {
   accentColor: string
   estimatedCostLabel: string
+  recommendedLabel: string
+  buyLabel: string
   translatePriority: (value: string) => string
 }) {
   const priorityColors = {
@@ -120,6 +123,65 @@ function ActionItem({
       </div>
       <p className="text-sm text-[#3d5166] font-light mb-3">{description}</p>
       <p className="text-xs text-[#8a9bb0]">{estimatedCostLabel} {estimated_cost}</p>
+      {linked_product ? (
+        <div className="mt-4 pt-4 border-t border-[#e8edf2]">
+          <p className="text-[10px] font-medium uppercase tracking-wide text-[#8a9bb0] mb-2">
+            {recommendedLabel}
+          </p>
+          <p className="text-sm font-medium text-[#3d5166]">{linked_product.name}</p>
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <span className="text-xs text-[#8a9bb0]">{linked_product.estimated_price}</span>
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="text-xs shrink-0 border-[#d4dce8] text-[#0d1b2a] hover:bg-[#f5f7fa]"
+            >
+              <a
+                href={amazonSearchUrl(linked_product.name)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {buyLabel} <ExternalLink className="h-3 w-3 ml-1" />
+              </a>
+            </Button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function ProBundleCard({
+  bundle,
+  accentColor,
+  ctaLabel,
+}: {
+  bundle: ProBundleUpsell
+  accentColor: string
+  ctaLabel: string
+}) {
+  return (
+    <div
+      className="p-5 rounded-xl border border-[#009b70]/30 bg-[#009b70]/5 flex flex-col"
+      style={{ borderWidth: '0.5px' }}
+    >
+      <span className="text-xs font-medium mb-2 px-2 py-0.5 rounded w-fit bg-[#009b70]/15 text-[#009b70]">
+        Pro
+      </span>
+      <h4 className="font-medium text-[#0d1b2a] mb-1">{bundle.name}</h4>
+      <p className="text-sm text-[#3d5166] font-light mb-4 flex-1">{bundle.items}</p>
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-[#0d1b2a]">{bundle.price}</span>
+        <Button
+          asChild
+          size="sm"
+          className="text-white text-xs"
+          style={{ backgroundColor: accentColor }}
+        >
+          <Link href={bundle.href}>{ctaLabel}</Link>
+        </Button>
+      </div>
     </div>
   )
 }
@@ -172,6 +234,8 @@ function ProductCard({
 
 export function QuizResults({ quizType }: QuizResultsProps) {
   const { t, locale } = useI18n()
+  const { tier } = useTier()
+  const isPro = tier === 'pro'
   const [result, setResult] = useState<QuizResult | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -407,6 +471,8 @@ export function QuizResults({ quizType }: QuizResultsProps) {
                 {...item}
                 accentColor={config.accentColor}
                 estimatedCostLabel={t('quiz.results.estimated_cost')}
+                recommendedLabel={t('quiz.results.action.recommended_label')}
+                buyLabel={t('common.buy')}
                 translatePriority={translatePriority}
               />
             ))}
@@ -419,6 +485,8 @@ export function QuizResults({ quizType }: QuizResultsProps) {
                 {...item}
                 accentColor={config.accentColor}
                 estimatedCostLabel={t('quiz.results.estimated_cost')}
+                recommendedLabel={t('quiz.results.action.recommended_label')}
+                buyLabel={t('common.buy')}
                 translatePriority={translatePriority}
               />
             ))}
@@ -431,6 +499,8 @@ export function QuizResults({ quizType }: QuizResultsProps) {
                 {...item}
                 accentColor={config.accentColor}
                 estimatedCostLabel={t('quiz.results.estimated_cost')}
+                recommendedLabel={t('quiz.results.action.recommended_label')}
+                buyLabel={t('common.buy')}
                 translatePriority={translatePriority}
               />
             ))}
@@ -438,14 +508,36 @@ export function QuizResults({ quizType }: QuizResultsProps) {
         </Tabs>
       </div>
 
-      {/* Product Recommendations */}
+      {/* Deeper investments (beyond inline recommendations) */}
       <div className="bg-white rounded-2xl border border-[#d4dce8] p-6 mb-8" style={{ borderWidth: '0.5px' }}>
-        <h3 className="text-lg font-medium text-[#0d1b2a] mb-6">{t('quiz.results.recommended_products')}</h3>
+        <h3 className="text-lg font-medium text-[#0d1b2a]">{t('quiz.results.beyond_this_week.title')}</h3>
+        <p className="mt-1 text-sm text-[#3d5166] font-light mb-6">
+          {t('quiz.results.beyond_this_week.description')}
+        </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {result.product_recommendations.map((product, idx) => (
             <ProductCard key={idx} {...product} accentColor={config.accentColor} buyLabel={t('common.buy')} />
           ))}
+          {isPro &&
+            (result.pro_bundle_upsells ?? []).map((bundle) => (
+              <ProBundleCard
+                key={bundle.id}
+                bundle={bundle}
+                accentColor={config.accentColor}
+                ctaLabel={t('quiz.results.pro_bundle_cta')}
+              />
+            ))}
         </div>
+        {!isPro ? (
+          <p className="mt-6 text-center text-sm">
+            <Link
+              href="/plans"
+              className="font-medium text-[#009b70] hover:underline"
+            >
+              {t('quiz.results.pro_upsell.title')} →
+            </Link>
+          </p>
+        ) : null}
       </div>
 
       {/* Take Other Quiz CTA */}

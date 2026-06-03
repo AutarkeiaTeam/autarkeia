@@ -36,7 +36,7 @@ function buildFallback(
   locale: Locale,
   quizType: QuizType,
   deterministic: ReturnType<typeof scoreQuiz>
-): Pick<QuizResult, "action_plan" | "product_recommendations"> {
+): Pick<QuizResult, "action_plan" | "product_recommendations" | "pro_bundle_upsells"> {
   const orderedCategories = getQuizConfig(quizType).categories
   return buildScoreAwareFallback({
     quizType,
@@ -48,7 +48,7 @@ function buildFallback(
 }
 
 export type QuizAdviceResult = {
-  advice: Pick<QuizResult, "action_plan" | "product_recommendations">
+  advice: Pick<QuizResult, "action_plan" | "product_recommendations" | "pro_bundle_upsells">
   usedFallback: boolean
   reason?: string
 }
