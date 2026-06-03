@@ -70,7 +70,7 @@ const categoryScores = [
 ]
 
 const newsHeadlines = [
-  { titleKey: "dashboard.news.1", href: "/news/iran-strait-hormuz-risk" },
+  { titleKey: "dashboard.news.1", href: "/news" },
   { titleKey: "dashboard.news.2", href: "/news" },
   { titleKey: "dashboard.news.3", href: "/news" },
   { titleKey: "dashboard.news.4", href: "/news" },

@@ -1,0 +1,175 @@
+import { createAdminClient } from "@/lib/supabase/admin"
+import { processArticleWithHaiku } from "@/lib/news-ai"
+import { NEWS_FEEDS } from "@/lib/news-feeds"
+import { fetchNewsFeedItems } from "@/lib/news-rss"
+import {
+  NEWS_CANDIDATE_CAP,
+  NEWS_HARD_CAP,
+  NEWS_RETENTION_DAYS,
+  type NewsSyncSummary,
+  type ParsedRssItem,
+} from "@/lib/news-types"
+
+export function verifyNewsCron(request: Request): boolean {
+  if (request.headers.get("x-vercel-cron") === "1") return true
+  const secret = process.env.CRON_SECRET
+  if (!secret) return false
+  const auth = request.headers.get("authorization")
+  if (auth === `Bearer ${secret}`) return true
+  return request.headers.get("x-cron-secret") === secret
+}
+
+function dedupeCandidates(items: ParsedRssItem[]): ParsedRssItem[] {
+  const seen = new Set<string>()
+  const out: ParsedRssItem[] = []
+  for (const item of items) {
+    if (seen.has(item.source_url)) continue
+    seen.add(item.source_url)
+    out.push(item)
+  }
+  return out
+}
+
+export async function runNewsSync(): Promise<NewsSyncSummary> {
+  const started = Date.now()
+  const errors: NewsSyncSummary["errors"] = []
+  let articles_fetched = 0
+  let articles_added = 0
+  let articles_skipped = 0
+
+  const feedResults = await Promise.allSettled(
+    NEWS_FEEDS.map(async (feed) => {
+      const items = await fetchNewsFeedItems(feed)
+      return { feedId: feed.id, items }
+    })
+  )
+
+  const merged: ParsedRssItem[] = []
+  for (const result of feedResults) {
+    if (result.status === "fulfilled") {
+      merged.push(...result.value.items)
+    } else {
+      errors.push({
+        stage: "rss_fetch",
+        message: result.reason instanceof Error ? result.reason.message : "RSS fetch failed",
+      })
+    }
+  }
+
+  articles_fetched = merged.length
+  const unique = dedupeCandidates(merged)
+  const urls = unique.map((i) => i.source_url)
+  const existing = await fetchExistingUrlsAdmin(urls)
+
+  const candidates = unique
+    .filter((i) => !existing.has(i.source_url))
+    .sort((a, b) => b.published_at.getTime() - a.published_at.getTime())
+    .slice(0, NEWS_CANDIDATE_CAP)
+
+  const admin = createAdminClient()
+
+  for (const item of candidates) {
+    if (articles_added >= NEWS_HARD_CAP) break
+
+    const result = await processArticleWithHaiku(item)
+
+    if (result.kind === "skip") {
+      articles_skipped++
+      continue
+    }
+
+    if (result.kind === "error") {
+      errors.push({
+        stage: "haiku",
+        message: result.message,
+        url: item.source_url,
+      })
+      continue
+    }
+
+    const { error: insertError } = await admin.from("news_articles").insert({
+      source_url: item.source_url,
+      source_name: item.source_name,
+      published_at: item.published_at.toISOString(),
+      title_en: result.payload.title_en,
+      title_es: result.payload.title_es,
+      summary_en: result.payload.summary_en,
+      summary_es: result.payload.summary_es,
+      why_matters_en: result.payload.why_matters_en,
+      why_matters_es: result.payload.why_matters_es,
+      category: result.payload.category,
+      severity: result.payload.severity,
+      topic_query: item.topic_query,
+    })
+
+    if (insertError) {
+      if (insertError.code === "23505") {
+        articles_skipped++
+        continue
+      }
+      errors.push({
+        stage: "insert",
+        message: insertError.message,
+        url: item.source_url,
+      })
+      continue
+    }
+
+    articles_added++
+  }
+
+  const cutoff = new Date()
+  cutoff.setUTCDate(cutoff.getUTCDate() - NEWS_RETENTION_DAYS)
+  const { error: deleteError } = await admin
+    .from("news_articles")
+    .delete()
+    .lt("published_at", cutoff.toISOString())
+
+  if (deleteError) {
+    errors.push({ stage: "cleanup", message: deleteError.message })
+  }
+
+  const duration_ms = Date.now() - started
+
+  await admin.from("news_feed_sync").insert({
+    articles_fetched,
+    articles_added,
+    articles_skipped,
+    errors: errors.length ? errors : null,
+    duration_ms,
+  })
+
+  return {
+    ok: errors.length === 0 || articles_added > 0,
+    articles_fetched,
+    articles_added,
+    articles_skipped,
+    errors,
+    duration_ms,
+  }
+}
+
+async function fetchExistingUrlsAdmin(urls: string[]): Promise<Set<string>> {
+  if (urls.length === 0) return new Set()
+  const admin = createAdminClient()
+  const existing = new Set<string>()
+  const chunkSize = 100
+
+  for (let i = 0; i < urls.length; i += chunkSize) {
+    const chunk = urls.slice(i, i + chunkSize)
+    const { data, error } = await admin
+      .from("news_articles")
+      .select("source_url")
+      .in("source_url", chunk)
+
+    if (error) {
+      console.error("[news-sync] fetchExisting:", error.message)
+      continue
+    }
+    for (const row of data ?? []) {
+      if (row.source_url) existing.add(row.source_url)
+    }
+  }
+
+  return existing
+}
