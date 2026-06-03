@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useI18n } from '@/components/i18n-provider'
 import type { QuizType, QuizResult, QuizAnswers } from '@/lib/quiz-data'
 import { getQuizConfig } from '@/lib/quiz-data'
+import { amazonSearchUrl } from '@/lib/marketplace-data'
 
 interface QuizResultsProps {
   quizType: QuizType
@@ -150,12 +151,19 @@ function ProductCard({
       <p className="text-sm text-[#3d5166] font-light mb-4 flex-1">{why}</p>
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-[#0d1b2a]">{estimated_price}</span>
-        <Button 
-          size="sm" 
+        <Button
+          asChild
+          size="sm"
           className="text-white text-xs"
           style={{ backgroundColor: accentColor }}
         >
-          {buyLabel} <ExternalLink className="h-3 w-3 ml-1" />
+          <a
+            href={amazonSearchUrl(name)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {buyLabel} <ExternalLink className="h-3 w-3 ml-1" />
+          </a>
         </Button>
       </div>
     </div>

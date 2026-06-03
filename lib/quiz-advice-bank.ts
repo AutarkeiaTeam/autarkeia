@@ -197,6 +197,84 @@ function bandNeighbors(band: AdviceBand): AdviceBand[] {
   return [band, prev, next].filter(Boolean) as AdviceBand[]
 }
 
+/** Adjacent band for variety (underflow toward foundational, overflow toward refinement). */
+function neighborBandForVariety(band: AdviceBand): AdviceBand {
+  const idx = BANDS.indexOf(band)
+  if (idx > 0) return BANDS[idx - 1]
+  if (idx < BANDS.length - 1) return BANDS[idx + 1]
+  return band
+}
+
+function pickOneAction(
+  quizType: QuizType,
+  band: AdviceBand,
+  category: string,
+  horizon: AdviceHorizon,
+  startIndex: number,
+  used: Set<string>
+): AdviceItem | undefined {
+  const pool = poolForAction(quizType, band, category, horizon)
+  for (let i = startIndex; i < pool.length; i++) {
+    const item = pool[i]
+    if (!used.has(item.titleKey)) {
+      used.add(item.titleKey)
+      return item
+    }
+  }
+  for (const item of pool) {
+    if (!used.has(item.titleKey)) {
+      used.add(item.titleKey)
+      return item
+    }
+  }
+  return undefined
+}
+
+function pickOneProduct(
+  quizType: QuizType,
+  band: AdviceBand,
+  category: string,
+  startIndex: number,
+  used: Set<string>
+): ProductItem | undefined {
+  const pool = poolForProduct(quizType, band, category)
+  for (let i = startIndex; i < pool.length; i++) {
+    const item = pool[i]
+    if (!used.has(item.nameKey)) {
+      used.add(item.nameKey)
+      return item
+    }
+  }
+  for (const item of pool) {
+    if (!used.has(item.nameKey)) {
+      used.add(item.nameKey)
+      return item
+    }
+  }
+  return undefined
+}
+
+const HORIZON_ACTION_SLOTS: Record<
+  AdviceHorizon,
+  { category: "weakest1" | "weakest2"; band: "primary" | "neighbor"; slot: number }[]
+> = {
+  week: [
+    { category: "weakest1", band: "primary", slot: 0 },
+    { category: "weakest2", band: "primary", slot: 0 },
+    { category: "weakest1", band: "neighbor", slot: 0 },
+  ],
+  month: [
+    { category: "weakest2", band: "primary", slot: 0 },
+    { category: "weakest1", band: "primary", slot: 1 },
+    { category: "weakest2", band: "neighbor", slot: 1 },
+  ],
+  year: [
+    { category: "weakest1", band: "primary", slot: 1 },
+    { category: "weakest2", band: "primary", slot: 1 },
+    { category: "weakest1", band: "neighbor", slot: 2 },
+  ],
+}
+
 function pickUnique<T>(items: T[], n: number, keyFn: (item: T) => string): T[] {
   const seen = new Set<string>()
   const out: T[] = []
@@ -275,37 +353,47 @@ export function buildScoreAwareFallback(options: {
     year: [],
   }
 
+  const neighborBand = neighborBandForVariety(band)
+
   for (const horizon of HORIZONS) {
-    const candidates: AdviceItem[] = []
-    for (const b of bandNeighbors(band)) {
-      candidates.push(...poolForAction(quizType, b, weakest1, horizon))
-      candidates.push(...poolForAction(quizType, b, weakest1, horizon))
-      candidates.push(...poolForAction(quizType, b, weakest2, horizon))
-      candidates.push(...poolForAction(quizType, b, "General", horizon))
+    const used = new Set<string>()
+    const selected: AdviceItem[] = []
+    for (const slot of HORIZON_ACTION_SLOTS[horizon]) {
+      const category = slot.category === "weakest1" ? weakest1 : weakest2
+      const slotBand = slot.band === "primary" ? band : neighborBand
+      const item = pickOneAction(quizType, slotBand, category, horizon, slot.slot, used)
+      if (item) selected.push(item)
     }
-    const selected = pickUnique(candidates, 3, (item) => item.titleKey)
+    if (selected.length < 3) {
+      const fallback = pickUnique(
+        poolForAction(quizType, band, weakest1, horizon),
+        3 - selected.length,
+        (item) => item.titleKey
+      )
+      for (const item of fallback) {
+        if (!used.has(item.titleKey)) {
+          used.add(item.titleKey)
+          selected.push(item)
+        }
+      }
+    }
     actionPlan[horizon] = selected.map((item) => localizedAction(locale, item))
   }
 
-  const productCandidates: Array<{ item: ProductItem; category: string }> = []
-  for (const b of bandNeighbors(band)) {
-    productCandidates.push(
-      ...poolForProduct(quizType, b, weakest1).map((item) => ({ item, category: weakest1 }))
-    )
-    productCandidates.push(
-      ...poolForProduct(quizType, b, weakest1).map((item) => ({ item, category: weakest1 }))
-    )
-    productCandidates.push(
-      ...poolForProduct(quizType, b, weakest2).map((item) => ({ item, category: weakest2 }))
-    )
-    productCandidates.push(
-      ...poolForProduct(quizType, b, weakest2).map((item) => ({ item, category: weakest2 }))
-    )
-    productCandidates.push(
-      ...poolForProduct(quizType, b, "General").map((item) => ({ item, category: "General" }))
-    )
+  const usedProducts = new Set<string>()
+  const selectedProducts: Array<{ item: ProductItem; category: string }> = []
+  const productSlots: { category: string; band: AdviceBand; slot: number }[] = [
+    { category: weakest1, band, slot: 0 },
+    { category: weakest1, band, slot: 1 },
+    { category: weakest2, band, slot: 0 },
+    { category: weakest2, band, slot: 1 },
+    { category: weakest1, band: neighborBand, slot: 0 },
+    { category: weakest1, band: neighborBand, slot: 1 },
+  ]
+  for (const { category, band: slotBand, slot } of productSlots) {
+    const item = pickOneProduct(quizType, slotBand, category, slot, usedProducts)
+    if (item) selectedProducts.push({ item, category })
   }
-  const selectedProducts = pickUnique(productCandidates, 6, (entry) => entry.item.nameKey)
 
   return {
     action_plan: actionPlan,
