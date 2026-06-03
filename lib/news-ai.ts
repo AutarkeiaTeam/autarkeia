@@ -154,9 +154,11 @@ export async function processArticleWithHaiku(
   })
 
   if (!response.ok) {
+    const errorBody = await response.text()
+    console.error("Anthropic error:", response.status, errorBody)
     return {
       kind: "error",
-      message: `Anthropic returned non-200: ${response.status}`,
+      message: `Anthropic returned non-200: ${response.status} — ${errorBody.slice(0, 500)}`,
     }
   }
 

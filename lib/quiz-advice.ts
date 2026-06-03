@@ -98,10 +98,12 @@ export async function buildQuizAdvice(
     }),
   })
   if (!response.ok) {
+    const errorBody = await response.text()
+    console.error("Anthropic error:", response.status, errorBody)
     return {
       advice: fallbackAdvice,
       usedFallback: true,
-      reason: `Anthropic returned non-200: ${response.status}`,
+      reason: `Anthropic returned non-200: ${response.status} — ${errorBody.slice(0, 500)}`,
     }
   }
   const data = await response.json()
