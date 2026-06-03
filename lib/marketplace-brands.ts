@@ -89,6 +89,22 @@ export const marketplaceBrands: Brand[] = [
         country: "NL",
         url: "https://www.awin1.com/cread.php?awinmid=125964&awinaffid=2900523&ued=https%3A%2F%2Fiallpowers.nl%2F",
       },
+      {
+        country: "EU",
+        url: "https://www.awin1.com/cread.php?awinmid=38934&awinaffid=2900523&ued=https%3A%2F%2Fiallpowers.eu%2F%3Futm_source%3Daw",
+      },
+      {
+        country: "PL",
+        url: "https://www.awin1.com/cread.php?awinmid=121776&awinaffid=2900523&ued=https%3A%2F%2Fallpowers.com.pl%2Fpl-ie",
+      },
+      {
+        country: "ES",
+        url: "https://www.awin1.com/cread.php?awinmid=107468&awinaffid=2900523&ued=https%3A%2F%2Fiallpowers.es%2F",
+      },
+      {
+        country: "PT",
+        url: "https://www.awin1.com/cread.php?awinmid=125820&awinaffid=2900523&ued=https%3A%2F%2Fallpowers-pt.com%2F",
+      },
     ],
     feeds: [],
     productFilter: { includeAll: true, maxItems: DEFAULT_MAX },
@@ -107,6 +123,82 @@ export const marketplaceBrands: Brand[] = [
       {
         country: "CA",
         url: "https://www.awin1.com/cread.php?awinmid=32269&awinaffid=2900523&ued=https%3A%2F%2Fwww.bluettipower.ca%2F",
+      },
+      {
+        country: "AU",
+        url: "https://www.awin1.com/cread.php?awinmid=32271&awinaffid=2900523&ued=https%3A%2F%2Fwww.bluettipower.com.au%2F",
+      },
+    ],
+    feeds: [],
+    productFilter: { includeAll: true, maxItems: DEFAULT_MAX },
+  },
+  {
+    id: "ecoflow",
+    name: "EcoFlow",
+    displayName: "EcoFlow",
+    primaryCategory: "Energy",
+    description:
+      "Portable power stations and expandable solar setups for home backup, van-life, and off-grid resilience.",
+    links: [
+      {
+        country: "DE",
+        url: "https://www.awin1.com/cread.php?awinmid=51793&awinaffid=2900523&ued=https%3A%2F%2Fde.ecoflow.com%2F",
+      },
+      {
+        country: "NL",
+        url: "https://www.awin1.com/cread.php?awinmid=123332&awinaffid=2900523&ued=https%3A%2F%2Fnl.ecoflow.com%2F",
+      },
+    ],
+    feeds: [],
+    productFilter: { includeAll: true, maxItems: DEFAULT_MAX },
+  },
+  {
+    id: "jackery",
+    name: "Jackery",
+    displayName: "Jackery",
+    primaryCategory: "Energy",
+    description:
+      "Lightweight portable power stations for camping, RV travel, and outdoor backup when the grid isn't available.",
+    links: [
+      {
+        country: "DE",
+        url: "https://www.awin1.com/cread.php?awinmid=30415&awinaffid=2900523&ued=https%3A%2F%2Fde.jackery.com%2F",
+      },
+      {
+        country: "UK",
+        url: "https://www.awin1.com/cread.php?awinmid=30413&awinaffid=2900523&ued=https%3A%2F%2Fuk.jackery.com%2F",
+      },
+    ],
+    feeds: [],
+    productFilter: { includeAll: true, maxItems: DEFAULT_MAX },
+  },
+  {
+    id: "indevolt",
+    name: "Indevolt",
+    displayName: "Indevolt",
+    primaryCategory: "Energy",
+    description:
+      "German-engineered home battery storage and solar integration for backup power and everyday energy independence.",
+    links: [
+      {
+        country: "DE",
+        url: "https://www.awin1.com/cread.php?awinmid=110350&awinaffid=2900523&ued=https%3A%2F%2Fde.indevolt.com%2F",
+      },
+    ],
+    feeds: [],
+    productFilter: { includeAll: true, maxItems: DEFAULT_MAX },
+  },
+  {
+    id: "battlbox",
+    name: "BattlBox",
+    displayName: "BattlBox",
+    primaryCategory: "Security",
+    description:
+      "Monthly subscription boxes of curated preparedness and outdoor gear — preparedness tools, survival supplies, and self-reliance essentials on a delivery schedule.",
+    links: [
+      {
+        country: "US",
+        url: "https://www.awin1.com/cread.php?awinmid=88995&awinaffid=2900523&ued=https%3A%2F%2Fglobal.battlbox.com%2F%3FredirectFrom%3Dusa-store",
       },
     ],
     feeds: [],
@@ -284,6 +376,16 @@ export function getAwinSellerNames(): string[] {
 
 const AFFILIATE_FALLBACK_ORDER = ["US", "UK", "IE", "DE", "IT", "NL", "CA", "Global"] as const
 
+/** Per-brand regional link priority (first match wins after direct country hit). */
+const BRAND_LINK_PRIORITY: Partial<Record<string, readonly string[]>> = {
+  allpowers: ["US", "IT", "PL", "ES", "PT", "EU", "DE", "NL", "CA", "Global"],
+  bluetti: ["US", "CA", "AU", "UK", "DE", "Global"],
+  ecoflow: ["DE", "NL", "EU", "Global"],
+  jackery: ["DE", "UK", "US", "Global"],
+  indevolt: ["DE"],
+  battlbox: ["US", "Global"],
+}
+
 export type ResolvedAffiliateLink = { url: string; country: string }
 
 export function resolveAffiliateLink(
@@ -300,7 +402,8 @@ export function resolveAffiliateLink(
     if (direct) return { url: direct.url, country: direct.country }
   }
 
-  for (const fallback of AFFILIATE_FALLBACK_ORDER) {
+  const priority = BRAND_LINK_PRIORITY[brand.id] ?? AFFILIATE_FALLBACK_ORDER
+  for (const fallback of priority) {
     const match = byCountry.get(fallback)
     if (match) return { url: match.url, country: match.country }
   }
