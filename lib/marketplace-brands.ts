@@ -63,7 +63,8 @@ function feedsFromLinks(links: AffiliateLink[]): BrandFeed[] {
     .filter((f): f is BrandFeed => f.advertiserId != null)
 }
 
-const DEFAULT_MAX = 100
+/** Max SKUs imported per Awin advertiser feed (feed-backed brands only). */
+const DEFAULT_MAX = 500
 
 export const marketplaceBrands: Brand[] = [
   {
