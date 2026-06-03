@@ -72,6 +72,7 @@ export type NewsSyncSummary = {
   articles_fetched: number
   articles_added: number
   articles_skipped: number
+  articles_truncated: number
   errors: { stage: string; message: string; url?: string }[]
   duration_ms: number
 }

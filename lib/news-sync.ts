@@ -36,6 +36,7 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
   let articles_fetched = 0
   let articles_added = 0
   let articles_skipped = 0
+  let articles_truncated = 0
 
   const feedResults = await Promise.allSettled(
     NEWS_FEEDS.map(async (feed) => {
@@ -131,6 +132,15 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
 
   const duration_ms = Date.now() - started
 
+  console.log("[news-sync] complete", {
+    articles_fetched,
+    articles_added,
+    articles_skipped,
+    articles_truncated,
+    errors: errors.length,
+    duration_ms,
+  })
+
   await admin.from("news_feed_sync").insert({
     articles_fetched,
     articles_added,
@@ -144,6 +154,7 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
     articles_fetched,
     articles_added,
     articles_skipped,
+    articles_truncated,
     errors,
     duration_ms,
   }

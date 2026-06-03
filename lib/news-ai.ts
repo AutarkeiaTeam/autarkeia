@@ -15,12 +15,12 @@ If the article is opinion/PR/paywalled with no real content, or the snippet cont
 Otherwise return ONLY valid JSON with these fields (no markdown, no backticks, no commentary):
 
 {
-  "title_en": string (max 140 chars),
-  "title_es": string (max 140 chars),
-  "summary_en": string (max 220 chars, 1-2 sentences),
-  "summary_es": string (max 220 chars, 1-2 sentences),
-  "why_matters_en": string (max 200 chars, ONE practical idea for household readiness),
-  "why_matters_es": string (max 200 chars, ONE practical idea),
+  "title_en": string (STRICT max 140 chars — text exceeding this will be truncated mid-sentence and look bad),
+  "title_es": string (STRICT max 140 chars — text exceeding this will be truncated mid-sentence and look bad),
+  "summary_en": string (STRICT max 220 chars, 1-2 sentences — exceeding this will be truncated mid-sentence and look bad),
+  "summary_es": string (STRICT max 220 chars, 1-2 sentences — exceeding this will be truncated mid-sentence and look bad),
+  "why_matters_en": string (STRICT max 200 chars, ONE practical idea — exceeding this will be truncated mid-sentence and look bad),
+  "why_matters_es": string (STRICT max 200 chars, ONE practical idea — exceeding this will be truncated mid-sentence and look bad),
   "category": one of: water, food, energy, medical, communications, shelter, climate, geopolitics, economy, infrastructure, security, other,
   "severity": one of: low, medium, high, critical
 }
@@ -44,6 +44,27 @@ const LENGTH_CAPS = {
   why_matters_en: 200,
   why_matters_es: 200,
 } as const
+
+const ELLIPSIS = "…"
+
+function truncateToCap(
+  value: string,
+  maxLength: number
+): { value: string; truncated: boolean } {
+  const trimmed = value.trim()
+  if (trimmed.length <= maxLength) {
+    return { value: trimmed, truncated: false }
+  }
+
+  const contentMax = maxLength - ELLIPSIS.length
+  let cut = trimmed.slice(0, contentMax)
+  const lastSpace = cut.lastIndexOf(" ")
+  if (lastSpace > 0) {
+    cut = cut.slice(0, lastSpace)
+  }
+
+  return { value: cut.trimEnd() + ELLIPSIS, truncated: true }
+}
 
 function buildUserMessage(item: ParsedRssItem): string {
   return `Process this news item for the Autarkeia World News Watch.
@@ -75,7 +96,7 @@ function isSkipPayload(obj: Record<string, unknown>): HaikuSkipPayload | null {
 
 export function validateHaikuArticle(
   obj: Record<string, unknown>
-): HaikuArticlePayload | { error: string } {
+): { payload: HaikuArticlePayload; truncated: boolean } | { error: string } {
   const skip = isSkipPayload(obj)
   if (skip) return { error: "unexpected_skip" }
 
@@ -96,13 +117,6 @@ export function validateHaikuArticle(
     }
   }
 
-  for (const key of Object.keys(LENGTH_CAPS) as (keyof typeof LENGTH_CAPS)[]) {
-    const val = String(obj[key]).trim()
-    if (val.length > LENGTH_CAPS[key]) {
-      return { error: `${key}_too_long` }
-    }
-  }
-
   const category = String(obj.category).trim() as NewsCategory
   if (!NEWS_CATEGORIES.includes(category)) {
     return { error: "invalid_category" }
@@ -113,23 +127,29 @@ export function validateHaikuArticle(
     return { error: "invalid_severity" }
   }
 
-  return {
-    title_en: String(obj.title_en).trim(),
-    title_es: String(obj.title_es).trim(),
-    summary_en: String(obj.summary_en).trim(),
-    summary_es: String(obj.summary_es).trim(),
-    why_matters_en: String(obj.why_matters_en).trim(),
-    why_matters_es: String(obj.why_matters_es).trim(),
-    category,
-    severity,
+  let truncated = false
+  const payload = {} as HaikuArticlePayload
+
+  for (const key of Object.keys(LENGTH_CAPS) as (keyof typeof LENGTH_CAPS)[]) {
+    const { value, truncated: fieldTruncated } = truncateToCap(
+      String(obj[key]),
+      LENGTH_CAPS[key]
+    )
+    payload[key] = value
+    if (fieldTruncated) truncated = true
   }
+
+  payload.category = category
+  payload.severity = severity
+
+  return { payload, truncated }
 }
 
 export async function processArticleWithHaiku(
   item: ParsedRssItem
 ): Promise<
   | { kind: "skip"; payload: HaikuSkipPayload }
-  | { kind: "article"; payload: HaikuArticlePayload }
+  | { kind: "article"; payload: HaikuArticlePayload; truncated: boolean }
   | { kind: "error"; message: string }
 > {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
@@ -185,5 +205,9 @@ export async function processArticleWithHaiku(
     return { kind: "error", message: validated.error }
   }
 
-  return { kind: "article", payload: validated }
+  return {
+    kind: "article",
+    payload: validated.payload,
+    truncated: validated.truncated,
+  }
 }
