@@ -199,6 +199,8 @@ export function QuizResults({ quizType }: QuizResultsProps) {
 
   useEffect(() => {
     async function analyzeQuiz() {
+      setIsLoading(true)
+      setError(null)
       try {
         const storedAnswers = sessionStorage.getItem(`quiz-answers-${quizType}`)
         if (!storedAnswers) {
@@ -216,7 +218,7 @@ export function QuizResults({ quizType }: QuizResultsProps) {
         const response = await fetch('/api/quiz/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quizType, answers }),
+          body: JSON.stringify({ quizType, answers, locale }),
         })
 
         if (!response.ok) {
@@ -234,7 +236,7 @@ export function QuizResults({ quizType }: QuizResultsProps) {
     }
 
     analyzeQuiz()
-  }, [quizType, t])
+  }, [quizType, t, locale])
 
   async function sendResultsEmail() {
     if (!result || !answers) return
