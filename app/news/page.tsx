@@ -89,7 +89,11 @@ function NewsArticleCard({
   const categoryLabel = translate(locale, catKey) !== catKey ? t(catKey) : article.category
 
   return (
-    <article className="rounded-xl border border-white/10 bg-white/5 p-5">
+    <article className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+      {article.image_url ? (
+        <NewsHeroImage src={article.image_url} alt={title} />
+      ) : null}
+      <div className="p-5">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white capitalize">
           {categoryLabel}
