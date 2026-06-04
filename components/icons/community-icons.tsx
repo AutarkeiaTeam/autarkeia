@@ -5,7 +5,7 @@ const VIEW_BOX = "0 0 64 64"
 const strokeProps = {
   fill: "none" as const,
   stroke: "currentColor",
-  strokeWidth: 1.5,
+  strokeWidth: 4,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
 }
@@ -26,62 +26,58 @@ function CommunityIcon({ children, className, ...props }: IconProps & { children
   )
 }
 
-/** Single house: pitched roof, door, two square windows. */
+/** Single family home — arched roof, round windows, rounded door. */
 export function IndividualHomeIcon(props: IconProps) {
   return (
     <CommunityIcon {...props}>
-      <path d="M32 16 L52 36 H12 Z" {...strokeProps} />
-      <rect x="16" y="36" width="32" height="20" {...strokeProps} />
-      <rect x="28" y="44" width="8" height="12" {...strokeProps} />
-      <rect x="20" y="40" width="6" height="6" {...strokeProps} />
-      <rect x="38" y="40" width="6" height="6" {...strokeProps} />
+      <path d="M 14 38 Q 32 9 50 38" {...strokeProps} />
+      <rect x="15" y="38" width="34" height="20" rx="5" {...strokeProps} />
+      <rect x="27" y="44" width="10" height="14" rx="3" {...strokeProps} />
+      <circle cx="22" cy="42" r="4" {...strokeProps} />
+      <circle cx="42" cy="42" r="4" {...strokeProps} />
     </CommunityIcon>
   )
 }
 
-/** Three smaller houses in a row — clustered co-living. */
+/** Three clustered homes — center house tallest, simplified bodies only. */
 export function CoLivingIcon(props: IconProps) {
-  const house = (ox: number) => (
-    <g key={ox}>
-      <path d={`M${ox + 8} 30 L${ox + 16} 38 H${ox} Z`} {...strokeProps} />
-      <rect x={ox} y="38" width="16" height="12" {...strokeProps} />
-      <rect x={ox + 5} y="42" width="4" height="4" {...strokeProps} />
-    </g>
-  )
-
   return (
     <CommunityIcon {...props}>
-      {house(6)}
-      {house(24)}
-      {house(42)}
+      <path d="M 6 34 Q 13 18 20 34" {...strokeProps} />
+      <rect x="6" y="34" width="14" height="14" rx="4" {...strokeProps} />
+      <path d="M 22 32 Q 32 10 42 32" {...strokeProps} />
+      <rect x="22" y="32" width="20" height="18" rx="4" {...strokeProps} />
+      <path d="M 44 34 Q 51 18 58 34" {...strokeProps} />
+      <rect x="44" y="34" width="14" height="14" rx="4" {...strokeProps} />
     </CommunityIcon>
   )
 }
 
-/** Long horizontal dwelling — shallow roof, spaced windows, centered door. */
+/** Longhouse — shallow arched roof, round windows, centered door. */
 export function CommunalLivingIcon(props: IconProps) {
   return (
     <CommunityIcon {...props}>
-      <path d="M10 40 L32 28 L54 40 Z" {...strokeProps} />
-      <rect x="10" y="40" width="44" height="14" {...strokeProps} />
-      <rect x="14" y="44" width="5" height="5" {...strokeProps} />
-      <rect x="22" y="44" width="5" height="5" {...strokeProps} />
-      <rect x="37" y="44" width="5" height="5" {...strokeProps} />
-      <rect x="45" y="44" width="5" height="5" {...strokeProps} />
-      <rect x="29" y="46" width="6" height="8" {...strokeProps} />
+      <path d="M 8 40 Q 32 28 56 40" {...strokeProps} />
+      <rect x="8" y="40" width="48" height="16" rx="5" {...strokeProps} />
+      <circle cx="16" cy="46" r="3.5" {...strokeProps} />
+      <circle cx="26" cy="46" r="3.5" {...strokeProps} />
+      <circle cx="38" cy="46" r="3.5" {...strokeProps} />
+      <circle cx="48" cy="46" r="3.5" {...strokeProps} />
+      <rect x="28" y="44" width="8" height="12" rx="3" {...strokeProps} />
     </CommunityIcon>
   )
 }
 
-/** Market stall: canopy on four posts with counter below. */
+/** Market stall — arched canopy, two posts, counter, produce circles. */
 export function MarketIcon(props: IconProps) {
   return (
     <CommunityIcon {...props}>
-      <path d="M14 34 L32 18 L50 34" {...strokeProps} />
-      <line x1="16" y1="34" x2="16" y2="52" {...strokeProps} />
-      <line x1="48" y1="34" x2="48" y2="52" {...strokeProps} />
-      <line x1="14" y1="48" x2="50" y2="48" {...strokeProps} />
-      <line x1="12" y1="52" x2="52" y2="52" {...strokeProps} />
+      <path d="M 12 36 Q 32 12 52 36" {...strokeProps} />
+      <line x1="18" y1="36" x2="18" y2="54" {...strokeProps} />
+      <line x1="46" y1="36" x2="46" y2="54" {...strokeProps} />
+      <line x1="18" y1="48" x2="46" y2="48" {...strokeProps} />
+      <circle cx="26" cy="43" r="3.5" {...strokeProps} />
+      <circle cx="38" cy="43" r="3.5" {...strokeProps} />
     </CommunityIcon>
   )
 }

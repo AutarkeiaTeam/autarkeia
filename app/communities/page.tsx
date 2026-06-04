@@ -78,10 +78,10 @@ export default function Communities() {
               return (
               <article
                 key={item.titleKey}
-                className="group rounded-2xl border border-[#d4dce8] bg-white p-6 shadow-sm transition-colors hover:border-[#009b70]"
+                className="group flex min-h-[220px] flex-col rounded-2xl border border-[#d4dce8] bg-white p-6 shadow-sm transition-colors hover:border-[#009b70]"
               >
-                <div className="mb-5 flex justify-center text-[#3d5166] transition-transform duration-200 group-hover:scale-105 group-hover:text-[#009b70]">
-                  <Icon className="h-16 w-16 shrink-0" />
+                <div className="mb-4 flex min-h-[5.5rem] flex-1 items-center justify-center text-[#3d5166] transition-transform duration-200 group-hover:scale-105 group-hover:text-[#009b70]">
+                  <Icon className="h-[4.5rem] w-[4.5rem] shrink-0 sm:h-20 sm:w-20" />
                 </div>
                 <h3 className="text-xl font-medium text-[#0d1b2a]">{t(item.titleKey)}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-[#3d5166]">{t(item.descKey)}</p>
