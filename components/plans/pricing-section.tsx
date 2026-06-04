@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
+import { Shield } from "lucide-react"
 import { useI18n } from "@/components/i18n-provider"
 import { canManageSubscription, hasProSubscriptionStatus } from "@/lib/subscription-shared"
 import { startCheckout, openBillingPortal } from "@/lib/stripe-client"
@@ -37,7 +38,7 @@ type Props = {
 }
 
 export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [active, setActive] = useState<"free" | "pro">("pro")
@@ -68,7 +69,7 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
     try {
       setLoadingPlan(plan)
       setError("")
-      await startCheckout(plan)
+      await startCheckout(plan, locale)
     } catch (err) {
       const message = err instanceof Error ? err.message : "plans.error.checkout_failed"
       setError(translateError(message))
@@ -174,6 +175,10 @@ export function PricingSection({ isLoggedIn, subscriptionStatus }: Props) {
                   </p>
                   <p className="mt-1 text-sm font-medium text-[#009b70]">{t("plans.pricing.save_vs_monthly")}</p>
                   <p className="mt-1 text-xs text-[#8a9bb0]">{t("plans.pricing.annual_after_trial")}</p>
+                  <p className="mt-3 flex items-center gap-1.5 text-xs text-[#8a9bb0]">
+                    <Shield className="h-3.5 w-3.5 shrink-0 text-[#009b70]" aria-hidden />
+                    {t("plans.guarantee_badge")}
+                  </p>
                   <button
                     type="button"
                     onClick={() => handleStartTrial("annual")}

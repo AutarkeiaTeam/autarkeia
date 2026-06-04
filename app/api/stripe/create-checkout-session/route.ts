@@ -15,8 +15,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = (await request.json()) as { priceId?: string }
+    const body = (await request.json()) as { priceId?: string; locale?: string }
     const plan = body.priceId === "annual" ? "annual" : "monthly"
+    const checkoutLocale = body.locale === "es" ? "es" : "en"
     const stripePriceId = resolveStripePriceId(plan)
     const origin = new URL(request.url).origin
 
@@ -52,6 +53,18 @@ export async function POST(request: Request) {
       mode: "subscription",
       customer: stripeCustomerId,
       line_items: [{ price: stripePriceId, quantity: 1 }],
+      locale: checkoutLocale,
+      consent_collection: {
+        terms_of_service: "required",
+      },
+      custom_text: {
+        submit: {
+          message:
+            checkoutLocale === "es"
+              ? "Garantía de devolución de 14 días. Cancela cuando quieras desde tu panel."
+              : "14-day money-back guarantee. Cancel anytime from your dashboard.",
+        },
+      },
       subscription_data: {
         trial_period_days: 3,
         metadata: { supabase_user_id: user.id, plan },
@@ -66,6 +79,7 @@ export async function POST(request: Request) {
       metadata: {
         supabase_user_id: user.id,
         plan,
+        locale: checkoutLocale,
       },
     })
 

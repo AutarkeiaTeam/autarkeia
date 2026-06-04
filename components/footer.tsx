@@ -80,13 +80,18 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">
-                  {t("footer.privacy")}
+                <Link href="/terms-of-service" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">
+                  {t("footer.terms")}
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">
-                  {t("footer.terms")}
+                <Link href="/refund-policy" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">
+                  {t("footer.refund_policy")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy-policy" className="text-sm text-[#7a8a9e] hover:text-[#009b70]">
+                  {t("footer.privacy_policy")}
                 </Link>
               </li>
             </ul>

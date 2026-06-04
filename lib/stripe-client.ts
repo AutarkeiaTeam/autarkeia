@@ -1,10 +1,15 @@
+import type { Locale } from "@/lib/i18n-core"
+
 export type CheckoutPlan = "monthly" | "annual"
 
-export async function startCheckout(priceId: CheckoutPlan): Promise<void> {
+export async function startCheckout(
+  priceId: CheckoutPlan,
+  locale: Locale = "en"
+): Promise<void> {
   const response = await fetch("/api/stripe/create-checkout-session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ priceId }),
+    body: JSON.stringify({ priceId, locale }),
   })
 
   const data = (await response.json()) as {
