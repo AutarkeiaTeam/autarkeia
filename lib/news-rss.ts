@@ -8,6 +8,44 @@ const parser = new XMLParser({
   trimValues: true,
 })
 
+const IMAGE_CDN_HOST_SUFFIXES = [
+  "googleusercontent.com",
+  "ggpht.com",
+  "gstatic.com",
+  "ytimg.com",
+  "bbci.co.uk",
+  "bbc.com",
+  "reutersmedia.net",
+  "reuters.com",
+  "cloudfront.net",
+  "akamaized.net",
+  "wp.com",
+  "wordpress.com",
+  "imgur.com",
+  "cdn.ampproject.org",
+  "ampproject.org",
+  "cnn.com",
+  "nytimes.com",
+  "washingtonpost.com",
+  "theguardian.com",
+  "apnews.com",
+  "npr.org",
+  "pbs.org",
+  "aljazeera.com",
+  "france24.com",
+  "dw.com",
+  "euronews.com",
+  "politico.com",
+  "axios.com",
+  "substackcdn.com",
+  "medium.com",
+  "licdn.com",
+  "fbcdn.net",
+  "twimg.com",
+]
+
+const IMAGE_EXTENSIONS = /\.(jpe?g|png|webp)(\?|$)/i
+
 function asArray<T>(value: T | T[] | undefined): T[] {
   if (value == null) return []
   return Array.isArray(value) ? value : [value]
@@ -46,6 +84,108 @@ function itemLink(item: Record<string, unknown>): string | null {
   }
   const guid = item.guid
   if (typeof guid === "string" && guid.startsWith("http")) return guid.trim()
+  return null
+}
+
+function parseDimension(value: unknown): number | null {
+  if (value == null) return null
+  const n = Number(value)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+function isTrackingPixel(width: number | null, height: number | null): boolean {
+  if (width != null && width < 50) return true
+  if (height != null && height < 50) return true
+  if (width != null && height != null && width < 50 && height < 50) return true
+  return false
+}
+
+function hostLooksLikeImageCdn(hostname: string): boolean {
+  const host = hostname.toLowerCase()
+  return IMAGE_CDN_HOST_SUFFIXES.some(
+    (suffix) => host === suffix || host.endsWith(`.${suffix}`)
+  )
+}
+
+export function isValidNewsImageUrl(
+  rawUrl: string,
+  dimensions?: { width?: unknown; height?: unknown }
+): boolean {
+  const trimmed = rawUrl.trim()
+  if (!trimmed || trimmed.startsWith("data:")) return false
+
+  let parsed: URL
+  try {
+    parsed = new URL(trimmed)
+  } catch {
+    return false
+  }
+
+  if (parsed.protocol !== "https:") return false
+
+  const width = parseDimension(dimensions?.width)
+  const height = parseDimension(dimensions?.height)
+  if (isTrackingPixel(width, height)) return false
+
+  const pathAndQuery = `${parsed.pathname}${parsed.search}`
+  if (IMAGE_EXTENSIONS.test(pathAndQuery)) return true
+
+  return hostLooksLikeImageCdn(parsed.hostname)
+}
+
+function mediaNodes(item: Record<string, unknown>, keys: string[]): Record<string, unknown>[] {
+  const nodes: Record<string, unknown>[] = []
+  for (const key of keys) {
+    for (const node of asArray(item[key])) {
+      if (node && typeof node === "object") {
+        nodes.push(node as Record<string, unknown>)
+      }
+    }
+  }
+  return nodes
+}
+
+function urlFromMediaNode(node: Record<string, unknown>): string | null {
+  const url = node.url
+  if (typeof url === "string" && url.trim()) return url.trim()
+  return null
+}
+
+function firstImgSrcFromHtml(html: string): string | null {
+  const match = html.match(/<img[^>]+src=["']([^"']+)["']/i)
+  return match?.[1]?.trim() ?? null
+}
+
+export function extractRssItemImageUrl(item: Record<string, unknown>): string | null {
+  const candidates: { url: string; width?: unknown; height?: unknown }[] = []
+
+  for (const node of mediaNodes(item, ["media:content", "media:thumbnail"])) {
+    const url = urlFromMediaNode(node)
+    if (url) {
+      candidates.push({ url, width: node.width, height: node.height })
+    }
+  }
+
+  for (const enc of asArray(item.enclosure)) {
+    if (!enc || typeof enc !== "object") continue
+    const node = enc as Record<string, unknown>
+    const type = String(node.type ?? "")
+    const url = typeof node.url === "string" ? node.url.trim() : ""
+    if (url && type.toLowerCase().startsWith("image/")) {
+      candidates.push({ url, width: node.width, height: node.height })
+    }
+  }
+
+  const encoded = item["content:encoded"] ?? item.content
+  if (typeof encoded === "string" && encoded.includes("<img")) {
+    const src = firstImgSrcFromHtml(encoded)
+    if (src) candidates.push({ url: src })
+  }
+
+  for (const { url, width, height } of candidates) {
+    if (isValidNewsImageUrl(url, { width, height })) return url
+  }
+
   return null
 }
 
@@ -88,6 +228,7 @@ export async function fetchNewsFeedItems(feed: NewsFeedConfig): Promise<ParsedRs
       raw_title,
       raw_snippet,
       topic_query: feed.topic_query,
+      image_url: extractRssItemImageUrl(item),
     })
   }
 

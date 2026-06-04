@@ -7,7 +7,7 @@ export async function listNewsArticles(limit = NEWS_LIST_LIMIT): Promise<NewsArt
   const { data, error } = await supabase
     .from("news_articles")
     .select(
-      "id, source_url, source_name, published_at, fetched_at, title_en, title_es, summary_en, summary_es, why_matters_en, why_matters_es, category, severity, topic_query, created_at"
+      "id, source_url, source_name, published_at, fetched_at, title_en, title_es, summary_en, summary_es, why_matters_en, why_matters_es, category, severity, topic_query, image_url, created_at"
     )
     .order("published_at", { ascending: false })
     .limit(limit)

@@ -39,6 +39,7 @@ export type NewsArticleRow = {
   category: string
   severity: string
   topic_query: string | null
+  image_url: string | null
   created_at: string | null
 }
 
@@ -49,6 +50,7 @@ export type ParsedRssItem = {
   raw_title: string
   raw_snippet: string
   topic_query: string
+  image_url: string | null
 }
 
 export type HaikuArticlePayload = {

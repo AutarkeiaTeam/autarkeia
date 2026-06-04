@@ -32,7 +32,7 @@ export const CATEGORY_SLUGS: Record<MarketplaceCategory, string> = {
   Communications: "communications",
   "Garden & Harvest": "garden-harvest",
   "Fire & Cooking": "fire-cooking",
-  "Air Quality": "aloair",
+  "Air Quality": "air-quality",
   "Sanitation & Hygiene": "sanitation-hygiene",
   Lighting: "lighting",
   Navigation: "navigation",

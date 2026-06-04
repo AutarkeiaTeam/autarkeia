@@ -101,6 +101,7 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
       category: result.payload.category,
       severity: result.payload.severity,
       topic_query: item.topic_query,
+      image_url: item.image_url,
     })
 
     if (insertError) {

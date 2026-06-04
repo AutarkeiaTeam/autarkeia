@@ -1,3 +1,4 @@
+import { NewsHeroImage } from "@/components/news/news-hero-image"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
 import { listNewsArticles } from "@/lib/news-db"
@@ -121,6 +122,7 @@ function NewsArticleCard({
           {article.source_name ?? t("news.source_fallback")}
           <span aria-hidden>↗</span>
         </a>
+      </div>
       </div>
     </article>
   )
