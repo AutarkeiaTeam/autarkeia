@@ -1,29 +1,45 @@
 "use client"
 
 import Link from "next/link"
+import type { ComponentType, SVGProps } from "react"
 import { RegisterInterestForm } from "@/components/communities/register-interest-form"
+import {
+  CoLivingIcon,
+  CommunalLivingIcon,
+  IndividualHomeIcon,
+  MarketIcon,
+} from "@/components/icons/community-icons"
 import { useI18n } from "@/components/i18n-provider"
 
-const pathwayCards = [
+const pathwayCards: {
+  titleKey: string
+  descKey: string
+  href: string
+  Icon: ComponentType<SVGProps<SVGSVGElement>>
+}[] = [
   {
     titleKey: "communities.option.family_title",
     descKey: "communities.option.family_desc",
     href: "/communities?intent=live#register-interest",
+    Icon: IndividualHomeIcon,
   },
   {
     titleKey: "communities.option.coliving_title",
     descKey: "communities.option.coliving_desc",
     href: "/communities?intent=live#register-interest",
+    Icon: CoLivingIcon,
   },
   {
     titleKey: "communities.option.communal_living_title",
     descKey: "communities.option.communal_living_desc",
     href: "/communities?intent=live#register-interest",
+    Icon: CommunalLivingIcon,
   },
   {
     titleKey: "communities.option.plantation_market_title",
     descKey: "communities.option.plantation_market_desc",
     href: "/communities?intent=buy_food#register-interest",
+    Icon: MarketIcon,
   },
 ]
 
@@ -57,18 +73,23 @@ export default function Communities() {
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
           <h2 className="text-2xl sm:text-3xl font-light text-[#0d1b2a] mb-8">{t("communities.choose_path")}</h2>
           <div className="grid gap-5 md:grid-cols-2">
-            {pathwayCards.map((item) => (
+            {pathwayCards.map((item) => {
+              const Icon = item.Icon
+              return (
               <article
                 key={item.titleKey}
-                className="rounded-2xl border border-[#d4dce8] bg-white p-6 shadow-sm transition-colors hover:border-[#009b70]"
+                className="group rounded-2xl border border-[#d4dce8] bg-white p-6 shadow-sm transition-colors hover:border-[#009b70]"
               >
+                <div className="mb-5 flex justify-center text-[#3d5166] transition-transform duration-200 group-hover:scale-105 group-hover:text-[#009b70]">
+                  <Icon className="h-16 w-16 shrink-0" />
+                </div>
                 <h3 className="text-xl font-medium text-[#0d1b2a]">{t(item.titleKey)}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-[#3d5166]">{t(item.descKey)}</p>
                 <Link href={item.href} className="mt-6 inline-block text-sm font-medium text-[#009b70] hover:text-[#007a58]">
                   {t("communities.explore_option")}
                 </Link>
               </article>
-            ))}
+            )})}
           </div>
         </div>
       </section>
