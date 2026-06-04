@@ -75,6 +75,9 @@ export type NewsSyncSummary = {
   articles_added: number
   articles_skipped: number
   articles_truncated: number
+  og_image_attempted: number
+  og_image_resolved: number
+  og_image_failed: number
   errors: { stage: string; message: string; url?: string }[]
   duration_ms: number
 }

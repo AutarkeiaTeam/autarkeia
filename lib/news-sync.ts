@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { processArticleWithHaiku } from "@/lib/news-ai"
 import { NEWS_FEEDS } from "@/lib/news-feeds"
+import { enrichCandidatesWithOgImages } from "@/lib/news-images"
 import { fetchNewsFeedItems } from "@/lib/news-rss"
 import {
   NEWS_CANDIDATE_CAP,
@@ -37,6 +38,9 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
   let articles_added = 0
   let articles_skipped = 0
   let articles_truncated = 0
+  let og_image_attempted = 0
+  let og_image_resolved = 0
+  let og_image_failed = 0
 
   const feedResults = await Promise.allSettled(
     NEWS_FEEDS.map(async (feed) => {
@@ -62,10 +66,15 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
   const urls = unique.map((i) => i.source_url)
   const existing = await fetchExistingUrlsAdmin(urls)
 
-  const candidates = unique
+  const filtered = unique
     .filter((i) => !existing.has(i.source_url))
     .sort((a, b) => b.published_at.getTime() - a.published_at.getTime())
     .slice(0, NEWS_CANDIDATE_CAP)
+
+  const { items: candidates, stats: ogStats } = await enrichCandidatesWithOgImages(filtered)
+  og_image_attempted = ogStats.og_image_attempted
+  og_image_resolved = ogStats.og_image_resolved
+  og_image_failed = ogStats.og_image_failed
 
   const admin = createAdminClient()
 
@@ -156,6 +165,9 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
     articles_added,
     articles_skipped,
     articles_truncated,
+    og_image_attempted,
+    og_image_resolved,
+    og_image_failed,
     errors,
     duration_ms,
   }
