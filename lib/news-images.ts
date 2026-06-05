@@ -3,6 +3,7 @@ import {
   sanitizeNewsImageUrl,
 } from "@/lib/news-image-url"
 import { resolveNewsArticleImages } from "@/lib/news-image-resolve"
+import { resolveNewsSourceUrl } from "@/lib/news-source-url"
 import type { ParsedRssItem } from "@/lib/news-types"
 
 export const NEWS_OG_USER_AGENT =
@@ -13,6 +14,9 @@ const MAX_REDIRECTS = 5
 /** Cap downloaded HTML; Google News places og:image around ~577k. */
 const HTML_SCAN_BYTES = 800_000
 export const OG_IMAGE_BATCH_SIZE = 8
+
+const MIN_ARTICLE_IMG_PX = 200
+const SKIP_IMG_SRC_SUBSTRINGS = ["logo", "icon", "avatar"]
 
 const OG_META_SPECS: { attr: "property" | "name"; key: string }[] = [
   { attr: "property", key: "og:image" },
@@ -80,22 +84,127 @@ function metaTagContent(html: string, attr: "property" | "name", key: string): s
   return null
 }
 
-function firstImgInArticle(html: string): string | null {
-  const articleMatch = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)
-  if (!articleMatch?.[1]) return null
-  const imgMatch = articleMatch[1].match(/<img[^>]+src=["']([^"']+)["']/i)
-  return imgMatch?.[1]?.trim() ?? null
+function parseImgDimension(tag: string, attr: "width" | "height"): number | null {
+  const match = tag.match(new RegExp(`\\b${attr}=["'](\\d+)["']`, "i"))
+  if (!match?.[1]) return null
+  const value = Number(match[1])
+  return Number.isFinite(value) && value > 0 ? value : null
 }
 
-function linkImageSrc(html: string): string | null {
-  const match = html.match(
-    /<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["']/i
+function isSkippableArticleImg(src: string, tag: string): boolean {
+  const lower = src.toLowerCase()
+  if (SKIP_IMG_SRC_SUBSTRINGS.some((token) => lower.includes(token))) return true
+
+  const width = parseImgDimension(tag, "width")
+  const height = parseImgDimension(tag, "height")
+  if (width != null && width < MIN_ARTICLE_IMG_PX) return true
+  if (height != null && height < MIN_ARTICLE_IMG_PX) return true
+  return false
+}
+
+function firstImgInArticleOrMain(html: string): string | null {
+  for (const region of ["article", "main"] as const) {
+    const regionMatch = html.match(
+      new RegExp(`<${region}\\b[^>]*>([\\s\\S]*?)<\\/${region}>`, "i")
+    )
+    if (!regionMatch?.[1]) continue
+
+    const imgTags = regionMatch[1].match(/<img[^>]+>/gi) ?? []
+    for (const tag of imgTags) {
+      const srcMatch = tag.match(/\bsrc=["']([^"']+)["']/i)
+      const src = srcMatch?.[1]?.trim()
+      if (!src || isSkippableArticleImg(src, tag)) continue
+      return src
+    }
+  }
+  return null
+}
+
+function isArticleSchemaType(value: unknown): boolean {
+  if (typeof value === "string") {
+    return value === "NewsArticle" || value === "Article"
+  }
+  if (Array.isArray(value)) {
+    return value.some((item) => isArticleSchemaType(item))
+  }
+  return false
+}
+
+function normalizeJsonLdImageValue(value: unknown, pageUrl: string): string | null {
+  if (typeof value === "string") {
+    return pickResolvableImage(value, pageUrl)
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const picked = normalizeJsonLdImageValue(item, pageUrl)
+      if (picked) return picked
+    }
+    return null
+  }
+
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>
+    for (const key of ["url", "contentUrl", "@id"] as const) {
+      const raw = record[key]
+      if (typeof raw === "string") {
+        const picked = pickResolvableImage(raw, pageUrl)
+        if (picked) return picked
+      }
+    }
+  }
+
+  return null
+}
+
+function jsonLdArticleImage(html: string, pageUrl: string): string | null {
+  const blocks = html.matchAll(
+    /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
   )
-  if (match?.[1]) return match[1]
-  const alt = html.match(
-    /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']image_src["']/i
-  )
-  return alt?.[1] ?? null
+
+  for (const match of blocks) {
+    let data: unknown
+    try {
+      data = JSON.parse(match[1].trim())
+    } catch {
+      continue
+    }
+
+    const picked = walkJsonLdForArticleImage(data, pageUrl)
+    if (picked) return picked
+  }
+
+  return null
+}
+
+function walkJsonLdForArticleImage(value: unknown, pageUrl: string): string | null {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const picked = walkJsonLdForArticleImage(item, pageUrl)
+      if (picked) return picked
+    }
+    return null
+  }
+
+  if (!value || typeof value !== "object") return null
+
+  const record = value as Record<string, unknown>
+  if (isArticleSchemaType(record["@type"]) && record.image != null) {
+    const picked = normalizeJsonLdImageValue(record.image, pageUrl)
+    if (picked) return picked
+  }
+
+  if (record["@graph"] != null) {
+    const fromGraph = walkJsonLdForArticleImage(record["@graph"], pageUrl)
+    if (fromGraph) return fromGraph
+  }
+
+  for (const child of Object.values(record)) {
+    const picked = walkJsonLdForArticleImage(child, pageUrl)
+    if (picked) return picked
+  }
+
+  return null
 }
 
 function boundedHtml(raw: string): string {
@@ -120,10 +229,10 @@ export function extractOgImageFromHtml(html: string, pageUrl: string): string | 
     if (picked) return picked
   }
 
-  const fromLink = pickResolvableImage(linkImageSrc(scan), pageUrl)
-  if (fromLink) return fromLink
+  const fromJsonLd = jsonLdArticleImage(scan, pageUrl)
+  if (fromJsonLd) return fromJsonLd
 
-  return pickResolvableImage(firstImgInArticle(scan), pageUrl)
+  return pickResolvableImage(firstImgInArticleOrMain(scan), pageUrl)
 }
 
 function logOgFetch(payload: Record<string, unknown>): void {

@@ -1,8 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { processArticleWithHaiku } from "@/lib/news-ai"
 import { NEWS_FEEDS } from "@/lib/news-feeds"
-import { initPixabayImageCache } from "@/lib/news-fallback-image"
-import { applyCategoryPixabayFallback } from "@/lib/news-image-resolve"
 import { enrichCandidatesWithOgImages } from "@/lib/news-images"
 import { fetchNewsFeedItems } from "@/lib/news-rss"
 import {
@@ -56,7 +54,6 @@ function dedupeCandidatesByTitle(
 }
 
 export async function runNewsSync(): Promise<NewsSyncSummary> {
-  await initPixabayImageCache()
   const started = Date.now()
   const errors: NewsSyncSummary["errors"] = []
   let articles_fetched = 0
@@ -132,17 +129,10 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
       continue
     }
 
-    const images = await applyCategoryPixabayFallback(
-      {
-        image_url: item.image_url,
-        image_source: item.image_source ?? null,
-        image_credit_name: item.image_credit_name ?? null,
-        image_credit_url: item.image_credit_url ?? null,
-        resolved_url: item.resolved_url ?? null,
-      },
-      result.payload.category,
-      result.payload.title_en
-    )
+    if (!item.image_url) {
+      articles_skipped++
+      continue
+    }
 
     const { error: insertError } = await admin.from("news_articles").insert({
       source_url: item.source_url,
@@ -157,11 +147,11 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
       category: result.payload.category,
       severity: result.payload.severity,
       topic_query: item.topic_query,
-      image_url: images.image_url,
-      image_source: images.image_source,
-      image_credit_name: images.image_credit_name,
-      image_credit_url: images.image_credit_url,
-      resolved_url: images.resolved_url,
+      image_url: item.image_url,
+      image_source: item.image_source ?? "publisher",
+      image_credit_name: item.image_credit_name,
+      image_credit_url: item.image_credit_url,
+      resolved_url: item.resolved_url,
     })
 
     if (insertError) {

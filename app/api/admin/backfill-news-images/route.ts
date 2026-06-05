@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getUserId } from "@/lib/auth-server"
 import { parseAcceptLanguage, translate } from "@/lib/i18n-core"
-import { runNewsPixabayFallbackBackfill } from "@/lib/news-image-backfill"
+import { runPublisherOgBackfill } from "@/lib/news-image-backfill"
 import { isAdmin } from "@/lib/profiles"
 
 export const dynamic = "force-dynamic"
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const summary = await runNewsPixabayFallbackBackfill()
+    const summary = await runPublisherOgBackfill()
     return NextResponse.json(summary)
   } catch (err) {
     console.error("[admin/backfill-news-images]", err)

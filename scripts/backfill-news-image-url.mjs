@@ -5,10 +5,10 @@
  * Usage:
  *   SUPABASE_SERVICE_ROLE_KEY=... NEXT_PUBLIC_SUPABASE_URL=... npx tsx scripts/backfill-news-image-url.mjs
  */
-import { runNewsImageUrlBackfill } from "../lib/news-image-backfill.ts"
+import { runPublisherOgBackfill } from "../lib/news-image-backfill.ts"
 
 async function main() {
-  const summary = await runNewsImageUrlBackfill()
+  const summary = await runPublisherOgBackfill()
   console.log(JSON.stringify(summary, null, 2))
 }
 
