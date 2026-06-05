@@ -24,7 +24,7 @@ export const NEWS_SEVERITIES = ["low", "medium", "high", "critical"] as const
 
 export type NewsSeverity = (typeof NEWS_SEVERITIES)[number]
 
-export type NewsImageSource = "publisher" | "unsplash"
+export type NewsImageSource = "publisher" | "pixabay"
 
 export type NewsArticleRow = {
   id: string

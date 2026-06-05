@@ -1,5 +1,5 @@
 import { isGoogleHostedImageUrl } from "@/lib/news-image-url"
-import { clearUnsplashImageCache } from "@/lib/news-fallback-image"
+import { clearPixabayImageCache } from "@/lib/news-fallback-image"
 import { OG_IMAGE_BATCH_SIZE } from "@/lib/news-images"
 import { resolveNewsArticleImages } from "@/lib/news-image-resolve"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -14,7 +14,7 @@ export type NewsImageBackfillSummary = {
 }
 
 export async function runNewsImageUrlBackfill(): Promise<NewsImageBackfillSummary> {
-  clearUnsplashImageCache()
+  clearPixabayImageCache()
   const admin = createAdminClient()
   const { data: rows, error } = await admin
     .from("news_articles")

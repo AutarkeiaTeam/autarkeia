@@ -1244,8 +1244,6 @@
   "news.category.shelter": "Shelter",
   "news.category.water": "Water",
   "news.empty_state": "No articles yet. The daily news sync will populate this feed soon.",
-  "news.image_credit_on_unsplash": "on Unsplash",
-  "news.image_credit_prefix": "Photo:",
   "news.intro": "Global risks that matter for emergency readiness and self-sufficiency planning.",
   "news.read_source": "Read the story at the source",
   "news.severity.critical": "Critical",

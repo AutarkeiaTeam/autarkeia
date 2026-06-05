@@ -1,6 +1,6 @@
 import {
-  buildUnsplashQuery,
-  resolveUnsplashImage,
+  buildPixabayQuery,
+  resolvePixabayImage,
 } from "@/lib/news-fallback-image"
 import { sanitizeNewsImageUrl } from "@/lib/news-image-url"
 import { resolveArticleImage } from "@/lib/news-images"
@@ -9,7 +9,7 @@ import {
   storablePublisherUrl,
 } from "@/lib/news-source-url"
 
-export type NewsImageSource = "publisher" | "unsplash"
+export type NewsImageSource = "publisher" | "pixabay"
 
 export type NewsImageFields = {
   image_url: string | null
@@ -24,25 +24,24 @@ const emptyCredits = {
   image_credit_url: null as string | null,
 }
 
-async function unsplashImageFields(
+async function pixabayImageFields(
   query: string
 ): Promise<Pick<
   NewsImageFields,
   "image_url" | "image_source" | "image_credit_name" | "image_credit_url"
 > | null> {
-  const hit = await resolveUnsplashImage(query)
+  const hit = await resolvePixabayImage(query)
   if (!hit) return null
-  const image_url = sanitizeNewsImageUrl(hit.imageUrl)
+  const image_url = sanitizeNewsImageUrl(hit)
   if (!image_url) return null
   return {
     image_url,
-    image_source: "unsplash",
-    image_credit_name: hit.creditName,
-    image_credit_url: hit.creditUrl,
+    image_source: "pixabay",
+    ...emptyCredits,
   }
 }
 
-/** Publisher OG → Unsplash (title/topic) → Unsplash (category) → null. */
+/** Publisher OG → Pixabay (title/topic) → Pixabay (category) → null. */
 export async function resolveNewsArticleImages(options: {
   sourceUrl: string
   topicQuery?: string | null
@@ -68,15 +67,15 @@ export async function resolveNewsArticleImages(options: {
     }
   }
 
-  const fromTitle = await unsplashImageFields(
-    buildUnsplashQuery(options.topicQuery, options.title)
+  const fromTitle = await pixabayImageFields(
+    buildPixabayQuery(options.topicQuery, options.title)
   )
   if (fromTitle) {
     return { ...fromTitle, resolved_url }
   }
 
   if (options.category) {
-    const fromCategory = await unsplashImageFields(
+    const fromCategory = await pixabayImageFields(
       options.category.trim().toLowerCase()
     )
     if (fromCategory) {
@@ -92,13 +91,13 @@ export async function resolveNewsArticleImages(options: {
   }
 }
 
-/** Category Unsplash only — after Haiku when enrich had no category yet. */
-export async function applyCategoryUnsplashFallback(
+/** Category Pixabay only — after Haiku when enrich had no category yet. */
+export async function applyCategoryPixabayFallback(
   fields: NewsImageFields,
   category: string
 ): Promise<NewsImageFields> {
   if (fields.image_url) return fields
-  const fromCategory = await unsplashImageFields(category.trim().toLowerCase())
+  const fromCategory = await pixabayImageFields(category.trim().toLowerCase())
   if (!fromCategory) return fields
   return { ...fields, ...fromCategory }
 }

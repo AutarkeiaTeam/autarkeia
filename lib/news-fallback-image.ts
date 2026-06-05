@@ -1,5 +1,6 @@
-const UNSPLASH_SEARCH = "https://api.unsplash.com/search/photos"
+const PIXABAY_API = "https://pixabay.com/api/"
 const QUERY_WORD_CAP = 6
+const CANDIDATES_PER_PAGE = 20
 
 const STOPWORDS = new Set([
   "a",
@@ -34,20 +35,21 @@ const STOPWORDS = new Set([
   "with",
 ])
 
-export type UnsplashImageResult = {
-  imageUrl: string
-  creditName: string
-  creditUrl: string
+type QueryCacheEntry = {
+  candidates: string[]
+  lastIndex: number
 }
 
-const unsplashCache = new Map<string, UnsplashImageResult | null>()
+const queryCache = new Map<string, QueryCacheEntry>()
+const usedPhotoUrls = new Set<string>()
 
-/** Clear in-memory Unsplash cache (call at start of each cron run). */
-export function clearUnsplashImageCache(): void {
-  unsplashCache.clear()
+/** Clear in-memory Pixabay cache and used-URL set (call at start of each cron/backfill run). */
+export function clearPixabayImageCache(): void {
+  queryCache.clear()
+  usedPhotoUrls.clear()
 }
 
-export function buildUnsplashQuery(
+export function buildPixabayQuery(
   topicQuery: string | null | undefined,
   title: string
 ): string {
@@ -70,84 +72,85 @@ export function buildUnsplashQuery(
     .join(" ")
 }
 
-function appendUtm(url: string): string {
-  const parsed = new URL(url)
-  parsed.searchParams.set("utm_source", "autarkeia")
-  parsed.searchParams.set("utm_medium", "referral")
-  return parsed.href
+type PixabaySearchResponse = {
+  hits?: { largeImageURL?: string }[]
 }
 
-type UnsplashSearchResponse = {
-  results?: {
-    urls?: { regular?: string }
-    links?: { html?: string }
-    user?: { name?: string; links?: { html?: string } }
-  }[]
-}
-
-/** Search Unsplash for a landscape photo; returns URL + attribution or null. */
-export async function resolveUnsplashImage(
-  query: string
-): Promise<UnsplashImageResult | null> {
-  const trimmed = query.trim()
-  if (!trimmed) return null
-
-  if (unsplashCache.has(trimmed)) {
-    return unsplashCache.get(trimmed) ?? null
-  }
-
-  const accessKey = process.env.UNSPLASH_ACCESS_KEY
-  if (!accessKey) {
-    unsplashCache.set(trimmed, null)
-    return null
-  }
+async function fetchPixabayCandidates(query: string): Promise<string[]> {
+  const apiKey = process.env.PIXABAY_API_KEY
+  if (!apiKey) return []
 
   const params = new URLSearchParams({
-    query: trimmed,
-    per_page: "1",
-    orientation: "landscape",
-    content_filter: "high",
+    key: apiKey,
+    q: query,
+    image_type: "photo",
+    orientation: "horizontal",
+    safesearch: "true",
+    per_page: String(CANDIDATES_PER_PAGE),
   })
 
   let res: Response
   try {
-    res = await fetch(`${UNSPLASH_SEARCH}?${params}`, {
-      headers: { Authorization: `Client-ID ${accessKey}` },
+    res = await fetch(`${PIXABAY_API}?${params}`, {
       signal: AbortSignal.timeout(10_000),
     })
   } catch {
-    unsplashCache.set(trimmed, null)
-    return null
+    return []
   }
 
-  if (res.status === 403 || res.status === 429 || !res.ok) {
-    unsplashCache.set(trimmed, null)
-    return null
-  }
+  if (!res.ok) return []
 
-  let data: UnsplashSearchResponse
+  let data: PixabaySearchResponse
   try {
-    data = (await res.json()) as UnsplashSearchResponse
+    data = (await res.json()) as PixabaySearchResponse
   } catch {
-    unsplashCache.set(trimmed, null)
+    return []
+  }
+
+  return (data.hits ?? [])
+    .map((hit) => hit.largeImageURL?.trim())
+    .filter((url): url is string => Boolean(url))
+}
+
+function pickCandidate(
+  candidates: string[],
+  entry: QueryCacheEntry
+): string | null {
+  if (candidates.length === 0) return null
+
+  const tryRange = (start: number, end: number) => {
+    for (let i = start; i < end; i++) {
+      const url = candidates[i]
+      if (!usedPhotoUrls.has(url)) {
+        usedPhotoUrls.add(url)
+        entry.lastIndex = i
+        return url
+      }
+    }
     return null
   }
 
-  const hit = data.results?.[0]
-  const imageUrl = hit?.urls?.regular
-  const creditName = hit?.user?.name?.trim()
-  const creditUrl = hit?.links?.html || hit?.user?.links?.html
+  const fromNext = tryRange(entry.lastIndex + 1, candidates.length)
+  if (fromNext) return fromNext
 
-  if (!imageUrl || !creditName || !creditUrl) {
-    unsplashCache.set(trimmed, null)
-    return null
+  const fromStart = tryRange(0, entry.lastIndex + 1)
+  if (fromStart) return fromStart
+
+  entry.lastIndex = 0
+  return candidates[0]
+}
+
+/** Search Pixabay for a horizontal photo; dedupes across the run and rotates within a query. */
+export async function resolvePixabayImage(query: string): Promise<string | null> {
+  const trimmed = query.trim()
+  if (!trimmed) return null
+
+  let entry = queryCache.get(trimmed)
+  if (!entry) {
+    const candidates = await fetchPixabayCandidates(trimmed)
+    entry = { candidates, lastIndex: -1 }
+    queryCache.set(trimmed, entry)
   }
 
-  const result: UnsplashImageResult = {
-    imageUrl,
-    creditName,
-    creditUrl: appendUtm(creditUrl),
-  }
-  unsplashCache.set(trimmed, result)
-  return result
+  return pickCandidate(entry.candidates, entry)
 }

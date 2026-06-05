@@ -1,8 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { processArticleWithHaiku } from "@/lib/news-ai"
 import { NEWS_FEEDS } from "@/lib/news-feeds"
-import { clearUnsplashImageCache } from "@/lib/news-fallback-image"
-import { applyCategoryUnsplashFallback } from "@/lib/news-image-resolve"
+import { clearPixabayImageCache } from "@/lib/news-fallback-image"
+import { applyCategoryPixabayFallback } from "@/lib/news-image-resolve"
 import { enrichCandidatesWithOgImages } from "@/lib/news-images"
 import { fetchNewsFeedItems } from "@/lib/news-rss"
 import {
@@ -34,7 +34,7 @@ function dedupeCandidates(items: ParsedRssItem[]): ParsedRssItem[] {
 }
 
 export async function runNewsSync(): Promise<NewsSyncSummary> {
-  clearUnsplashImageCache()
+  clearPixabayImageCache()
   const started = Date.now()
   const errors: NewsSyncSummary["errors"] = []
   let articles_fetched = 0
@@ -100,7 +100,7 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
       continue
     }
 
-    const images = await applyCategoryUnsplashFallback(
+    const images = await applyCategoryPixabayFallback(
       {
         image_url: item.image_url,
         image_source: item.image_source ?? null,
