@@ -1,5 +1,5 @@
 import { isGoogleHostedImageUrl } from "@/lib/news-image-url"
-import { clearPixabayImageCache } from "@/lib/news-fallback-image"
+import { initPixabayImageCache } from "@/lib/news-fallback-image"
 import { OG_IMAGE_BATCH_SIZE } from "@/lib/news-images"
 import { resolveNewsArticleImages } from "@/lib/news-image-resolve"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -14,7 +14,7 @@ export type NewsImageBackfillSummary = {
 }
 
 export async function runNewsImageUrlBackfill(): Promise<NewsImageBackfillSummary> {
-  clearPixabayImageCache()
+  await initPixabayImageCache()
   const admin = createAdminClient()
   const { data: rows, error } = await admin
     .from("news_articles")
@@ -39,7 +39,6 @@ export async function runNewsImageUrlBackfill(): Promise<NewsImageBackfillSummar
           row.image_url != null && isGoogleHostedImageUrl(row.image_url)
         const resolved = await resolveNewsArticleImages({
           sourceUrl: row.source_url,
-          topicQuery: row.topic_query,
           title: row.title_en,
           category: row.category,
           cachedResolvedUrl: row.resolved_url,

@@ -300,7 +300,6 @@ export async function enrichCandidatesWithOgImages(
       batch.map(async (item) => {
         const resolved = await resolveNewsArticleImages({
           sourceUrl: item.source_url,
-          topicQuery: item.topic_query,
           title: item.raw_title,
         })
         return {

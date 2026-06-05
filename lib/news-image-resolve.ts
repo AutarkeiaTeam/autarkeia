@@ -1,5 +1,6 @@
 import {
   buildPixabayQuery,
+  pixabayQueryHasHits,
   resolvePixabayImage,
 } from "@/lib/news-fallback-image"
 import { sanitizeNewsImageUrl } from "@/lib/news-image-url"
@@ -41,10 +42,9 @@ async function pixabayImageFields(
   }
 }
 
-/** Publisher OG → Pixabay (title/topic) → Pixabay (category) → null. */
+/** Publisher OG → Pixabay (title) → Pixabay (category, only if title has zero hits) → null. */
 export async function resolveNewsArticleImages(options: {
   sourceUrl: string
-  topicQuery?: string | null
   title: string
   category?: string | null
   cachedResolvedUrl?: string | null
@@ -67,14 +67,14 @@ export async function resolveNewsArticleImages(options: {
     }
   }
 
-  const fromTitle = await pixabayImageFields(
-    buildPixabayQuery(options.topicQuery, options.title)
-  )
+  const titleQuery = buildPixabayQuery(options.title)
+  const fromTitle = await pixabayImageFields(titleQuery)
   if (fromTitle) {
     return { ...fromTitle, resolved_url }
   }
 
-  if (options.category) {
+  const titleHadHits = await pixabayQueryHasHits(titleQuery)
+  if (!titleHadHits && options.category) {
     const fromCategory = await pixabayImageFields(
       options.category.trim().toLowerCase()
     )
@@ -91,12 +91,17 @@ export async function resolveNewsArticleImages(options: {
   }
 }
 
-/** Category Pixabay only — after Haiku when enrich had no category yet. */
+/** Category Pixabay only when title query returned zero Pixabay hits (post-Haiku). */
 export async function applyCategoryPixabayFallback(
   fields: NewsImageFields,
-  category: string
+  category: string,
+  title: string
 ): Promise<NewsImageFields> {
   if (fields.image_url) return fields
+
+  const titleQuery = buildPixabayQuery(title)
+  if (await pixabayQueryHasHits(titleQuery)) return fields
+
   const fromCategory = await pixabayImageFields(category.trim().toLowerCase())
   if (!fromCategory) return fields
   return { ...fields, ...fromCategory }

@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { processArticleWithHaiku } from "@/lib/news-ai"
 import { NEWS_FEEDS } from "@/lib/news-feeds"
-import { clearPixabayImageCache } from "@/lib/news-fallback-image"
+import { initPixabayImageCache } from "@/lib/news-fallback-image"
 import { applyCategoryPixabayFallback } from "@/lib/news-image-resolve"
 import { enrichCandidatesWithOgImages } from "@/lib/news-images"
 import { fetchNewsFeedItems } from "@/lib/news-rss"
@@ -34,7 +34,7 @@ function dedupeCandidates(items: ParsedRssItem[]): ParsedRssItem[] {
 }
 
 export async function runNewsSync(): Promise<NewsSyncSummary> {
-  clearPixabayImageCache()
+  await initPixabayImageCache()
   const started = Date.now()
   const errors: NewsSyncSummary["errors"] = []
   let articles_fetched = 0
@@ -108,7 +108,8 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
         image_credit_url: item.image_credit_url ?? null,
         resolved_url: item.resolved_url ?? null,
       },
-      result.payload.category
+      result.payload.category,
+      result.payload.title_en
     )
 
     const { error: insertError } = await admin.from("news_articles").insert({
