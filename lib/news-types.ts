@@ -26,6 +26,9 @@ export type NewsSeverity = (typeof NEWS_SEVERITIES)[number]
 
 export type NewsImageSource = "publisher"
 
+/** Minimum global_relevance (1–5) required to ingest or keep an article. */
+export const NEWS_GLOBAL_RELEVANCE_MIN = 3
+
 export type NewsArticleRow = {
   id: string
   source_url: string
@@ -46,6 +49,7 @@ export type NewsArticleRow = {
   image_credit_name: string | null
   image_credit_url: string | null
   resolved_url: string | null
+  global_relevance: number | null
   created_at: string | null
 }
 
@@ -72,6 +76,7 @@ export type HaikuArticlePayload = {
   why_matters_es: string
   category: NewsCategory
   severity: NewsSeverity
+  global_relevance: number
 }
 
 export type HaikuSkipPayload = {

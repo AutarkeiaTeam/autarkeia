@@ -8,7 +8,7 @@ import {
   type ParsedRssItem,
 } from "@/lib/news-types"
 
-const SYSTEM_PROMPT = `You are a preparedness-focused editor for Autarkeia, a platform for emergency readiness and household self-sufficiency. Read the news item below (title, snippet, source URL).
+export const HAIKU_SYSTEM_PROMPT = `You are a preparedness-focused editor for Autarkeia, a platform for emergency readiness and household self-sufficiency. Read the news item below (title, snippet, source URL).
 
 If the article is opinion/PR/paywalled with no real content, or the snippet contains no actual news, return ONLY: {"skip": true, "reason": "<short reason>"} — do NOT generate translations.
 
@@ -22,7 +22,8 @@ Otherwise return ONLY valid JSON with these fields (no markdown, no backticks, n
   "why_matters_en": string (STRICT max 200 chars, ONE practical idea — exceeding this will be truncated mid-sentence and look bad),
   "why_matters_es": string (STRICT max 200 chars, ONE practical idea — exceeding this will be truncated mid-sentence and look bad),
   "category": one of: water, food, energy, medical, communications, shelter, climate, geopolitics, economy, infrastructure, security, other,
-  "severity": one of: low, medium, high, critical
+  "severity": one of: low, medium, high, critical,
+  "global_relevance": integer 1–5 (how globally relevant this story is for emergency-readiness planning)
 }
 
 Rules:
@@ -34,7 +35,18 @@ Severity scale (be conservative — critical/high are rare):
 - critical: declared widespread emergency, active casualty events, system-level failures actively underway
 - high: active emergency in one region OR confirmed serious disruption underway
 - medium: official warnings/advisories, conservation appeals, elevated risk forecasts, single-incident situations
-- low: informational, preparedness-relevant context, distant or minor household impact`
+- low: informational, preparedness-relevant context, distant or minor household impact
+
+Global relevance scale (score the story's usefulness to Autarkeia users worldwide):
+- 1: hyper-local incident with no broader implications (single-home fire, local arrests, small-town accidents, school events, one-off neighborhood crime)
+- 2: regional event with limited reach (county-level natural disaster, state-level policy, regional outage, local infrastructure failure)
+- 3: significant national event (national policy change, major US/EU/large-country disaster, large-scale outbreak, nationwide grid or supply disruption)
+- 4: multi-national or globally newsworthy event (geopolitical conflict, pandemic spread, cross-border crisis, climate tipping points, international sanctions)
+- 5: world-shaping event (major war, global pandemic, economic collapse, mass casualty disaster, worldwide systemic failure)
+
+When scoring global_relevance, weigh: scale of impact, number of people affected, cross-border relevance, and whether an Autarkeia user anywhere in the world would benefit from knowing this for emergency-readiness planning. Be strict — most local crime and single-building incidents are 1.`
+
+const SYSTEM_PROMPT = HAIKU_SYSTEM_PROMPT
 
 const LENGTH_CAPS = {
   title_en: 140,
@@ -94,6 +106,12 @@ function isSkipPayload(obj: Record<string, unknown>): HaikuSkipPayload | null {
   return null
 }
 
+function parseGlobalRelevance(value: unknown): number | null {
+  const score = typeof value === "number" ? value : Number(value)
+  if (!Number.isInteger(score) || score < 1 || score > 5) return null
+  return score
+}
+
 export function validateHaikuArticle(
   obj: Record<string, unknown>
 ): { payload: HaikuArticlePayload; truncated: boolean } | { error: string } {
@@ -115,6 +133,11 @@ export function validateHaikuArticle(
     if (typeof obj[key] !== "string" || !String(obj[key]).trim()) {
       return { error: `missing_${key}` }
     }
+  }
+
+  const global_relevance = parseGlobalRelevance(obj.global_relevance)
+  if (global_relevance == null) {
+    return { error: "invalid_global_relevance" }
   }
 
   const category = String(obj.category).trim() as NewsCategory
@@ -141,6 +164,7 @@ export function validateHaikuArticle(
 
   payload.category = category
   payload.severity = severity
+  payload.global_relevance = global_relevance
 
   return { payload, truncated }
 }
@@ -166,7 +190,7 @@ export async function processArticleWithHaiku(
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 600,
+      max_tokens: 650,
       temperature: 0.2,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: buildUserMessage(item) }],

@@ -9,6 +9,7 @@ import {
 } from "@/lib/news-title-similarity"
 import {
   NEWS_CANDIDATE_CAP,
+  NEWS_GLOBAL_RELEVANCE_MIN,
   NEWS_HARD_CAP,
   NEWS_RETENTION_DAYS,
   type NewsSyncSummary,
@@ -129,6 +130,11 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
       continue
     }
 
+    if (result.payload.global_relevance < NEWS_GLOBAL_RELEVANCE_MIN) {
+      articles_skipped++
+      continue
+    }
+
     if (!item.image_url) {
       articles_skipped++
       continue
@@ -152,6 +158,7 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
       image_credit_name: item.image_credit_name,
       image_credit_url: item.image_credit_url,
       resolved_url: item.resolved_url,
+      global_relevance: result.payload.global_relevance,
     })
 
     if (insertError) {
