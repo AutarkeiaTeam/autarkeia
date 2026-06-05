@@ -2,6 +2,7 @@ import { NewsHeroImage } from "@/components/news/news-hero-image"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
 import { listNewsArticles } from "@/lib/news-db"
+import { sanitizeNewsImageUrl } from "@/lib/news-image-url"
 import { formatNewsRelativeTime } from "@/lib/news-relative-time"
 import type { NewsArticleRow, NewsSeverity } from "@/lib/news-types"
 
@@ -87,12 +88,11 @@ function NewsArticleCard({
     severityClasses[severity] ?? severityClasses.low
   const catKey = categoryKey(article.category)
   const categoryLabel = translate(locale, catKey) !== catKey ? t(catKey) : article.category
+  const heroImage = sanitizeNewsImageUrl(article.image_url)
 
   return (
     <article className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
-      {article.image_url ? (
-        <NewsHeroImage src={article.image_url} alt={title} />
-      ) : null}
+      {heroImage ? <NewsHeroImage src={heroImage} alt={title} /> : null}
       <div className="p-5">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white capitalize">

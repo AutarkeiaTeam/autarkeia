@@ -9,44 +9,6 @@ const parser = new XMLParser({
   trimValues: true,
 })
 
-const IMAGE_CDN_HOST_SUFFIXES = [
-  "googleusercontent.com",
-  "ggpht.com",
-  "gstatic.com",
-  "ytimg.com",
-  "bbci.co.uk",
-  "bbc.com",
-  "reutersmedia.net",
-  "reuters.com",
-  "cloudfront.net",
-  "akamaized.net",
-  "wp.com",
-  "wordpress.com",
-  "imgur.com",
-  "cdn.ampproject.org",
-  "ampproject.org",
-  "cnn.com",
-  "nytimes.com",
-  "washingtonpost.com",
-  "theguardian.com",
-  "apnews.com",
-  "npr.org",
-  "pbs.org",
-  "aljazeera.com",
-  "france24.com",
-  "dw.com",
-  "euronews.com",
-  "politico.com",
-  "axios.com",
-  "substackcdn.com",
-  "medium.com",
-  "licdn.com",
-  "fbcdn.net",
-  "twimg.com",
-]
-
-const IMAGE_EXTENSIONS = /\.(jpe?g|png|webp)(\?|$)/i
-
 function asArray<T>(value: T | T[] | undefined): T[] {
   if (value == null) return []
   return Array.isArray(value) ? value : [value]

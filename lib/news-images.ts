@@ -1,4 +1,7 @@
-import { isValidNewsImageUrl } from "@/lib/news-image-url"
+import {
+  isValidNewsImageUrl,
+  sanitizeNewsImageUrl,
+} from "@/lib/news-image-url"
 import type { ParsedRssItem } from "@/lib/news-types"
 
 export const NEWS_OG_USER_AGENT =
@@ -76,6 +79,13 @@ function metaTagContent(html: string, attr: "property" | "name", key: string): s
   return null
 }
 
+function firstImgInArticle(html: string): string | null {
+  const articleMatch = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)
+  if (!articleMatch?.[1]) return null
+  const imgMatch = articleMatch[1].match(/<img[^>]+src=["']([^"']+)["']/i)
+  return imgMatch?.[1]?.trim() ?? null
+}
+
 function linkImageSrc(html: string): string | null {
   const match = html.match(
     /<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["']/i
@@ -94,23 +104,25 @@ function boundedHtml(raw: string): string {
 /**
  * Search the full bounded HTML for OG/Twitter image meta tags (regex, any position).
  */
+function pickResolvableImage(raw: string | null, pageUrl: string): string | null {
+  if (!raw) return null
+  const resolved = resolveHttpsUrl(raw, pageUrl)
+  if (!resolved || !isValidNewsImageUrl(resolved)) return null
+  return sanitizeNewsImageUrl(resolved)
+}
+
 export function extractOgImageFromHtml(html: string, pageUrl: string): string | null {
   const scan = boundedHtml(html)
 
   for (const spec of OG_META_SPECS) {
-    const raw = metaTagContent(scan, spec.attr, spec.key)
-    if (!raw) continue
-    const resolved = resolveHttpsUrl(raw, pageUrl)
-    if (resolved && isValidNewsImageUrl(resolved)) return resolved
+    const picked = pickResolvableImage(metaTagContent(scan, spec.attr, spec.key), pageUrl)
+    if (picked) return picked
   }
 
-  const linkRaw = linkImageSrc(scan)
-  if (linkRaw) {
-    const resolved = resolveHttpsUrl(linkRaw, pageUrl)
-    if (resolved && isValidNewsImageUrl(resolved)) return resolved
-  }
+  const fromLink = pickResolvableImage(linkImageSrc(scan), pageUrl)
+  if (fromLink) return fromLink
 
-  return null
+  return pickResolvableImage(firstImgInArticle(scan), pageUrl)
 }
 
 function logOgFetch(payload: Record<string, unknown>): void {
@@ -276,8 +288,8 @@ export async function enrichCandidatesWithOgImages(
     const settled = await Promise.allSettled(
       batch.map(async (item) => {
         const fromOg = await resolveArticleImage(item.source_url)
-        const image_url = fromOg ?? item.image_url ?? null
-        return { enriched: { ...item, image_url } as ParsedRssItem, fromOg }
+        const image_url = sanitizeNewsImageUrl(fromOg)
+        return { enriched: { ...item, image_url } as ParsedRssItem, fromOg: image_url }
       })
     )
 

@@ -13,7 +13,7 @@ export function NewsHeroImage({ src, alt }: Props) {
   if (hidden) return null
 
   return (
-    <div className="aspect-video w-full overflow-hidden bg-white/5">
+    <div className="h-48 w-full shrink-0 overflow-hidden bg-white/5">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}

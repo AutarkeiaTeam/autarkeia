@@ -1,7 +1,13 @@
-const IMAGE_CDN_HOST_SUFFIXES = [
-  "googleusercontent.com",
-  "ggpht.com",
+/** Google-hosted imagery (RSS icons, News branding, OG on news.google.com wrappers). */
+const GOOGLE_IMAGE_HOST_SUFFIXES = [
+  "news.google.com",
+  "google.com",
   "gstatic.com",
+  "ggpht.com",
+  "googleusercontent.com",
+]
+
+const IMAGE_CDN_HOST_SUFFIXES = [
   "ytimg.com",
   "bbci.co.uk",
   "bbc.com",
@@ -65,22 +71,46 @@ function hostLooksLikeImageCdn(hostname: string): boolean {
   )
 }
 
+function parseHttpsUrl(rawUrl: string): URL | null {
+  const trimmed = rawUrl.trim()
+  if (!trimmed || trimmed.startsWith("data:")) return null
+  try {
+    const parsed = new URL(trimmed)
+    if (parsed.protocol !== "https:") return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+/** True when the URL is Google News branding / RSS iconography, not a publisher hero. */
+export function isGoogleHostedImageUrl(rawUrl: string): boolean {
+  const parsed = parseHttpsUrl(rawUrl)
+  if (!parsed) return false
+  const host = parsed.hostname.toLowerCase()
+  return GOOGLE_IMAGE_HOST_SUFFIXES.some(
+    (suffix) => host === suffix || host.endsWith(`.${suffix}`)
+  )
+}
+
+/** Normalize for DB storage and UI — null when missing, Google-hosted, or invalid. */
+export function sanitizeNewsImageUrl(rawUrl: string | null | undefined): string | null {
+  if (!rawUrl?.trim()) return null
+  const trimmed = rawUrl.trim()
+  if (isGoogleHostedImageUrl(trimmed)) return null
+  if (!isValidNewsImageUrl(trimmed)) return null
+  return trimmed
+}
+
 /** Shared validation for RSS media URLs and OG/Twitter meta images. */
 export function isValidNewsImageUrl(
   rawUrl: string,
   dimensions?: { width?: unknown; height?: unknown }
 ): boolean {
-  const trimmed = rawUrl.trim()
-  if (!trimmed || trimmed.startsWith("data:")) return false
+  const parsed = parseHttpsUrl(rawUrl)
+  if (!parsed) return false
 
-  let parsed: URL
-  try {
-    parsed = new URL(trimmed)
-  } catch {
-    return false
-  }
-
-  if (parsed.protocol !== "https:") return false
+  if (isGoogleHostedImageUrl(parsed.href)) return false
 
   const width = parseDimension(dimensions?.width)
   const height = parseDimension(dimensions?.height)
