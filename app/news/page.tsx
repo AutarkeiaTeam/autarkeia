@@ -118,7 +118,7 @@ function NewsArticleCard({
           {t("news.read_source")}
         </p>
         <a
-          href={article.source_url}
+          href={article.resolved_url ?? article.source_url}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-2 inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/15 hover:text-[#71d8be]"

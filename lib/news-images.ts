@@ -2,6 +2,7 @@ import {
   isValidNewsImageUrl,
   sanitizeNewsImageUrl,
 } from "@/lib/news-image-url"
+import { resolveNewsSourceUrl, storablePublisherUrl } from "@/lib/news-source-url"
 import type { ParsedRssItem } from "@/lib/news-types"
 
 export const NEWS_OG_USER_AGENT =
@@ -166,8 +167,12 @@ export async function resolvePublisherUrl(sourceUrl: string): Promise<string | n
 }
 
 /** Resolve hero image from publisher Open Graph / Twitter meta tags. */
-export async function resolveArticleImage(sourceUrl: string): Promise<string | null> {
-  let current = sourceUrl
+export async function resolveArticleImage(
+  sourceUrl: string,
+  publisherFetchUrl?: string
+): Promise<string | null> {
+  const fetchUrl = publisherFetchUrl ?? (await resolveNewsSourceUrl(sourceUrl))
+  let current = fetchUrl
   const hops: { status: number; url: string }[] = []
 
   for (let hop = 0; hop < MAX_REDIRECTS; hop++) {
@@ -182,6 +187,7 @@ export async function resolveArticleImage(sourceUrl: string): Promise<string | n
     } catch (err) {
       logOgFetch({
         source_url: sourceUrl,
+        fetch_url: fetchUrl,
         hops,
         reason: "fetch_error",
         error: err instanceof Error ? err.name : "unknown",
@@ -209,6 +215,7 @@ export async function resolveArticleImage(sourceUrl: string): Promise<string | n
       if (!next) {
         logOgFetch({
           source_url: sourceUrl,
+          fetch_url: fetchUrl,
           hops,
           reason: "redirect_location_invalid",
           location,
@@ -223,6 +230,7 @@ export async function resolveArticleImage(sourceUrl: string): Promise<string | n
     if (res.status === 403 || res.status === 401) {
       logOgFetch({
         source_url: sourceUrl,
+        fetch_url: fetchUrl,
         hops,
         final_url: res.url || current,
         reason: `http_${res.status}`,
@@ -234,6 +242,7 @@ export async function resolveArticleImage(sourceUrl: string): Promise<string | n
     if (!res.ok) {
       logOgFetch({
         source_url: sourceUrl,
+        fetch_url: fetchUrl,
         hops,
         final_url: res.url || current,
         reason: `http_${res.status}`,
@@ -249,6 +258,7 @@ export async function resolveArticleImage(sourceUrl: string): Promise<string | n
 
     logOgFetch({
       source_url: sourceUrl,
+      fetch_url: fetchUrl,
       hops,
       final_url: pageUrl,
       html_bytes: rawHtml.length,
@@ -262,6 +272,7 @@ export async function resolveArticleImage(sourceUrl: string): Promise<string | n
 
   logOgFetch({
     source_url: sourceUrl,
+    fetch_url: fetchUrl,
     hops,
     final_url: current,
     reason: "max_redirects_exceeded",
@@ -287,9 +298,14 @@ export async function enrichCandidatesWithOgImages(
     const batch = candidates.slice(i, i + OG_IMAGE_BATCH_SIZE)
     const settled = await Promise.allSettled(
       batch.map(async (item) => {
-        const fromOg = await resolveArticleImage(item.source_url)
+        const publisherUrl = await resolveNewsSourceUrl(item.source_url)
+        const fromOg = await resolveArticleImage(item.source_url, publisherUrl)
         const image_url = sanitizeNewsImageUrl(fromOg)
-        return { enriched: { ...item, image_url } as ParsedRssItem, fromOg: image_url }
+        const resolved_url = storablePublisherUrl(item.source_url, publisherUrl)
+        return {
+          enriched: { ...item, image_url, resolved_url } as ParsedRssItem,
+          fromOg: image_url,
+        }
       })
     )
 
