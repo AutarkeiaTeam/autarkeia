@@ -54,6 +54,17 @@ const IMAGE_CDN_HOST_SUFFIXES = [
 
 const IMAGE_EXTENSIONS = /\.(jpe?g|png|webp)(\?|$)/i
 
+const SUSPICIOUS_OG_SUBSTRINGS = [
+  "logo",
+  "icon",
+  "default",
+  "placeholder",
+  "share",
+  "social",
+]
+
+export const MIN_OG_IMAGE_BYTES = 10_240
+
 function parseDimension(value: unknown): number | null {
   if (value == null) return null
   const n = Number(value)
@@ -83,6 +94,12 @@ function parseHttpsUrl(rawUrl: string): URL | null {
   } catch {
     return null
   }
+}
+
+/** Reject generic publisher OG assets (logos, share cards, placeholders). */
+export function isSuspiciousOgImageUrl(rawUrl: string): boolean {
+  const lower = rawUrl.toLowerCase()
+  return SUSPICIOUS_OG_SUBSTRINGS.some((token) => lower.includes(token))
 }
 
 /** True when the URL is Google News branding / RSS iconography, not a publisher hero. */
@@ -122,4 +139,28 @@ export function isValidNewsImageUrl(
   if (IMAGE_EXTENSIONS.test(pathAndQuery)) return true
 
   return hostLooksLikeImageCdn(parsed.hostname)
+}
+
+/** HEAD check — true when Content-Length is present and below ~10KB (likely a logo). */
+export async function isOgImageTooSmall(
+  rawUrl: string,
+  userAgent: string
+): Promise<boolean> {
+  try {
+    const res = await fetch(rawUrl, {
+      method: "HEAD",
+      redirect: "follow",
+      signal: AbortSignal.timeout(5_000),
+      headers: { "User-Agent": userAgent },
+    })
+    if (!res.ok) return false
+
+    const contentLength = res.headers.get("content-length")
+    if (!contentLength) return false
+
+    const bytes = Number(contentLength)
+    return Number.isFinite(bytes) && bytes > 0 && bytes < MIN_OG_IMAGE_BYTES
+  } catch {
+    return false
+  }
 }

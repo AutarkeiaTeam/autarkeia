@@ -3,8 +3,12 @@ import {
   pixabayQueryHasHits,
   resolvePixabayImage,
 } from "@/lib/news-fallback-image"
-import { sanitizeNewsImageUrl } from "@/lib/news-image-url"
-import { resolveArticleImage } from "@/lib/news-images"
+import {
+  isOgImageTooSmall,
+  isSuspiciousOgImageUrl,
+  sanitizeNewsImageUrl,
+} from "@/lib/news-image-url"
+import { NEWS_OG_USER_AGENT, resolveArticleImage } from "@/lib/news-images"
 import {
   resolveNewsSourceUrl,
   storablePublisherUrl,
@@ -25,6 +29,16 @@ const emptyCredits = {
   image_credit_url: null as string | null,
 }
 
+async function acceptPublisherOgImage(
+  rawUrl: string | null
+): Promise<string | null> {
+  const sanitized = sanitizeNewsImageUrl(rawUrl)
+  if (!sanitized) return null
+  if (isSuspiciousOgImageUrl(sanitized)) return null
+  if (await isOgImageTooSmall(sanitized, NEWS_OG_USER_AGENT)) return null
+  return sanitized
+}
+
 async function pixabayImageFields(
   query: string
 ): Promise<Pick<
@@ -42,12 +56,40 @@ async function pixabayImageFields(
   }
 }
 
+async function resolvePixabayFallback(
+  title: string,
+  category?: string | null
+): Promise<Pick<
+  NewsImageFields,
+  "image_url" | "image_source" | "image_credit_name" | "image_credit_url"
+>> {
+  const titleQuery = buildPixabayQuery(title)
+  const fromTitle = await pixabayImageFields(titleQuery)
+  if (fromTitle) return fromTitle
+
+  const titleHadHits = await pixabayQueryHasHits(titleQuery)
+  if (!titleHadHits && category) {
+    const fromCategory = await pixabayImageFields(
+      category.trim().toLowerCase()
+    )
+    if (fromCategory) return fromCategory
+  }
+
+  return {
+    image_url: null,
+    image_source: null,
+    ...emptyCredits,
+  }
+}
+
 /** Publisher OG → Pixabay (title) → Pixabay (category, only if title has zero hits) → null. */
 export async function resolveNewsArticleImages(options: {
   sourceUrl: string
   title: string
   category?: string | null
   cachedResolvedUrl?: string | null
+  /** Skip publisher OG — re-resolve Pixabay fallback only. */
+  pixabayOnly?: boolean
 }): Promise<NewsImageFields> {
   const publisherUrl = await resolveNewsSourceUrl(
     options.sourceUrl,
@@ -55,40 +97,25 @@ export async function resolveNewsArticleImages(options: {
   )
   const resolved_url = storablePublisherUrl(options.sourceUrl, publisherUrl)
 
-  const fromOg = sanitizeNewsImageUrl(
-    await resolveArticleImage(options.sourceUrl, publisherUrl)
-  )
-  if (fromOg) {
-    return {
-      image_url: fromOg,
-      image_source: "publisher",
-      ...emptyCredits,
-      resolved_url,
-    }
-  }
-
-  const titleQuery = buildPixabayQuery(options.title)
-  const fromTitle = await pixabayImageFields(titleQuery)
-  if (fromTitle) {
-    return { ...fromTitle, resolved_url }
-  }
-
-  const titleHadHits = await pixabayQueryHasHits(titleQuery)
-  if (!titleHadHits && options.category) {
-    const fromCategory = await pixabayImageFields(
-      options.category.trim().toLowerCase()
+  if (!options.pixabayOnly) {
+    const fromOg = await acceptPublisherOgImage(
+      await resolveArticleImage(options.sourceUrl, publisherUrl)
     )
-    if (fromCategory) {
-      return { ...fromCategory, resolved_url }
+    if (fromOg) {
+      return {
+        image_url: fromOg,
+        image_source: "publisher",
+        ...emptyCredits,
+        resolved_url,
+      }
     }
   }
 
-  return {
-    image_url: null,
-    image_source: null,
-    ...emptyCredits,
-    resolved_url,
-  }
+  const fallback = await resolvePixabayFallback(
+    options.title,
+    options.category
+  )
+  return { ...fallback, resolved_url }
 }
 
 /** Category Pixabay only when title query returned zero Pixabay hits (post-Haiku). */
