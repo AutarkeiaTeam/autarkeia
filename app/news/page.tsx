@@ -91,43 +91,50 @@ function NewsArticleCard({
   const heroImage = sanitizeNewsImageUrl(article.image_url)
 
   return (
-    <article className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
-      {heroImage ? <NewsHeroImage src={heroImage} alt={title} /> : null}
-      <div className="p-5">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white capitalize">
-          {categoryLabel}
-        </span>
-        <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${severityClass}`}>
-          {t(severityKey(article.severity))}
-        </span>
-        {relativeTime ? (
-          <span className="text-xs text-white/40 ml-auto">{relativeTime}</span>
-        ) : null}
+    <article className="flex flex-col-reverse overflow-hidden rounded-xl border border-white/10 bg-white/5 md:flex-row">
+      <div className="min-w-0 flex-1 p-5 md:w-[65%]">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white capitalize">
+            {categoryLabel}
+          </span>
+          <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${severityClass}`}>
+            {t(severityKey(article.severity))}
+          </span>
+          {relativeTime ? (
+            <span className="text-xs text-white/40 ml-auto">{relativeTime}</span>
+          ) : null}
+        </div>
+        <h2 className="mt-2 text-lg font-medium text-white">{title}</h2>
+        <p className="mt-2 text-sm text-white/70">{summary}</p>
+        <div className="mt-3 rounded-lg border-l-2 border-[#009b70] bg-[#e8f8f3] px-3 py-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
+            {t("news.why_matters")}
+          </p>
+          <p className="text-xs text-[#0d1b2a] mt-1">{whyMatters}</p>
+        </div>
+        <div className="mt-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-white/50">
+            {t("news.read_source")}
+          </p>
+          <a
+            href={article.resolved_url ?? article.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/15 hover:text-[#71d8be]"
+          >
+            {article.source_name ?? t("news.source_fallback")}
+            <span aria-hidden>↗</span>
+          </a>
+        </div>
       </div>
-      <h2 className="mt-2 text-lg font-medium text-white">{title}</h2>
-      <p className="mt-2 text-sm text-white/70">{summary}</p>
-      <div className="mt-3 rounded-lg border-l-2 border-[#009b70] bg-[#e8f8f3] px-3 py-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
-          {t("news.why_matters")}
-        </p>
-        <p className="text-xs text-[#0d1b2a] mt-1">{whyMatters}</p>
-      </div>
-      <div className="mt-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-white/50">
-          {t("news.read_source")}
-        </p>
-        <a
-          href={article.resolved_url ?? article.source_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/15 hover:text-[#71d8be]"
-        >
-          {article.source_name ?? t("news.source_fallback")}
-          <span aria-hidden>↗</span>
-        </a>
-      </div>
-      </div>
+      {heroImage ? (
+        <NewsHeroImage
+          src={heroImage}
+          alt={title}
+          className="w-full shrink-0 border-b border-white/10 p-3 md:w-[35%] md:max-w-xs md:self-stretch md:border-b-0 md:border-l md:p-4 lg:max-w-sm"
+          imgClassName="h-auto w-full md:h-full md:max-h-full md:w-full"
+        />
+      ) : null}
     </article>
   )
 }
