@@ -20,22 +20,14 @@ export function NewsHeroImage({ src, alt, className, imgClassName }: Props) {
   if (hidden) return null
 
   return (
-    <div
-      className={cn(
-        "flex w-full items-center justify-center bg-white/[0.03]",
-        className
-      )}
-    >
+    <div className={cn("overflow-hidden", className)}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={proxiedNewsImageSrc(src)}
         alt={alt}
         loading="lazy"
         referrerPolicy="no-referrer"
-        className={cn(
-          "h-auto w-full max-h-96 object-contain",
-          imgClassName
-        )}
+        className={cn("h-full w-full object-cover", imgClassName)}
         onError={() => setHidden(true)}
       />
     </div>

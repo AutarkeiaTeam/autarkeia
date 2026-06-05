@@ -92,15 +92,27 @@ function NewsArticleCard({
   const heroImage = sanitizeNewsImageUrl(article.image_url)
 
   return (
-    <article className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+    <article
+      className={
+        heroImage
+          ? "flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white/5 md:flex-row"
+          : "overflow-hidden rounded-xl border border-white/10 bg-white/5"
+      }
+    >
       {heroImage ? (
         <NewsHeroImage
           src={heroImage}
           alt={title}
-          className="border-b border-white/10 p-3"
+          className="order-first h-56 w-full shrink-0 md:order-last md:h-auto md:w-[35%] md:self-stretch"
         />
       ) : null}
-      <div className="p-5">
+      <div
+        className={
+          heroImage
+            ? "order-last min-w-0 flex-1 p-5 md:order-first md:w-[65%]"
+            : "p-5"
+        }
+      >
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white capitalize">
             {categoryLabel}
