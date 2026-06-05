@@ -6,7 +6,8 @@ export const NEWS_OG_USER_AGENT =
 
 const FETCH_TIMEOUT_MS = 5000
 const MAX_REDIRECTS = 5
-const HTML_SCAN_BYTES = 200_000
+/** Cap downloaded HTML; Google News places og:image around ~577k. */
+const HTML_SCAN_BYTES = 800_000
 export const OG_IMAGE_BATCH_SIZE = 8
 
 const OG_META_SPECS: { attr: "property" | "name"; key: string }[] = [
@@ -86,8 +87,15 @@ function linkImageSrc(html: string): string | null {
   return alt?.[1] ?? null
 }
 
+function boundedHtml(raw: string): string {
+  return raw.length <= HTML_SCAN_BYTES ? raw : raw.slice(0, HTML_SCAN_BYTES)
+}
+
+/**
+ * Search the full bounded HTML for OG/Twitter image meta tags (regex, any position).
+ */
 export function extractOgImageFromHtml(html: string, pageUrl: string): string | null {
-  const scan = html.slice(0, HTML_SCAN_BYTES)
+  const scan = boundedHtml(html)
 
   for (const spec of OG_META_SPECS) {
     const raw = metaTagContent(scan, spec.attr, spec.key)
@@ -103,6 +111,10 @@ export function extractOgImageFromHtml(html: string, pageUrl: string): string | 
   }
 
   return null
+}
+
+function logOgFetch(payload: Record<string, unknown>): void {
+  console.log("[news-og]", JSON.stringify(payload))
 }
 
 const HTML_ACCEPT = "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8"
@@ -144,6 +156,7 @@ export async function resolvePublisherUrl(sourceUrl: string): Promise<string | n
 /** Resolve hero image from publisher Open Graph / Twitter meta tags. */
 export async function resolveArticleImage(sourceUrl: string): Promise<string | null> {
   let current = sourceUrl
+  const hops: { status: number; url: string }[] = []
 
   for (let hop = 0; hop < MAX_REDIRECTS; hop++) {
     let res: Response
@@ -154,27 +167,94 @@ export async function resolveArticleImage(sourceUrl: string): Promise<string | n
         signal: fetchSignal(),
         headers: fetchHeaders(HTML_ACCEPT),
       })
-    } catch {
+    } catch (err) {
+      logOgFetch({
+        source_url: sourceUrl,
+        hops,
+        reason: "fetch_error",
+        error: err instanceof Error ? err.name : "unknown",
+        message: err instanceof Error ? err.message : String(err),
+        og_image: null,
+      })
       return null
     }
 
+    hops.push({ status: res.status, url: current })
+
     if (res.status >= 300 && res.status < 400) {
       const location = res.headers.get("location")
-      if (!location) return null
+      if (!location) {
+        logOgFetch({
+          source_url: sourceUrl,
+          hops,
+          final_url: res.url || current,
+          reason: "redirect_missing_location",
+          og_image: null,
+        })
+        return null
+      }
       const next = resolveHttpsUrl(location, current)
-      if (!next) return null
+      if (!next) {
+        logOgFetch({
+          source_url: sourceUrl,
+          hops,
+          reason: "redirect_location_invalid",
+          location,
+          og_image: null,
+        })
+        return null
+      }
       current = next
       continue
     }
 
-    if (res.status === 403 || res.status === 401) return null
-    if (!res.ok) return null
+    if (res.status === 403 || res.status === 401) {
+      logOgFetch({
+        source_url: sourceUrl,
+        hops,
+        final_url: res.url || current,
+        reason: `http_${res.status}`,
+        og_image: null,
+      })
+      return null
+    }
+
+    if (!res.ok) {
+      logOgFetch({
+        source_url: sourceUrl,
+        hops,
+        final_url: res.url || current,
+        reason: `http_${res.status}`,
+        og_image: null,
+      })
+      return null
+    }
 
     const pageUrl = res.url || current
-    const html = (await res.text()).slice(0, HTML_SCAN_BYTES)
-    return extractOgImageFromHtml(html, pageUrl)
+    const rawHtml = await res.text()
+    const html = boundedHtml(rawHtml)
+    const image = extractOgImageFromHtml(html, pageUrl)
+
+    logOgFetch({
+      source_url: sourceUrl,
+      hops,
+      final_url: pageUrl,
+      html_bytes: rawHtml.length,
+      scanned_bytes: html.length,
+      og_image: image,
+      reason: image ? "resolved" : "og_meta_not_found_or_rejected",
+    })
+
+    return image
   }
 
+  logOgFetch({
+    source_url: sourceUrl,
+    hops,
+    final_url: current,
+    reason: "max_redirects_exceeded",
+    og_image: null,
+  })
   return null
 }
 
@@ -208,6 +288,12 @@ export async function enrichCandidatesWithOgImages(
         if (result.value.fromOg) og_image_resolved++
       } else {
         const fallback = batch[j]
+        logOgFetch({
+          source_url: fallback.source_url,
+          reason: "promise_rejected",
+          error: String(result.reason),
+          og_image: null,
+        })
         items.push({ ...fallback, image_url: fallback.image_url ?? null })
       }
     }
