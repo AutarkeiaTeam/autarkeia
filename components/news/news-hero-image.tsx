@@ -22,7 +22,7 @@ export function NewsHeroImage({ src, alt, className, imgClassName }: Props) {
   return (
     <div
       className={cn(
-        "flex items-center justify-center bg-white/[0.03]",
+        "flex w-full items-center justify-center bg-white/[0.03]",
         className
       )}
     >
@@ -32,7 +32,10 @@ export function NewsHeroImage({ src, alt, className, imgClassName }: Props) {
         alt={alt}
         loading="lazy"
         referrerPolicy="no-referrer"
-        className={cn("object-contain", imgClassName)}
+        className={cn(
+          "h-auto w-full max-h-96 object-contain",
+          imgClassName
+        )}
         onError={() => setHidden(true)}
       />
     </div>
