@@ -1,6 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { processArticleWithHaiku } from "@/lib/news-ai"
 import { NEWS_FEEDS } from "@/lib/news-feeds"
+import { clearUnsplashImageCache } from "@/lib/news-fallback-image"
+import { applyCategoryUnsplashFallback } from "@/lib/news-image-resolve"
 import { enrichCandidatesWithOgImages } from "@/lib/news-images"
 import { fetchNewsFeedItems } from "@/lib/news-rss"
 import {
@@ -32,6 +34,7 @@ function dedupeCandidates(items: ParsedRssItem[]): ParsedRssItem[] {
 }
 
 export async function runNewsSync(): Promise<NewsSyncSummary> {
+  clearUnsplashImageCache()
   const started = Date.now()
   const errors: NewsSyncSummary["errors"] = []
   let articles_fetched = 0
@@ -97,6 +100,17 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
       continue
     }
 
+    const images = await applyCategoryUnsplashFallback(
+      {
+        image_url: item.image_url,
+        image_source: item.image_source ?? null,
+        image_credit_name: item.image_credit_name ?? null,
+        image_credit_url: item.image_credit_url ?? null,
+        resolved_url: item.resolved_url ?? null,
+      },
+      result.payload.category
+    )
+
     const { error: insertError } = await admin.from("news_articles").insert({
       source_url: item.source_url,
       source_name: item.source_name,
@@ -110,8 +124,11 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
       category: result.payload.category,
       severity: result.payload.severity,
       topic_query: item.topic_query,
-      image_url: item.image_url,
-      resolved_url: item.resolved_url ?? null,
+      image_url: images.image_url,
+      image_source: images.image_source,
+      image_credit_name: images.image_credit_name,
+      image_credit_url: images.image_credit_url,
+      resolved_url: images.resolved_url,
     })
 
     if (insertError) {

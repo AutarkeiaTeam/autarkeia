@@ -24,6 +24,8 @@ export const NEWS_SEVERITIES = ["low", "medium", "high", "critical"] as const
 
 export type NewsSeverity = (typeof NEWS_SEVERITIES)[number]
 
+export type NewsImageSource = "publisher" | "unsplash"
+
 export type NewsArticleRow = {
   id: string
   source_url: string
@@ -40,6 +42,9 @@ export type NewsArticleRow = {
   severity: string
   topic_query: string | null
   image_url: string | null
+  image_source: string | null
+  image_credit_name: string | null
+  image_credit_url: string | null
   resolved_url: string | null
   created_at: string | null
 }
@@ -52,6 +57,9 @@ export type ParsedRssItem = {
   raw_snippet: string
   topic_query: string
   image_url: string | null
+  image_source?: NewsImageSource | null
+  image_credit_name?: string | null
+  image_credit_url?: string | null
   resolved_url?: string | null
 }
 

@@ -8,6 +8,8 @@ const GOOGLE_IMAGE_HOST_SUFFIXES = [
 ]
 
 const IMAGE_CDN_HOST_SUFFIXES = [
+  "images.unsplash.com",
+  "plus.unsplash.com",
   "ytimg.com",
   "bbci.co.uk",
   "bbc.com",

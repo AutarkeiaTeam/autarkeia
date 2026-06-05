@@ -1244,6 +1244,8 @@
   "news.category.shelter": "Refugio",
   "news.category.water": "Agua",
   "news.empty_state": "Aún no hay artículos. La sincronización diaria llenará este feed pronto.",
+  "news.image_credit_on_unsplash": "en Unsplash",
+  "news.image_credit_prefix": "Foto:",
   "news.intro": "Riesgos globales relevantes para la preparación de emergencia y la planificación de autosuficiencia.",
   "news.read_source": "Leer la noticia en la fuente",
   "news.severity.critical": "Crítico",

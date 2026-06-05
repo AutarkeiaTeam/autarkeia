@@ -2,7 +2,7 @@ import {
   isValidNewsImageUrl,
   sanitizeNewsImageUrl,
 } from "@/lib/news-image-url"
-import { resolveNewsSourceUrl, storablePublisherUrl } from "@/lib/news-source-url"
+import { resolveNewsArticleImages } from "@/lib/news-image-resolve"
 import type { ParsedRssItem } from "@/lib/news-types"
 
 export const NEWS_OG_USER_AGENT =
@@ -298,13 +298,21 @@ export async function enrichCandidatesWithOgImages(
     const batch = candidates.slice(i, i + OG_IMAGE_BATCH_SIZE)
     const settled = await Promise.allSettled(
       batch.map(async (item) => {
-        const publisherUrl = await resolveNewsSourceUrl(item.source_url)
-        const fromOg = await resolveArticleImage(item.source_url, publisherUrl)
-        const image_url = sanitizeNewsImageUrl(fromOg)
-        const resolved_url = storablePublisherUrl(item.source_url, publisherUrl)
+        const resolved = await resolveNewsArticleImages({
+          sourceUrl: item.source_url,
+          topicQuery: item.topic_query,
+          title: item.raw_title,
+        })
         return {
-          enriched: { ...item, image_url, resolved_url } as ParsedRssItem,
-          fromOg: image_url,
+          enriched: {
+            ...item,
+            image_url: resolved.image_url,
+            image_source: resolved.image_source,
+            image_credit_name: resolved.image_credit_name,
+            image_credit_url: resolved.image_credit_url,
+            resolved_url: resolved.resolved_url,
+          } as ParsedRssItem,
+          fromOg: resolved.image_source === "publisher",
         }
       })
     )
@@ -322,7 +330,13 @@ export async function enrichCandidatesWithOgImages(
           error: String(result.reason),
           og_image: null,
         })
-        items.push({ ...fallback, image_url: fallback.image_url ?? null })
+        items.push({
+          ...fallback,
+          image_url: fallback.image_url ?? null,
+          image_source: fallback.image_source ?? null,
+          image_credit_name: fallback.image_credit_name ?? null,
+          image_credit_url: fallback.image_credit_url ?? null,
+        })
       }
     }
   }

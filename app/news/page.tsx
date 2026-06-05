@@ -131,6 +131,11 @@ function NewsArticleCard({
         <NewsHeroImage
           src={heroImage}
           alt={title}
+          imageSource={article.image_source}
+          creditName={article.image_credit_name}
+          creditUrl={article.image_credit_url}
+          creditPhotoLabel={t("news.image_credit_prefix")}
+          creditOnLabel={t("news.image_credit_on_unsplash")}
           className="w-full shrink-0 border-b border-white/10 p-3 md:w-[35%] md:max-w-xs md:self-stretch md:border-b-0 md:border-l md:p-4 lg:max-w-sm"
           imgClassName="h-auto w-full md:h-full md:max-h-full md:w-full"
         />

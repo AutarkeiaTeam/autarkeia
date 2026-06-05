@@ -1,9 +1,7 @@
-import { isGoogleHostedImageUrl, sanitizeNewsImageUrl } from "@/lib/news-image-url"
-import { OG_IMAGE_BATCH_SIZE, resolveArticleImage } from "@/lib/news-images"
-import {
-  resolveNewsSourceUrl,
-  storablePublisherUrl,
-} from "@/lib/news-source-url"
+import { isGoogleHostedImageUrl } from "@/lib/news-image-url"
+import { clearUnsplashImageCache } from "@/lib/news-fallback-image"
+import { OG_IMAGE_BATCH_SIZE } from "@/lib/news-images"
+import { resolveNewsArticleImages } from "@/lib/news-image-resolve"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 export type NewsImageBackfillSummary = {
@@ -16,10 +14,13 @@ export type NewsImageBackfillSummary = {
 }
 
 export async function runNewsImageUrlBackfill(): Promise<NewsImageBackfillSummary> {
+  clearUnsplashImageCache()
   const admin = createAdminClient()
   const { data: rows, error } = await admin
     .from("news_articles")
-    .select("id, source_url, image_url, resolved_url")
+    .select(
+      "id, source_url, image_url, resolved_url, title_en, topic_query, category"
+    )
     .order("published_at", { ascending: false })
 
   if (error) throw new Error(error.message)
@@ -36,28 +37,32 @@ export async function runNewsImageUrlBackfill(): Promise<NewsImageBackfillSummar
       batch.map(async (row) => {
         const hadGoogle =
           row.image_url != null && isGoogleHostedImageUrl(row.image_url)
-        const publisherUrl = await resolveNewsSourceUrl(
-          row.source_url,
-          row.resolved_url
-        )
-        const resolved_url = storablePublisherUrl(row.source_url, publisherUrl)
-        const image = sanitizeNewsImageUrl(
-          await resolveArticleImage(row.source_url, publisherUrl)
-        )
+        const resolved = await resolveNewsArticleImages({
+          sourceUrl: row.source_url,
+          topicQuery: row.topic_query,
+          title: row.title_en,
+          category: row.category,
+          cachedResolvedUrl: row.resolved_url,
+        })
         return {
           id: row.id,
           hadGoogle,
-          image,
-          resolved_url,
+          resolved,
           previous: row.image_url,
         }
       })
     )
 
-    for (const { id, hadGoogle, image, resolved_url, previous } of results) {
+    for (const { id, hadGoogle, resolved, previous } of results) {
       const { error: updateError } = await admin
         .from("news_articles")
-        .update({ image_url: image, resolved_url })
+        .update({
+          image_url: resolved.image_url,
+          image_source: resolved.image_source,
+          image_credit_name: resolved.image_credit_name,
+          image_credit_url: resolved.image_credit_url,
+          resolved_url: resolved.resolved_url,
+        })
         .eq("id", id)
 
       if (updateError) {
@@ -67,8 +72,8 @@ export async function runNewsImageUrlBackfill(): Promise<NewsImageBackfillSummar
 
       processed++
       if (hadGoogle) cleared_google_icon++
-      if (image && image !== previous) newly_resolved++
-      if (!image) null_image++
+      if (resolved.image_url && resolved.image_url !== previous) newly_resolved++
+      if (!resolved.image_url) null_image++
     }
   }
 
