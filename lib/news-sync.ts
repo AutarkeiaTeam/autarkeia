@@ -6,6 +6,10 @@ import { applyCategoryPixabayFallback } from "@/lib/news-image-resolve"
 import { enrichCandidatesWithOgImages } from "@/lib/news-images"
 import { fetchNewsFeedItems } from "@/lib/news-rss"
 import {
+  isDuplicateOfAny,
+  NEWS_TITLE_DEDUP_HOURS,
+} from "@/lib/news-title-similarity"
+import {
   NEWS_CANDIDATE_CAP,
   NEWS_HARD_CAP,
   NEWS_RETENTION_DAYS,
@@ -22,6 +26,7 @@ export function verifyNewsCron(request: Request): boolean {
   return request.headers.get("x-cron-secret") === secret
 }
 
+/** First-level dedup: unique source_url within the merged RSS batch. */
 function dedupeCandidates(items: ParsedRssItem[]): ParsedRssItem[] {
   const seen = new Set<string>()
   const out: ParsedRssItem[] = []
@@ -30,6 +35,23 @@ function dedupeCandidates(items: ParsedRssItem[]): ParsedRssItem[] {
     seen.add(item.source_url)
     out.push(item)
   }
+  return out
+}
+
+/** Second-level dedup: skip candidates whose title matches a recent DB title or earlier candidate. */
+function dedupeCandidatesByTitle(
+  items: ParsedRssItem[],
+  recentTitles: string[]
+): ParsedRssItem[] {
+  const acceptedTitles = [...recentTitles]
+  const out: ParsedRssItem[] = []
+
+  for (const item of items) {
+    if (isDuplicateOfAny(item.raw_title, acceptedTitles)) continue
+    out.push(item)
+    acceptedTitles.push(item.raw_title)
+  }
+
   return out
 }
 
@@ -69,10 +91,14 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
   const urls = unique.map((i) => i.source_url)
   const existing = await fetchExistingUrlsAdmin(urls)
 
-  const filtered = unique
+  const urlFiltered = unique
     .filter((i) => !existing.has(i.source_url))
     .sort((a, b) => b.published_at.getTime() - a.published_at.getTime())
     .slice(0, NEWS_CANDIDATE_CAP)
+
+  const recentTitles = await fetchRecentArticleTitlesAdmin(NEWS_TITLE_DEDUP_HOURS)
+  const filtered = dedupeCandidatesByTitle(urlFiltered, recentTitles)
+  articles_skipped += urlFiltered.length - filtered.length
 
   const { items: candidates, stats: ogStats } = await enrichCandidatesWithOgImages(filtered)
   og_image_attempted = ogStats.og_image_attempted
@@ -80,6 +106,7 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
   og_image_failed = ogStats.og_image_failed
 
   const admin = createAdminClient()
+  const acceptedTitlesThisRun = [...recentTitles]
 
   for (const item of candidates) {
     if (articles_added >= NEWS_HARD_CAP) break
@@ -97,6 +124,11 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
         message: result.message,
         url: item.source_url,
       })
+      continue
+    }
+
+    if (isDuplicateOfAny(result.payload.title_en, acceptedTitlesThisRun)) {
+      articles_skipped++
       continue
     }
 
@@ -146,6 +178,7 @@ export async function runNewsSync(): Promise<NewsSyncSummary> {
     }
 
     articles_added++
+    acceptedTitlesThisRun.push(result.payload.title_en)
   }
 
   const cutoff = new Date()
@@ -215,4 +248,24 @@ async function fetchExistingUrlsAdmin(urls: string[]): Promise<Set<string>> {
   }
 
   return existing
+}
+
+async function fetchRecentArticleTitlesAdmin(hours: number): Promise<string[]> {
+  const admin = createAdminClient()
+  const since = new Date()
+  since.setTime(since.getTime() - hours * 60 * 60 * 1000)
+
+  const { data, error } = await admin
+    .from("news_articles")
+    .select("title_en")
+    .gte("published_at", since.toISOString())
+
+  if (error) {
+    console.error("[news-sync] fetchRecentArticleTitles:", error.message)
+    return []
+  }
+
+  return (data ?? [])
+    .map((row) => row.title_en?.trim())
+    .filter((title): title is string => Boolean(title))
 }

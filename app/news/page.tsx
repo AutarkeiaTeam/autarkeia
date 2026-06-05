@@ -1,6 +1,7 @@
 import { NewsHeroImage } from "@/components/news/news-hero-image"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
+import { interleaveArticlesByCategory } from "@/lib/news-display"
 import { listNewsArticles } from "@/lib/news-db"
 import { sanitizeNewsImageUrl } from "@/lib/news-image-url"
 import { formatNewsRelativeTime } from "@/lib/news-relative-time"
@@ -37,7 +38,7 @@ function categoryKey(category: string): string {
 export default async function NewsPage() {
   const locale = await getLocale()
   const t = (key: string) => translate(locale, key)
-  const articles = await listNewsArticles()
+  const articles = interleaveArticlesByCategory(await listNewsArticles())
 
   return (
     <main className="min-h-screen bg-[#0d1b2a]">
