@@ -12,7 +12,7 @@ function localizedError(request: Request, key: string, status: number) {
   return NextResponse.json({ errorKey: key, error: translate(locale, key) }, { status })
 }
 
-export async function POST(request: Request) {
+async function handleBackfill(request: Request) {
   const userId = await getUserId()
   if (!userId) {
     return localizedError(request, "admin.news_sync.error.auth_required", 401)
@@ -35,4 +35,12 @@ export async function POST(request: Request) {
     }
     return localizedError(request, "admin.news_sync.error.sync_failed", 500)
   }
+}
+
+export async function GET(request: Request) {
+  return handleBackfill(request)
+}
+
+export async function POST(request: Request) {
+  return handleBackfill(request)
 }
