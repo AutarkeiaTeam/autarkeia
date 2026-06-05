@@ -1,5 +1,5 @@
-export const NEWS_HARD_CAP = 15
-export const NEWS_CANDIDATE_CAP = 30
+export const NEWS_HARD_CAP = 50
+export const NEWS_CANDIDATE_CAP = 50
 export const NEWS_LIST_LIMIT = 50
 export const NEWS_RETENTION_DAYS = 60
 
