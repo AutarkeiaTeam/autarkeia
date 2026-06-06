@@ -40,6 +40,7 @@ export function AccountSettings({
   displayName: initialDisplayName,
   memberSince,
   tier,
+  authMethod,
 }: AccountSettingsProps) {
   const { t, locale } = useI18n()
   const router = useRouter()
