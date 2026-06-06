@@ -12,11 +12,17 @@ import {
   showsPasswordForm,
   type PrimaryAuthMethod,
 } from "@/lib/account-auth"
+import { isValidUsername, sanitizeUsernameInput } from "@/lib/username"
 
 type AccountSettingsProps = {
   userId: string
   email: string
   displayName: string
+  username: string
+  siteHost: string
+  profilePublic: boolean
+  showQuizScores: boolean
+  showCountry: boolean
   memberSince: string
   tier: Tier
   authMethod: PrimaryAuthMethod
@@ -38,6 +44,11 @@ export function AccountSettings({
   userId,
   email,
   displayName: initialDisplayName,
+  username: initialUsername,
+  siteHost,
+  profilePublic: initialProfilePublic,
+  showQuizScores: initialShowQuizScores,
+  showCountry: initialShowCountry,
   memberSince,
   tier,
   authMethod,
@@ -46,9 +57,17 @@ export function AccountSettings({
   const router = useRouter()
 
   const [displayName, setDisplayName] = useState(initialDisplayName)
+  const [username, setUsername] = useState(initialUsername)
   const [infoMessage, setInfoMessage] = useState("")
   const [infoError, setInfoError] = useState("")
   const [isSavingInfo, setIsSavingInfo] = useState(false)
+
+  const [profilePublic, setProfilePublic] = useState(initialProfilePublic)
+  const [showQuizScores, setShowQuizScores] = useState(initialShowQuizScores)
+  const [showCountry, setShowCountry] = useState(initialShowCountry)
+  const [privacyMessage, setPrivacyMessage] = useState("")
+  const [privacyError, setPrivacyError] = useState("")
+  const [isSavingPrivacy, setIsSavingPrivacy] = useState(false)
 
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
@@ -83,6 +102,9 @@ export function AccountSettings({
     window.dispatchEvent(new Event("autarkeia-auth-change"))
   }
 
+  const translateAccountError = (message: string) =>
+    message.startsWith("account.") ? t(message) : message
+
   const handleSaveInfo = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setInfoMessage("")
@@ -94,23 +116,78 @@ export function AccountSettings({
       return
     }
 
+    const normalizedUsername = sanitizeUsernameInput(username)
+    if (!normalizedUsername) {
+      setInfoError(t("account.info.username_required"))
+      return
+    }
+    if (!isValidUsername(normalizedUsername)) {
+      setInfoError(t("account.info.username_invalid"))
+      return
+    }
+
     try {
       setIsSavingInfo(true)
-      const supabase = createClient()
-      const { error } = await supabase
-        .from("profiles")
-        .update({ display_name: trimmed, updated_at: new Date().toISOString() })
-        .eq("id", userId)
+      const response = await fetch("/api/account/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          displayName: trimmed,
+          username: normalizedUsername,
+        }),
+      })
+      const data = (await response.json().catch(() => null)) as { error?: string; ok?: boolean }
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error(data?.error || "account.info.save_error")
+      }
 
       setDisplayName(trimmed)
+      setUsername(normalizedUsername)
       setInfoMessage(t("account.info.save_success"))
       router.refresh()
     } catch (err) {
-      setInfoError(err instanceof Error ? err.message : t("account.info.save_error"))
+      const message = err instanceof Error ? err.message : "account.info.save_error"
+      setInfoError(translateAccountError(message))
     } finally {
       setIsSavingInfo(false)
+    }
+  }
+
+  const handleSavePrivacy = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setPrivacyMessage("")
+    setPrivacyError("")
+
+    try {
+      setIsSavingPrivacy(true)
+      const response = await fetch("/api/account/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profilePublic,
+          showQuizScores: profilePublic ? showQuizScores : false,
+          showCountry: profilePublic ? showCountry : false,
+        }),
+      })
+      const data = (await response.json().catch(() => null)) as { error?: string; ok?: boolean }
+
+      if (!response.ok) {
+        throw new Error(data?.error || "account.public_profile.save_error")
+      }
+
+      if (!profilePublic) {
+        setShowQuizScores(false)
+        setShowCountry(false)
+      }
+
+      setPrivacyMessage(t("account.public_profile.save_success"))
+      router.refresh()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "account.public_profile.save_error"
+      setPrivacyError(translateAccountError(message))
+    } finally {
+      setIsSavingPrivacy(false)
     }
   }
 
@@ -211,6 +288,31 @@ export function AccountSettings({
                   onChange={(e) => setDisplayName(e.target.value)}
                   className={fieldClassName()}
                 />
+              </div>
+              <div>
+                <label htmlFor="username" className={labelClassName()}>
+                  {t("account.info.username_label")}
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  maxLength={30}
+                  value={username}
+                  onChange={(e) =>
+                    setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
+                  }
+                  className={fieldClassName()}
+                  autoComplete="username"
+                  spellCheck={false}
+                />
+                <p className="mt-1.5 text-xs text-[#8a9bb0]">{t("account.info.username_helper")}</p>
+                {username.trim() ? (
+                  <p className="mt-1 text-xs text-[#3d5166]">
+                    {t("account.info.username_preview")
+                      .replace("{host}", siteHost)
+                      .replace("{username}", sanitizeUsernameInput(username) || "yourname")}
+                  </p>
+                ) : null}
               </div>
               <div>
                 <label className={labelClassName()}>{t("account.info.email_label")}</label>
@@ -318,6 +420,86 @@ export function AccountSettings({
                 ) : null}
               </>
             )}
+          </section>
+
+          <section
+            className="rounded-2xl border border-[#d4dce8] bg-white p-6"
+            style={{ borderWidth: "0.5px" }}
+          >
+            <h2 className="text-lg font-medium text-[#0d1b2a]">
+              {t("account.public_profile.heading")}
+            </h2>
+            <p className="mt-1 text-sm text-[#3d5166]">{t("account.public_profile.description")}</p>
+            <form onSubmit={handleSavePrivacy} className="mt-5 space-y-4">
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={profilePublic}
+                  onChange={(e) => {
+                    const checked = e.target.checked
+                    setProfilePublic(checked)
+                    if (!checked) {
+                      setShowQuizScores(false)
+                      setShowCountry(false)
+                    }
+                  }}
+                  className="mt-1 h-4 w-4 rounded border-[#d4dce8] text-[#009b70] focus:ring-[#009b70]"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-[#0d1b2a]">
+                    {t("account.public_profile.make_public")}
+                  </span>
+                  <span className="mt-1 block text-xs text-[#8a9bb0]">
+                    {t("account.public_profile.make_public_helper")}
+                  </span>
+                </span>
+              </label>
+              <label className={`flex items-start gap-3 ${profilePublic ? "" : "opacity-50"}`}>
+                <input
+                  type="checkbox"
+                  checked={showQuizScores}
+                  disabled={!profilePublic}
+                  onChange={(e) => setShowQuizScores(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-[#d4dce8] text-[#009b70] focus:ring-[#009b70] disabled:cursor-not-allowed"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-[#0d1b2a]">
+                    {t("account.public_profile.show_quiz_scores")}
+                  </span>
+                  <span className="mt-1 block text-xs text-[#8a9bb0]">
+                    {t("account.public_profile.show_quiz_scores_helper")}
+                  </span>
+                </span>
+              </label>
+              <label className={`flex items-start gap-3 ${profilePublic ? "" : "opacity-50"}`}>
+                <input
+                  type="checkbox"
+                  checked={showCountry}
+                  disabled={!profilePublic}
+                  onChange={(e) => setShowCountry(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-[#d4dce8] text-[#009b70] focus:ring-[#009b70] disabled:cursor-not-allowed"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-[#0d1b2a]">
+                    {t("account.public_profile.show_country")}
+                  </span>
+                  <span className="mt-1 block text-xs text-[#8a9bb0]">
+                    {t("account.public_profile.show_country_helper")}
+                  </span>
+                </span>
+              </label>
+              <button
+                type="submit"
+                disabled={isSavingPrivacy}
+                className="rounded-lg bg-[#009b70] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#007a58] disabled:opacity-60"
+              >
+                {isSavingPrivacy
+                  ? t("account.public_profile.saving")
+                  : t("account.public_profile.save")}
+              </button>
+              {privacyMessage && <p className="text-sm text-[#009b70]">{privacyMessage}</p>}
+              {privacyError && <p className="text-sm text-red-600">{privacyError}</p>}
+            </form>
           </section>
 
           <section

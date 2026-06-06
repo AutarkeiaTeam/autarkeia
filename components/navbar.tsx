@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react"
 import { Logo } from "./logo"
 import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "./language-switcher"
+import { MobileProfileLink } from "./navbar/mobile-profile-link"
 import { UserMenu } from "./navbar/user-menu"
 import { useI18n } from "@/components/i18n-provider"
 
@@ -135,6 +136,7 @@ export function Navbar() {
                       {t("nav.dashboard")}
                     </Link>
                   </Button>
+                  <MobileProfileLink onNavigate={() => setMobileMenuOpen(false)} />
                   <Link
                     href="/account"
                     className="block py-2 text-[13px] font-normal text-[#3d5166] hover:text-[#009b70]"

@@ -4,6 +4,7 @@ import { AccountSettings } from "@/components/account/account-settings"
 import { getPrimaryAuthMethod } from "@/lib/account-auth"
 import { resolveDisplayName } from "@/lib/account"
 import { getTier } from "@/lib/auth-server"
+import { ensureProfileUsername } from "@/lib/username"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
 import { createClient } from "@/lib/supabase/server"
@@ -27,20 +28,46 @@ export default async function AccountPage() {
     redirect("/login?next=/account")
   }
 
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from("profiles")
-    .select("display_name")
+    .select(
+      "display_name, username, profile_public, show_quiz_scores, show_country"
+    )
     .eq("id", user.id)
     .maybeSingle()
 
+  if (!profile?.username && user.email) {
+    try {
+      await ensureProfileUsername(user.id, user.email)
+    } catch (err) {
+      console.error("ensureProfileUsername on account page failed:", err)
+    }
+    const refetch = await supabase
+      .from("profiles")
+      .select(
+        "display_name, username, profile_public, show_quiz_scores, show_country"
+      )
+      .eq("id", user.id)
+      .maybeSingle()
+    profile = refetch.data
+  }
+
   const tier = await getTier()
   const authMethod = getPrimaryAuthMethod(user)
+  const siteHost = (process.env.NEXT_PUBLIC_SITE_URL || "https://autarkeia.world")
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "")
 
   return (
     <AccountSettings
       userId={user.id}
       email={user.email ?? ""}
       displayName={resolveDisplayName(profile?.display_name, user.email)}
+      username={profile?.username ?? ""}
+      siteHost={siteHost}
+      profilePublic={profile?.profile_public === true}
+      showQuizScores={profile?.show_quiz_scores === true}
+      showCountry={profile?.show_country === true}
       memberSince={user.created_at}
       tier={tier}
       authMethod={authMethod}

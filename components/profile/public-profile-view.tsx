@@ -1,0 +1,109 @@
+"use client"
+
+import Image from "next/image"
+import { useI18n } from "@/components/i18n-provider"
+
+type PublicProfileViewProps = {
+  username: string
+  displayName: string
+  memberSinceLabel: string
+  isPro: boolean
+  country: string | null
+  showQuizScoresSection: boolean
+  initials: string
+  isPrivate: boolean
+}
+
+export function PublicProfileView({
+  username,
+  displayName,
+  memberSinceLabel,
+  isPro,
+  country,
+  showQuizScoresSection,
+  initials,
+  isPrivate,
+}: PublicProfileViewProps) {
+  const { t } = useI18n()
+
+  if (isPrivate) {
+    return (
+      <main className="min-h-screen bg-[#f5f7fa]">
+        <div className="mx-auto flex max-w-lg flex-col items-center px-4 py-20 text-center lg:px-8">
+          <Image
+            src="/icon.png"
+            alt=""
+            width={72}
+            height={72}
+            className="h-[72px] w-[72px] object-contain"
+            aria-hidden
+          />
+          <p className="mt-6 text-lg font-medium text-[#0d1b2a]">{t("profile.private.heading")}</p>
+          <p className="mt-2 text-sm text-[#3d5166]">{t("profile.private.body")}</p>
+        </div>
+      </main>
+    )
+  }
+
+  return (
+    <main className="min-h-screen bg-[#f5f7fa]">
+      <div className="mx-auto max-w-2xl px-4 py-12 lg:px-8">
+        <section
+          className="rounded-2xl border border-[#d4dce8] bg-white p-6 sm:p-8"
+          style={{ borderWidth: "0.5px" }}
+        >
+          <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
+            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#d4dce8] bg-[#e8f8f3]">
+              <Image
+                src="/icon.png"
+                alt=""
+                width={48}
+                height={48}
+                className="absolute h-12 w-12 object-contain opacity-20"
+                aria-hidden
+              />
+              <span className="relative text-lg font-semibold text-[#009b70]">{initials}</span>
+            </div>
+            <div className="mt-4 sm:mt-0 sm:ml-6 sm:flex-1">
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                <h1 className="text-2xl font-light text-[#0d1b2a]">{displayName}</h1>
+                {isPro ? (
+                  <span className="rounded-full bg-[#e8f8f3] px-2.5 py-0.5 text-xs font-medium text-[#009b70]">
+                    {t("profile.badge.pro")}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-1 text-sm text-[#8a9bb0]">@{username}</p>
+              <p className="mt-3 text-sm text-[#3d5166]">
+                {t("profile.member_since").replace("{date}", memberSinceLabel)}
+              </p>
+              {country ? (
+                <p className="mt-1 text-sm text-[#3d5166]">
+                  {t("profile.country").replace("{country}", country)}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          {showQuizScoresSection ? (
+            <div className="mt-8 border-t border-[#e8edf2] pt-8" style={{ borderTopWidth: "0.5px" }}>
+              <h2 className="text-lg font-medium text-[#0d1b2a]">{t("profile.quiz_scores.heading")}</h2>
+              <p className="mt-2 text-sm text-[#3d5166]">{t("profile.quiz_scores.coming_soon")}</p>
+            </div>
+          ) : null}
+
+          <div className="mt-8 flex justify-center sm:justify-start">
+            <button
+              type="button"
+              disabled
+              title={t("profile.send_message.tooltip")}
+              className="cursor-not-allowed rounded-lg border border-[#d4dce8] bg-[#f9fafc] px-5 py-2.5 text-sm font-medium text-[#8a9bb0]"
+            >
+              {t("profile.send_message.button")}
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+  )
+}

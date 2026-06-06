@@ -1,6 +1,7 @@
 import type { User } from "@supabase/supabase-js"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getStripe } from "@/lib/stripe"
+import { ensureProfileUsername } from "@/lib/username"
 
 export type ProfileAuthorFields = {
   id: string
@@ -128,6 +129,12 @@ export async function upsertProfileFromAuthUser(user: User): Promise<void> {
   if (error) {
     throw new Error(error.message)
   }
+
+  try {
+    await ensureProfileUsername(user.id, user.email ?? null)
+  } catch (usernameError) {
+    console.error("ensureProfileUsername failed:", usernameError)
+  }
 }
 
 /** @deprecated Use upsertProfileFromAuthUser */
@@ -197,6 +204,12 @@ export async function getOrCreateStripeCustomer(user: User): Promise<string> {
 
   if (error) {
     throw new Error(error.message)
+  }
+
+  try {
+    await ensureProfileUsername(user.id, user.email)
+  } catch (usernameError) {
+    console.error("ensureProfileUsername failed:", usernameError)
   }
 
   return customer.id
