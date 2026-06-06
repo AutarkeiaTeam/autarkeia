@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     }
 
     try {
-      await sendCommunityInterestConfirmation(parsed.data)
+      await sendCommunityInterestConfirmation(parsed.data, parsed.data.locale)
     } catch (emailError) {
       console.error(
         "community interest confirmation email failed:",

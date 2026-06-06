@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { LOCALES } from "@/lib/i18n-core"
 import {
   preferredLocationSchema,
   type PreferredLocation,
@@ -261,6 +262,7 @@ export const communityInterestSchema = z
       .nullable()
       .optional(),
     dietaryPreference: z.enum(DIETARY_PREFERENCES).nullable().optional(),
+    locale: z.enum(LOCALES).optional().default("en"),
   })
   .superRefine((data, ctx) => {
     const requiresLiving = data.intent === "live" || data.intent === "both"

@@ -1,6 +1,7 @@
 import type { ContactMessageInput } from "@/lib/contact"
 import type { CommunityInterestInput } from "@/lib/community-interest"
 import { formatPreferredLocationsForDisplay } from "@/lib/community-interest-location"
+import { translate, type Locale } from "@/lib/i18n-core"
 import type { QuizResult, QuizType } from "@/lib/quiz-data"
 
 const FROM_EMAIL = "Autarkeia <noreply@send.autarkeia.world>"
@@ -11,7 +12,7 @@ function formatList(items: string[]): string {
   return items.length > 0 ? items.join(", ") : "Not specified"
 }
 
-function buildSummary(data: CommunityInterestInput): string {
+function buildSummary(data: CommunityInterestInput, notesLabel: string): string {
   const locations =
     data.preferredLocations.length > 0
       ? formatPreferredLocationsForDisplay(data.preferredLocations)
@@ -57,6 +58,11 @@ function buildSummary(data: CommunityInterestInput): string {
       `Food products of interest: ${formatList(data.foodProducts ?? [])}`,
       `Purchase frequency: ${data.foodFrequency ?? "Not specified"}`
     )
+  }
+
+  const notes = data.notes?.trim()
+  if (notes) {
+    lines.push(`${notesLabel}: ${notes}`)
   }
 
   return lines.join("\n")
@@ -289,9 +295,11 @@ export async function sendQuizResultsEmail(options: {
 }
 
 export async function sendCommunityInterestConfirmation(
-  data: CommunityInterestInput
+  data: CommunityInterestInput,
+  locale: Locale = "en"
 ): Promise<void> {
-  const summary = buildSummary(data)
+  const notesLabel = translate(locale, "communities.form.notes")
+  const summary = buildSummary(data, notesLabel)
   const html = `
     <p>Hi ${escapeHtml(data.fullName)},</p>
     <p>Thank you for registering your interest in Autarkeia Communities.</p>

@@ -80,7 +80,7 @@ const initialForm: RegisterFormState = {
 }
 
 export function RegisterInterestForm() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const searchParams = useSearchParams()
   const [form, setForm] = useState(initialForm)
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
@@ -126,6 +126,7 @@ export function RegisterInterestForm() {
 
     const payload: CommunityInterestInput = {
       ...form,
+      locale,
       livingModel: livingModel as CommunityInterestInput["livingModel"],
       energyOwnership: energyOwnership as CommunityInterestInput["energyOwnership"],
       foodOwnership: foodOwnership as CommunityInterestInput["foodOwnership"],
