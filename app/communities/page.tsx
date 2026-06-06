@@ -8,21 +8,29 @@ const pathwayCards = [
   {
     titleKey: "communities.option.family_title",
     descKey: "communities.option.family_desc",
+    altKey: "communities.option.family_icon_alt",
+    iconSrc: "/icons/communities/Individual_Home_Icon_final.png",
     href: "/communities?intent=live#register-interest",
   },
   {
     titleKey: "communities.option.coliving_title",
     descKey: "communities.option.coliving_desc",
+    altKey: "communities.option.coliving_icon_alt",
+    iconSrc: "/icons/communities/Co-Living_Icon_final.png",
     href: "/communities?intent=live#register-interest",
   },
   {
     titleKey: "communities.option.communal_living_title",
     descKey: "communities.option.communal_living_desc",
+    altKey: "communities.option.communal_living_icon_alt",
+    iconSrc: "/icons/communities/Communal_Living_Icon_final.png",
     href: "/communities?intent=live#register-interest",
   },
   {
     titleKey: "communities.option.plantation_market_title",
     descKey: "communities.option.plantation_market_desc",
+    altKey: "communities.option.plantation_market_icon_alt",
+    iconSrc: "/icons/communities/Market_Icon_final.png",
     href: "/communities?intent=buy_food#register-interest",
   },
 ]
@@ -62,6 +70,14 @@ export default function Communities() {
                 key={item.titleKey}
                 className="rounded-2xl border border-[#d4dce8] bg-white p-6 shadow-sm transition-colors hover:border-[#009b70]"
               >
+                <div className="mb-4 flex justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.iconSrc}
+                    alt={t(item.altKey)}
+                    className="h-20 w-auto max-w-full object-contain sm:h-24"
+                  />
+                </div>
                 <h3 className="text-xl font-medium text-[#0d1b2a]">{t(item.titleKey)}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-[#3d5166]">{t(item.descKey)}</p>
                 <Link href={item.href} className="mt-6 inline-block text-sm font-medium text-[#009b70] hover:text-[#007a58]">
