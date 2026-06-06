@@ -30,7 +30,7 @@ export function LanguageSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 rounded-md px-2 py-1 text-[12px] font-normal text-[#0d1b2a] hover:bg-[#f5f7fa] xl:text-[13px]"
+        className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[12px] font-normal text-[#0d1b2a] hover:bg-[#f5f7fa] 2xl:px-2 2xl:text-[13px]"
         aria-haspopup="listbox"
         aria-expanded={open}
       >

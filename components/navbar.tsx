@@ -41,7 +41,7 @@ function useIsAuthed() {
 }
 
 const navLinkClass =
-  "shrink-0 whitespace-nowrap text-[13px] font-normal text-[#3d5166] transition-colors hover:text-[#009b70] 2xl:text-sm"
+  "shrink-0 whitespace-nowrap text-[12px] font-normal text-[#3d5166] transition-colors hover:text-[#009b70] 2xl:text-[13px]"
 
 export function Navbar() {
   const { t } = useI18n()
@@ -55,15 +55,15 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-[#d4dce8]" style={{ borderBottomWidth: "0.5px" }}>
-      <nav className="flex w-full flex-nowrap items-center gap-x-6 py-3 pl-4 pr-3 sm:pl-5 lg:py-4 xl:gap-x-8">
+      <nav className="flex w-full flex-nowrap items-center gap-x-4 py-3 pl-4 pr-3 sm:pl-5 lg:py-4 xl:grid xl:grid-cols-[auto_minmax(0,1fr)_auto] xl:items-center xl:gap-x-4 2xl:gap-x-6">
         <div className="flex shrink-0 items-center">
           <Link href="/" className="flex items-center">
             <Logo className="gap-2 text-[13px] sm:text-[14px]" />
           </Link>
         </div>
 
-        <div className="hidden min-w-0 flex-1 items-center justify-start pl-10 xl:flex 2xl:pl-14">
-          <div className="flex max-w-full flex-nowrap items-center justify-start gap-x-3 2xl:gap-x-5">
+        <div className="hidden min-w-0 overflow-x-clip xl:flex xl:items-center xl:justify-start xl:pl-4 2xl:pl-8">
+          <div className="flex max-w-full flex-nowrap items-center justify-start gap-x-2 2xl:gap-x-4">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href} className={navLinkClass}>
                 {link.label}
@@ -72,11 +72,11 @@ export function Navbar() {
           </div>
         </div>
 
-        <div className="ml-auto hidden shrink-0 flex flex-nowrap items-center justify-end gap-x-2 pl-12 xl:flex xl:gap-x-3 xl:pl-16 2xl:pl-20">
+        <div className="ml-auto hidden shrink-0 flex-nowrap items-center justify-end gap-x-1.5 xl:ml-0 xl:flex xl:gap-x-2 2xl:gap-x-3">
           {authed ? (
             <>
               <Button
-                className="whitespace-nowrap rounded-lg bg-[#009b70] px-3 text-[12px] font-medium text-white hover:bg-[#008060] xl:text-[13px]"
+                className="whitespace-nowrap rounded-lg bg-[#009b70] px-2.5 text-[12px] font-medium text-white hover:bg-[#008060] 2xl:px-3 2xl:text-[13px]"
                 asChild
               >
                 <Link href="/dashboard">{t("nav.dashboard")}</Link>
@@ -85,11 +85,15 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Button variant="ghost" className="whitespace-nowrap px-2 text-[12px] font-normal text-[#0d1b2a] xl:text-[13px]" asChild>
+              <Button
+                variant="ghost"
+                className="whitespace-nowrap px-1.5 text-[12px] font-normal text-[#0d1b2a] 2xl:px-2 2xl:text-[13px]"
+                asChild
+              >
                 <Link href="/login">{t("nav.sign_in")}</Link>
               </Button>
               <Button
-                className="whitespace-nowrap rounded-lg bg-[#009b70] px-3 text-[12px] font-medium text-white hover:bg-[#008060] xl:text-[13px]"
+                className="whitespace-nowrap rounded-lg bg-[#009b70] px-2.5 text-[12px] font-medium text-white hover:bg-[#008060] 2xl:px-3 2xl:text-[13px]"
                 asChild
               >
                 <Link href="/quiz">{t("nav.get_score")}</Link>
