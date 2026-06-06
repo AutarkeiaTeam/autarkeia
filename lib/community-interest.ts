@@ -234,11 +234,11 @@ export const communityInterestSchema = z
       .array(preferredLocationSchema)
       .min(1, "communities.validation.add_location")
       .max(10),
-    climatePreference: z.enum(CLIMATE_PREFERENCES),
-    distanceFromCity: z.enum(DISTANCE_FROM_CITY),
-    investmentCapacity: z.enum(INVESTMENT_CAPACITY),
-    investorType: z.enum(INVESTOR_TYPES),
-    moveTimeline: z.enum(MOVE_TIMELINES),
+    climatePreference: z.enum(CLIMATE_PREFERENCES).nullable().optional(),
+    distanceFromCity: z.enum(DISTANCE_FROM_CITY).nullable().optional(),
+    investmentCapacity: z.enum(INVESTMENT_CAPACITY).nullable().optional(),
+    investorType: z.enum(INVESTOR_TYPES).nullable().optional(),
+    moveTimeline: z.enum(MOVE_TIMELINES).nullable().optional(),
     notes: z.string().trim().max(5000).optional().default(""),
     intent: z.enum(COMMUNITY_INTENTS),
     foodProducts: z
@@ -267,8 +267,14 @@ export const communityInterestSchema = z
   .superRefine((data, ctx) => {
     const requiresLiving = data.intent === "live" || data.intent === "both"
     const requiresFoodBuyer = data.intent === "buy_food" || data.intent === "both"
-
     if (requiresLiving) {
+      if (!data.dietaryPreference) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["dietaryPreference"],
+          message: "communities.validation.dietary_required",
+        })
+      }
       if (!data.livingModel) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -290,14 +296,6 @@ export const communityInterestSchema = z
           code: z.ZodIssueCode.custom,
           path: ["foodOwnership"],
           message: "communities.validation.food_ownership_required",
-        })
-      }
-
-      if (!data.dietaryPreference) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["dietaryPreference"],
-          message: "communities.validation.dietary_required",
         })
       }
 
