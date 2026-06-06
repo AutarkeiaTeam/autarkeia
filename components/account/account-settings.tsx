@@ -58,7 +58,6 @@ export function AccountSettings({
   const [isSavingPassword, setIsSavingPassword] = useState(false)
 
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState("")
   const [deleteError, setDeleteError] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -71,7 +70,6 @@ export function AccountSettings({
     return formatter.format(new Date(memberSince))
   }, [locale, memberSince])
 
-  const confirmPhrase = t("account.delete.confirm_phrase")
   const canChangePassword = showsPasswordForm(authMethod)
   const oauthSecurityUrl =
     authMethod.type === "oauth-only"
@@ -162,11 +160,6 @@ export function AccountSettings({
   }
 
   const handleDeleteAccount = async () => {
-    if (deleteConfirm.trim() !== confirmPhrase) {
-      setDeleteError(t("account.delete.confirm_mismatch"))
-      return
-    }
-
     try {
       setIsDeleting(true)
       setDeleteError("")
@@ -348,7 +341,6 @@ export function AccountSettings({
               type="button"
               onClick={() => {
                 setDeleteOpen(true)
-                setDeleteConfirm("")
                 setDeleteError("")
               }}
               className="mt-4 rounded-lg border border-[#c43a3a] bg-white px-5 py-2.5 text-sm font-medium text-[#9f1d1d] hover:bg-[#fff5f5]"
@@ -368,37 +360,27 @@ export function AccountSettings({
             aria-modal="true"
             aria-labelledby="delete-account-title"
           >
-            <h3 id="delete-account-title" className="text-lg font-medium text-[#9f1d1d]">
-              {t("account.delete.confirm_title")}
+            <h3 id="delete-account-title" className="text-lg font-medium text-[#0d1b2a]">
+              {t("account.delete.confirm_heading")}
             </h3>
-            <p className="mt-2 text-sm text-[#3d5166]">{t("account.delete.confirm_prompt")}</p>
-            <label htmlFor="delete-confirm" className={`${labelClassName()} mt-4`}>
-              {t("account.delete.confirm_label")}
-            </label>
-            <input
-              id="delete-confirm"
-              type="text"
-              value={deleteConfirm}
-              onChange={(e) => setDeleteConfirm(e.target.value)}
-              className={fieldClassName()}
-              autoComplete="off"
-            />
-            <div className="mt-5 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={handleDeleteAccount}
-                disabled={isDeleting}
-                className="rounded-lg bg-[#9f1d1d] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#7f1515] disabled:opacity-60"
-              >
-                {isDeleting ? t("account.delete.deleting") : t("account.delete.confirm_button")}
-              </button>
+            <p className="mt-2 text-sm text-[#3d5166]">{t("account.delete.confirm_body")}</p>
+            <div className="mt-5 flex flex-wrap justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setDeleteOpen(false)}
                 disabled={isDeleting}
+                autoFocus
                 className="rounded-lg border border-[#d4dce8] px-5 py-2.5 text-sm font-medium text-[#3d5166] hover:bg-[#f5f7fa] disabled:opacity-60"
               >
                 {t("account.delete.cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDeleteAccount()}
+                disabled={isDeleting}
+                className="rounded-lg bg-[#9f1d1d] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#7f1515] disabled:opacity-60"
+              >
+                {isDeleting ? t("account.delete.deleting") : t("account.delete.confirm_button")}
               </button>
             </div>
             {deleteError && <p className="mt-3 text-sm text-red-600">{deleteError}</p>}
