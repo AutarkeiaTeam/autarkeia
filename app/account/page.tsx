@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { AccountSettings } from "@/components/account/account-settings"
+import { getPrimaryAuthMethod } from "@/lib/account-auth"
 import { resolveDisplayName } from "@/lib/account"
 import { getTier } from "@/lib/auth-server"
 import { getLocale } from "@/lib/i18n-server"
@@ -33,6 +34,7 @@ export default async function AccountPage() {
     .maybeSingle()
 
   const tier = await getTier()
+  const authMethod = getPrimaryAuthMethod(user)
 
   return (
     <AccountSettings
@@ -41,6 +43,7 @@ export default async function AccountPage() {
       displayName={resolveDisplayName(profile?.display_name, user.email)}
       memberSince={user.created_at}
       tier={tier}
+      authMethod={authMethod}
     />
   )
 }
