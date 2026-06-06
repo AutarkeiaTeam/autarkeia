@@ -87,7 +87,7 @@
   "account.info.display_name_required": "Enter a display name.",
   "account.info.username_helper": "Your handle for sharing your profile. Lowercase letters, numbers, and underscores only (3–30 characters). Lives at autarkeia.world/profile/yourname.",
   "account.info.username_invalid": "Username must be 3-30 characters: lowercase letters, numbers, and underscores only.",
-  "account.info.username_label": "Username (URL)",
+  "account.info.username_label": "Username",
   "account.info.username_preview": "{host}/profile/{username}",
   "account.info.username_required": "Enter a username.",
   "account.info.username_taken": "That username is taken.",

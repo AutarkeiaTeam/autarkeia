@@ -87,7 +87,7 @@
   "account.info.display_name_required": "Introduce un nombre visible.",
   "account.info.username_helper": "Tu identificador para compartir tu perfil. Solo letras minúsculas, números y guiones bajos (3–30 caracteres). Vive en autarkeia.world/profile/tunombre.",
   "account.info.username_invalid": "El nombre de usuario debe tener 3-30 caracteres: solo letras minúsculas, números y guiones bajos.",
-  "account.info.username_label": "Nombre de usuario (URL)",
+  "account.info.username_label": "Nombre de usuario",
   "account.info.username_preview": "{host}/profile/{username}",
   "account.info.username_required": "Introduce un nombre de usuario.",
   "account.info.username_taken": "Ese nombre de usuario ya está en uso.",
