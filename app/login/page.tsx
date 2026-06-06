@@ -14,9 +14,16 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    const authError = new URLSearchParams(window.location.search).get("error")
+    const params = new URLSearchParams(window.location.search)
+    const authError = params.get("error")
     if (authError) setError(authError)
   }, [])
+
+  const resolveNextPath = () => {
+    const next = new URLSearchParams(window.location.search).get("next")
+    if (!next || !next.startsWith("/") || next.startsWith("//")) return "/dashboard"
+    return next
+  }
 
   const handleLogin = async () => {
     try {
@@ -38,7 +45,7 @@ export default function Login() {
       }
 
       router.refresh()
-      router.push("/dashboard")
+      router.push(resolveNextPath())
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in.")
     } finally {

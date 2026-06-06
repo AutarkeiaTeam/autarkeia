@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { deleteUserAccount } from "@/lib/delete-account"
 import { createClient } from "@/lib/supabase/server"
 
 export async function POST() {
@@ -14,16 +14,12 @@ export async function POST() {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
     }
 
-    const admin = createAdminClient()
-    const { error: deleteError } = await admin.auth.admin.deleteUser(user.id)
-
-    if (deleteError) {
-      return NextResponse.json({ error: deleteError.message }, { status: 500 })
-    }
+    await deleteUserAccount(user.id)
 
     return NextResponse.json({ ok: true })
   } catch (err) {
     const message = err instanceof Error ? err.message : "Account deletion failed"
+    console.error("[account/delete]", message)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

@@ -5,6 +5,8 @@ import { NewsWatch } from "@/components/news-watch"
 import { RuralCommunities } from "@/components/rural-communities"
 import { HowItWorks } from "@/components/how-it-works"
 import Link from "next/link"
+import { Suspense } from "react"
+import { AccountDeletedBanner } from "@/components/account-deleted-banner"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
 
@@ -14,6 +16,9 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen">
+      <Suspense fallback={null}>
+        <AccountDeletedBanner />
+      </Suspense>
       <Hero
         title={t("home.hero_title")}
         subtitle={t("home.hero_sub")}

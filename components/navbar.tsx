@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react"
 import { Logo } from "./logo"
 import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "./language-switcher"
+import { UserMenu } from "./navbar/user-menu"
 import { useI18n } from "@/components/i18n-provider"
 
 const NAV_DEFS = [
@@ -81,6 +82,7 @@ export function Navbar() {
               >
                 <Link href="/dashboard">{t("nav.dashboard")}</Link>
               </Button>
+              <UserMenu />
               <LanguageSwitcher />
             </>
           ) : (
@@ -133,6 +135,13 @@ export function Navbar() {
                       {t("nav.dashboard")}
                     </Link>
                   </Button>
+                  <Link
+                    href="/account"
+                    className="block py-2 text-[13px] font-normal text-[#3d5166] hover:text-[#009b70]"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {t("nav.account_settings")}
+                  </Link>
                   <div className="px-1">
                     <LanguageSwitcher />
                   </div>

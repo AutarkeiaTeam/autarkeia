@@ -241,6 +241,14 @@ export function DashboardView({ user }: { user: DashboardUser }) {
                 {isPro ? t("dashboard.member_pro") : t("dashboard.member_free")}
               </span>
             </p>
+            {!user.isDemo ? (
+              <Link
+                href="/account"
+                className="mt-1 inline-block text-xs font-medium text-[#009b70] hover:underline"
+              >
+                {t("dashboard.account_settings_link")}
+              </Link>
+            ) : null}
           </div>
           <div className="flex flex-col items-start gap-2 sm:items-end">
             {user.canManageSubscription && (
