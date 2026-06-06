@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
+import { getLocale } from "@/lib/i18n-server"
 import { upsertProfileFromAuthUser } from "@/lib/profiles"
+import { maybeSendWelcomeEmail } from "@/lib/welcome-email"
 import { createClient } from "@/lib/supabase/server"
 
 export async function POST() {
@@ -14,6 +16,9 @@ export async function POST() {
     }
 
     await upsertProfileFromAuthUser(user)
+
+    const locale = await getLocale()
+    await maybeSendWelcomeEmail(user, locale)
 
     return NextResponse.json({ ok: true })
   } catch (err) {

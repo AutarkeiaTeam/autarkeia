@@ -2,7 +2,9 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { applyAutarkeiaSessionCookies } from "@/lib/auth-session-server"
+import { getLocale } from "@/lib/i18n-server"
 import { upsertProfileFromAuthUser } from "@/lib/profiles"
+import { maybeSendWelcomeEmail } from "@/lib/welcome-email"
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -63,7 +65,14 @@ export async function GET(request: Request) {
   try {
     await upsertProfileFromAuthUser(user)
   } catch (syncError) {
-    console.error("profile upsert from OAuth failed:", syncError)
+    console.error("profile upsert from auth callback failed:", syncError)
+  }
+
+  try {
+    const locale = await getLocale()
+    await maybeSendWelcomeEmail(user, locale)
+  } catch (welcomeError) {
+    console.error("welcome email from auth callback failed:", welcomeError)
   }
 
   return response

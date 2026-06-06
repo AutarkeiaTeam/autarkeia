@@ -294,6 +294,82 @@ export async function sendQuizResultsEmail(options: {
   })
 }
 
+export async function sendWelcomeEmail(
+  email: string,
+  displayName: string | null,
+  locale: Locale = "en"
+): Promise<void> {
+  const appUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://autarkeia.world").replace(
+    /\/$/,
+    ""
+  )
+  const subject = translate(locale, "welcome.email.subject")
+  const greeting = displayName?.trim()
+    ? translate(locale, "welcome.email.greeting_with_name").replace("{name}", displayName.trim())
+    : translate(locale, "welcome.email.greeting_default")
+  const intro = translate(locale, "welcome.email.intro")
+  const actionEmergency = translate(locale, "welcome.email.action_quiz_emergency")
+  const actionSelf = translate(locale, "welcome.email.action_quiz_self_sufficiency")
+  const actionMarketplace = translate(locale, "welcome.email.action_marketplace")
+  const ctaDashboard = translate(locale, "welcome.email.cta_dashboard")
+  const footerQuestions = translate(locale, "welcome.email.footer_questions")
+  const footerSignoff = translate(locale, "welcome.email.footer_signoff")
+
+  const emergencyUrl = `${appUrl}/quiz/emergency-readiness`
+  const selfUrl = `${appUrl}/quiz/self-sufficiency`
+  const marketplaceUrl = `${appUrl}/marketplace`
+  const dashboardUrl = `${appUrl}/dashboard`
+
+  const bullet = (href: string, label: string) =>
+    `<li style="margin:0 0 10px;color:#3d5166;font-size:14px;line-height:1.5;">
+      <a href="${escapeHtml(href)}" style="color:#009b70;text-decoration:none;font-weight:500;">${escapeHtml(label)}</a>
+    </li>`
+
+  const html = `
+    <div style="margin:0;padding:0;background:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f7fa;padding:24px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="max-width:640px;border:1px solid #d4dce8;border-radius:14px;overflow:hidden;">
+              <tr>
+                <td style="background:#0d1b2a;padding:28px 24px;text-align:center;">
+                  <p style="margin:0;font-size:18px;font-weight:300;letter-spacing:3px;color:#ffffff;">
+                    AUT<span style="color:#009b70;">ARK</span>EIA
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:28px 24px 20px;background:#ffffff;">
+                  <p style="margin:0 0 16px;font-size:16px;color:#0d1b2a;font-weight:500;">${escapeHtml(greeting)}</p>
+                  <p style="margin:0 0 20px;font-size:14px;color:#3d5166;line-height:1.6;">${escapeHtml(intro)}</p>
+                  <ul style="margin:0 0 24px;padding-left:20px;">
+                    ${bullet(emergencyUrl, actionEmergency)}
+                    ${bullet(selfUrl, actionSelf)}
+                    ${bullet(marketplaceUrl, actionMarketplace)}
+                  </ul>
+                  <a href="${escapeHtml(dashboardUrl)}" style="display:inline-block;background:#009b70;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-size:14px;font-weight:600;">${escapeHtml(ctaDashboard)}</a>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:16px 24px 24px;border-top:1px solid #eef2f6;background:#fafbfc;">
+                  <p style="margin:0 0 8px;font-size:13px;color:#3d5166;line-height:1.5;">${escapeHtml(footerQuestions)}</p>
+                  <p style="margin:0;font-size:13px;color:#8a9bb0;">${escapeHtml(footerSignoff)}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `.trim()
+
+  await sendResendEmail({
+    to: [email],
+    subject,
+    html,
+  })
+}
+
 export async function sendCommunityInterestConfirmation(
   data: CommunityInterestInput,
   locale: Locale = "en"
