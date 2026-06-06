@@ -1,3 +1,4 @@
+import { LOCALES } from "@/lib/i18n-core"
 import { z } from "zod"
 
 export const CONTACT_MESSAGE_MAX_LENGTH = 2000
@@ -11,6 +12,7 @@ export const contactMessageSchema = z.object({
     .trim()
     .min(1, "contact.validation.message_required")
     .max(CONTACT_MESSAGE_MAX_LENGTH, "contact.validation.message_too_long"),
+  locale: z.enum(LOCALES).optional().default("en"),
 })
 
 export type ContactMessageInput = z.infer<typeof contactMessageSchema>

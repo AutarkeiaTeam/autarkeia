@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     }
 
     try {
-      await sendContactConfirmation(parsed.data)
+      await sendContactConfirmation(parsed.data, parsed.data.locale)
     } catch (emailError) {
       console.error(
         "contact confirmation email failed:",

@@ -9,7 +9,7 @@ const inputClass =
   "mt-1 w-full rounded-lg border border-[#d4dce8] px-3 py-2 text-sm text-[#0d1b2a] outline-none focus:border-[#009b70]"
 
 export default function ContactPage() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [subject, setSubject] = useState("")
@@ -31,7 +31,7 @@ export default function ContactPage() {
       const response = await fetch("/api/contact/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, subject, message }),
+        body: JSON.stringify({ name, email, subject, message, locale }),
       })
 
       const data = (await response.json().catch(() => null)) as { error?: string; ok?: boolean }

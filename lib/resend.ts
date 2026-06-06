@@ -1,68 +1,189 @@
 import type { ContactMessageInput } from "@/lib/contact"
-import type { CommunityInterestInput } from "@/lib/community-interest"
+import {
+  CLIMATE_LABEL_KEYS,
+  DIETARY_LABEL_KEYS,
+  DISTANCE_LABEL_KEYS,
+  ENERGY_SOURCE_LABEL_KEYS,
+  FOOD_PRODUCTION_LABEL_KEYS,
+  INVESTMENT_LABEL_KEYS,
+  INVESTOR_TYPE_LABEL_KEYS,
+  LIVING_MODEL_OPTIONS,
+  MOVE_TIMELINE_LABEL_KEYS,
+  OWNERSHIP_OPTIONS,
+  type CommunityInterestInput,
+} from "@/lib/community-interest"
 import { formatPreferredLocationsForDisplay } from "@/lib/community-interest-location"
 import { translate, type Locale } from "@/lib/i18n-core"
 import type { QuizResult, QuizType } from "@/lib/quiz-data"
 
 const FROM_EMAIL = "Autarkeia <noreply@send.autarkeia.world>"
 const CONTACT_NOTIFY_EMAIL = process.env.CONTACT_NOTIFY_EMAIL ?? "hello@autarkeia.world"
-const SUBJECT = "We received your interest — Autarkeia Communities"
 
-function formatList(items: string[]): string {
-  return items.length > 0 ? items.join(", ") : "Not specified"
+const INTENT_LABEL_KEYS = {
+  live: "communities.form.intent_option.live",
+  buy_food: "communities.form.intent_option.buy_food",
+  both: "communities.form.intent_option.both",
+} as const
+
+function notSpecified(locale: Locale): string {
+  return translate(locale, "communities.email.summary.not_specified")
 }
 
-function buildSummary(data: CommunityInterestInput, notesLabel: string): string {
+function naAutarkeiaManaged(locale: Locale): string {
+  return translate(locale, "communities.email.summary.na_autarkeia_managed")
+}
+
+function summaryLine(locale: Locale, labelKey: string, value: string): string {
+  return `${translate(locale, labelKey)}: ${value}`
+}
+
+function translateByMap<T extends string>(
+  locale: Locale,
+  value: T | null | undefined,
+  map: Record<T, string>
+): string {
+  if (!value) return notSpecified(locale)
+  const key = map[value]
+  return key ? translate(locale, key) : value
+}
+
+function translateLivingModel(
+  locale: Locale,
+  value: CommunityInterestInput["livingModel"]
+): string {
+  if (!value) return notSpecified(locale)
+  const option = LIVING_MODEL_OPTIONS.find((entry) => entry.value === value)
+  return option ? translate(locale, option.labelKey) : value
+}
+
+function translateOwnership(
+  locale: Locale,
+  value: CommunityInterestInput["energyOwnership"]
+): string {
+  if (!value) return notSpecified(locale)
+  const option = OWNERSHIP_OPTIONS.find((entry) => entry.value === value)
+  return option ? translate(locale, option.labelKey) : value
+}
+
+function translateListByMap<T extends string>(
+  locale: Locale,
+  items: T[] | null | undefined,
+  map: Record<T, string>
+): string {
+  if (!items || items.length === 0) return notSpecified(locale)
+  return items.map((item) => translateByMap(locale, item, map)).join(", ")
+}
+
+function translateFoodProducts(locale: Locale, items: string[] | null | undefined): string {
+  if (!items || items.length === 0) return notSpecified(locale)
+  return items
+    .map((item) => translate(locale, `communities.form.food_product_option.${item}`))
+    .join(", ")
+}
+
+function translateFoodFrequency(
+  locale: Locale,
+  value: CommunityInterestInput["foodFrequency"]
+): string {
+  if (!value) return notSpecified(locale)
+  return translate(locale, `communities.form.food_frequency_option.${value}`)
+}
+
+function buildSummary(data: CommunityInterestInput, locale: Locale): string {
   const locations =
     data.preferredLocations.length > 0
       ? formatPreferredLocationsForDisplay(data.preferredLocations)
-      : "Not specified"
+      : notSpecified(locale)
 
   const energySources =
     data.energyOwnership === "Resident-owned" && data.energyPreferences != null
-      ? formatList(data.energyPreferences)
-      : "N/A (Autarkeia-managed)"
+      ? translateListByMap(locale, data.energyPreferences, ENERGY_SOURCE_LABEL_KEYS)
+      : naAutarkeiaManaged(locale)
 
   const foodMethods =
     data.foodOwnership === "Resident-owned" && data.foodPreferences != null
-      ? formatList(data.foodPreferences)
-      : "N/A (Autarkeia-managed)"
+      ? translateListByMap(locale, data.foodPreferences, FOOD_PRODUCTION_LABEL_KEYS)
+      : naAutarkeiaManaged(locale)
 
-  const intentLabel =
-    data.intent === "live"
-      ? "Live in community"
-      : data.intent === "buy_food"
-      ? "Buy food only"
-      : "Live + buy food"
-
-  const lines = [`Preferred locations: ${locations}`, `Intent: ${intentLabel}`]
+  const lines = [
+    summaryLine(locale, "communities.email.summary.preferred_locations", locations),
+    summaryLine(
+      locale,
+      "communities.email.summary.intent",
+      translate(locale, INTENT_LABEL_KEYS[data.intent])
+    ),
+  ]
 
   if (data.intent === "live" || data.intent === "both") {
     lines.push(
-      `Living model: ${data.livingModel ?? "Not specified"}`,
-      `Energy ownership: ${data.energyOwnership ?? "Not specified"}`,
-      `Preferred energy sources: ${energySources}`,
-      `Food ownership: ${data.foodOwnership ?? "Not specified"}`,
-      `Preferred food production: ${foodMethods}`,
-      `Dietary community preference: ${data.dietaryPreference ?? "Not specified"}`,
-      `Climate: ${data.climatePreference ?? "Not specified"}`,
-      `Distance from city: ${data.distanceFromCity ?? "Not specified"}`,
-      `Investment capacity: ${data.investmentCapacity ?? "Not specified"}`,
-      `Investor type: ${data.investorType ?? "Not specified"}`,
-      `Timeline: ${data.moveTimeline ?? "Not specified"}`
+      summaryLine(
+        locale,
+        "communities.email.summary.living_model",
+        translateLivingModel(locale, data.livingModel)
+      ),
+      summaryLine(
+        locale,
+        "communities.email.summary.energy_ownership",
+        translateOwnership(locale, data.energyOwnership)
+      ),
+      summaryLine(locale, "communities.email.summary.preferred_energy_sources", energySources),
+      summaryLine(
+        locale,
+        "communities.email.summary.food_ownership",
+        translateOwnership(locale, data.foodOwnership)
+      ),
+      summaryLine(locale, "communities.email.summary.preferred_food_production", foodMethods),
+      summaryLine(
+        locale,
+        "communities.email.summary.dietary_preference",
+        translateByMap(locale, data.dietaryPreference, DIETARY_LABEL_KEYS)
+      ),
+      summaryLine(
+        locale,
+        "communities.email.summary.climate",
+        translateByMap(locale, data.climatePreference, CLIMATE_LABEL_KEYS)
+      ),
+      summaryLine(
+        locale,
+        "communities.email.summary.distance_from_city",
+        translateByMap(locale, data.distanceFromCity, DISTANCE_LABEL_KEYS)
+      ),
+      summaryLine(
+        locale,
+        "communities.email.summary.investment_capacity",
+        translateByMap(locale, data.investmentCapacity, INVESTMENT_LABEL_KEYS)
+      ),
+      summaryLine(
+        locale,
+        "communities.email.summary.investor_type",
+        translateByMap(locale, data.investorType, INVESTOR_TYPE_LABEL_KEYS)
+      ),
+      summaryLine(
+        locale,
+        "communities.email.summary.move_timeline",
+        translateByMap(locale, data.moveTimeline, MOVE_TIMELINE_LABEL_KEYS)
+      )
     )
   }
 
   if (data.intent === "buy_food" || data.intent === "both") {
     lines.push(
-      `Food products of interest: ${formatList(data.foodProducts ?? [])}`,
-      `Purchase frequency: ${data.foodFrequency ?? "Not specified"}`
+      summaryLine(
+        locale,
+        "communities.email.summary.food_products",
+        translateFoodProducts(locale, data.foodProducts ?? [])
+      ),
+      summaryLine(
+        locale,
+        "communities.email.summary.purchase_frequency",
+        translateFoodFrequency(locale, data.foodFrequency)
+      )
     )
   }
 
   const notes = data.notes?.trim()
   if (notes) {
-    lines.push(`${notesLabel}: ${notes}`)
+    lines.push(summaryLine(locale, "communities.form.notes", notes))
   }
 
   return lines.join("\n")
@@ -370,38 +491,99 @@ export async function sendWelcomeEmail(
   })
 }
 
+function buildBrandedConfirmationEmail(options: {
+  greeting: string
+  thanksLine: string
+  summaryHeading?: string
+  summaryContent?: string
+  signoff: string
+}): string {
+  const summaryBlock =
+    options.summaryHeading && options.summaryContent
+      ? `
+                  <h2 style="margin:0 0 12px;font-size:16px;color:#0d1b2a;font-weight:600;">${escapeHtml(
+                    options.summaryHeading
+                  )}</h2>
+                  <pre style="margin:0;padding:14px;border:1px solid #d4dce8;border-radius:10px;background:#fafbfc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:13px;line-height:1.5;color:#3d5166;white-space:pre-wrap;">${escapeHtml(
+                    options.summaryContent
+                  )}</pre>`
+      : ""
+
+  return `
+    <div style="margin:0;padding:0;background:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f7fa;padding:24px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="max-width:640px;border:1px solid #d4dce8;border-radius:14px;overflow:hidden;">
+              <tr>
+                <td style="background:#0d1b2a;padding:28px 24px;text-align:center;">
+                  <p style="margin:0;font-size:18px;font-weight:300;letter-spacing:3px;color:#ffffff;">
+                    AUT<span style="color:#009b70;">ARK</span>EIA
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:28px 24px 20px;background:#ffffff;">
+                  <p style="margin:0 0 16px;font-size:16px;color:#0d1b2a;font-weight:500;">${escapeHtml(
+                    options.greeting
+                  )}</p>
+                  <p style="margin:0 0 24px;font-size:14px;color:#3d5166;line-height:1.6;">${escapeHtml(
+                    options.thanksLine
+                  )}</p>
+                  ${summaryBlock}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:16px 24px 24px;border-top:1px solid #eef2f6;background:#fafbfc;">
+                  <p style="margin:0;font-size:13px;color:#8a9bb0;">${escapeHtml(options.signoff)}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `.trim()
+}
+
 export async function sendCommunityInterestConfirmation(
   data: CommunityInterestInput,
   locale: Locale = "en"
 ): Promise<void> {
-  const notesLabel = translate(locale, "communities.form.notes")
-  const summary = buildSummary(data, notesLabel)
-  const html = `
-    <p>Hi ${escapeHtml(data.fullName)},</p>
-    <p>Thank you for registering your interest in Autarkeia Communities.</p>
-    <p>We have saved your preferences and will be in touch as we develop projects in your preferred regions. Your submission helps us demonstrate demand to investors and partners.</p>
-    <p><strong>Summary</strong></p>
-    <pre style="font-family: sans-serif; white-space: pre-wrap;">${escapeHtml(summary)}</pre>
-    <p>— The Autarkeia team</p>
-  `.trim()
+  const summary = buildSummary(data, locale)
+  const greeting = translate(locale, "communities.email.greeting").replace(
+    "{name}",
+    data.fullName.trim()
+  )
+  const html = buildBrandedConfirmationEmail({
+    greeting,
+    thanksLine: translate(locale, "communities.email.thanks_line"),
+    summaryHeading: translate(locale, "communities.email.summary_heading"),
+    summaryContent: summary,
+    signoff: translate(locale, "communities.email.signoff"),
+  })
 
   await sendResendEmail({
     to: [data.email],
-    subject: SUBJECT,
+    subject: translate(locale, "communities.email.subject"),
     html,
   })
 }
 
-export async function sendContactConfirmation(data: ContactMessageInput): Promise<void> {
-  const html = `
-    <p>Hi ${escapeHtml(data.name)},</p>
-    <p>Thank you for contacting Autarkeia. We have received your message and will reply when we can.</p>
-    <p>— The Autarkeia team</p>
-  `.trim()
+export async function sendContactConfirmation(
+  data: ContactMessageInput,
+  locale: Locale = "en"
+): Promise<void> {
+  const greeting = translate(locale, "contact.email.greeting").replace("{name}", data.name.trim())
+  const html = buildBrandedConfirmationEmail({
+    greeting,
+    thanksLine: translate(locale, "contact.email.thanks_line"),
+    signoff: translate(locale, "contact.email.signoff"),
+  })
 
   await sendResendEmail({
     to: [data.email],
-    subject: "We received your message — Autarkeia",
+    subject: translate(locale, "contact.email.subject"),
     html,
   })
 }
