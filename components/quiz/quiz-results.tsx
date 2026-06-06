@@ -253,13 +253,9 @@ export function QuizResults({ quizType }: QuizResultsProps) {
   const format = (key: string, vars: Record<string, string>) =>
     Object.entries(vars).reduce((acc, [k, v]) => acc.replaceAll(`{${k}}`, v), t(key))
   const translatePriority = (value: string) => t(`quiz.results.priority.${value}`)
-  const scoreLabelMap: Record<string, string> = {
-    'Just getting started': t('quiz.results.score_label.just_getting_started'),
-    'Early stage': t('quiz.results.score_label.early_stage'),
-    'Moderately self-sufficient': t('quiz.results.score_label.moderately_self_sufficient'),
-    'Highly self-sufficient': t('quiz.results.score_label.highly_self_sufficient'),
-  }
-  const localizedScoreLabel = scoreLabelMap[result?.score_label ?? ''] ?? result?.score_label ?? ''
+  const localizedScoreLabel = result?.score_label
+    ? t(`quiz.${quizType}.verdict.${result.score_label}`)
+    : ''
 
   useEffect(() => {
     async function analyzeQuiz() {

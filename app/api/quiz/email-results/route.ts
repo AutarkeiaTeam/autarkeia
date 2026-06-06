@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       to: email,
       subject: t(`quiz.email.subject.${quiz}`),
       overallScore: deterministic.overall_score,
-      scoreLabel: deterministic.score_label,
+      scoreLabel: t(`quiz.${quiz}.verdict.${deterministic.score_label}`),
       categoryScores: deterministic.category_scores,
       actionPlan: advice.action_plan,
       productRecommendations: advice.product_recommendations,

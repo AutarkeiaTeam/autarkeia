@@ -76,10 +76,12 @@ const SCORING_WEIGHTS: QuizWeights = {
   },
 }
 
+export type ScoreLevel = "beginner" | "intermediate" | "advanced" | "expert"
+
 export type QuizScoringResult = {
   overall_score: number
   category_scores: CategoryScores
-  score_label: string
+  score_label: ScoreLevel
 }
 
 function emptyScores(categories: string[]): CategoryScores {
@@ -131,11 +133,11 @@ function applyOptionScores(scores: CategoryScores, points: CategoryPoints | unde
   }
 }
 
-export function scoreLabelFromOverall(overall: number): string {
-  if (overall < 30) return "Just getting started"
-  if (overall < 50) return "Early stage"
-  if (overall < 70) return "Moderately self-sufficient"
-  return "Highly self-sufficient"
+export function scoreLevelFromOverall(overall: number): ScoreLevel {
+  if (overall < 30) return "beginner"
+  if (overall < 50) return "intermediate"
+  if (overall < 70) return "advanced"
+  return "expert"
 }
 
 export function scoreQuiz(quizType: QuizType, answers: QuizAnswers): QuizScoringResult {
@@ -176,6 +178,6 @@ export function scoreQuiz(quizType: QuizType, answers: QuizAnswers): QuizScoring
   return {
     overall_score,
     category_scores,
-    score_label: scoreLabelFromOverall(overall_score),
+    score_label: scoreLevelFromOverall(overall_score),
   }
 }
