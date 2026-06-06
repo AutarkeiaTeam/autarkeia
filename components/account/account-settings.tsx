@@ -288,6 +288,9 @@ export function AccountSettings({
                   onChange={(e) => setDisplayName(e.target.value)}
                   className={fieldClassName()}
                 />
+                <p className="mt-1.5 text-xs text-[#8a9bb0]">
+                  {t("account.info.display_name_helper")}
+                </p>
               </div>
               <div>
                 <label htmlFor="username" className={labelClassName()}>
