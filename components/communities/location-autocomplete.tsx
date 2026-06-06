@@ -32,6 +32,7 @@ export function LocationAutocomplete({
   const { t } = useI18n()
   const listboxId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState("")
   const [suggestions, setSuggestions] = useState<MapboxFeature[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -110,10 +111,33 @@ export function LocationAutocomplete({
     return () => document.removeEventListener("mousedown", onPointerDown)
   }, [])
 
+  const focusInput = useCallback(() => {
+    inputRef.current?.focus({ preventScroll: true })
+  }, [])
+
+  // Defer focus until after paint so parent layout / intent hydration can settle.
+  useEffect(() => {
+    if (disabled || atLimit) return
+    const timer = window.setTimeout(() => {
+      const active = document.activeElement
+      if (
+        active &&
+        active !== document.body &&
+        active !== document.documentElement &&
+        active !== inputRef.current
+      ) {
+        return
+      }
+      focusInput()
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [disabled, atLimit, focusInput])
+
   return (
     <div ref={containerRef} className="space-y-3">
-      <div className="relative">
+      <div className="relative cursor-text" onClick={focusInput}>
         <input
+          ref={inputRef}
           type="text"
           className={inputClass}
           placeholder={
