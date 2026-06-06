@@ -83,7 +83,7 @@
   "account.delete.heading": "Eliminar cuenta",
   "account.delete.success": "Tu cuenta ha sido eliminada.",
   "account.info.display_name_helper": "Se muestra públicamente en el sitio. Puede incluir espacios, acentos y mayúsculas.",
-  "account.info.display_name_label": "Nombre visible",
+  "account.info.display_name_label": "Nombre",
   "account.info.display_name_required": "Introduce un nombre visible.",
   "account.info.username_helper": "Tu identificador para compartir tu perfil. Solo letras minúsculas, números y guiones bajos (3–30 caracteres). Vive en autarkeia.world/profile/tunombre.",
   "account.info.username_invalid": "El nombre de usuario debe tener 3-30 caracteres: solo letras minúsculas, números y guiones bajos.",
