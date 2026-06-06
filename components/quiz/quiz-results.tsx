@@ -111,41 +111,41 @@ function ActionItem({
   }
 
   return (
-    <div className="p-4 rounded-xl border border-[#d4dce8] bg-white" style={{ borderWidth: '0.5px' }}>
-      <div className="flex items-start justify-between mb-2">
-        <h4 className="font-medium text-[#0d1b2a]">{title}</h4>
-        <span 
-          className="text-xs px-2 py-0.5 rounded-full text-white capitalize"
+    <div className="p-3 rounded-xl border border-[#d4dce8] bg-white" style={{ borderWidth: '0.5px' }}>
+      <div className="flex items-start justify-between gap-2 mb-1">
+        <h4 className="font-medium text-[#0d1b2a] leading-snug">{title}</h4>
+        <span
+          className="text-xs px-2 py-0.5 rounded-full text-white capitalize shrink-0"
           style={{ backgroundColor: priorityColors[priority as keyof typeof priorityColors] || accentColor }}
         >
           {translatePriority(priority)}
         </span>
       </div>
-      <p className="text-sm text-[#3d5166] font-light mb-3">{description}</p>
+      <p className="text-sm text-[#3d5166] font-light mb-1.5 leading-snug">{description}</p>
       <p className="text-xs text-[#8a9bb0]">{estimatedCostLabel} {estimated_cost}</p>
       {linked_product?.name ? (
-        <div className="mt-4 pt-4 border-t border-[#e8edf2]">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-[#8a9bb0] mb-2">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          <span className="text-[9px] font-semibold uppercase tracking-wider text-[#8a9bb0] leading-none">
             {recommendedLabel}
-          </p>
-          <p className="text-sm font-medium text-[#3d5166]">{linked_product.name}</p>
-          <div className="mt-2 flex items-center justify-between gap-3">
+          </span>
+          <span className="text-sm font-medium text-[#3d5166]">{linked_product.name}</span>
+          {linked_product.estimated_price ? (
             <span className="text-xs text-[#8a9bb0]">{linked_product.estimated_price}</span>
-            <Button
-              asChild
-              size="sm"
-              variant="outline"
-              className="text-xs shrink-0 border-[#d4dce8] text-[#0d1b2a] hover:bg-[#f5f7fa]"
+          ) : null}
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="h-7 px-2.5 text-xs shrink-0 border-[#d4dce8] text-[#0d1b2a] hover:bg-[#f5f7fa]"
+          >
+            <a
+              href={amazonSearchUrl(linked_product.name)}
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <a
-                href={amazonSearchUrl(linked_product.name)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {buyLabel} <ExternalLink className="h-3 w-3 ml-1" />
-              </a>
-            </Button>
-          </div>
+              {buyLabel} <ExternalLink className="h-3 w-3 ml-1" />
+            </a>
+          </Button>
         </div>
       ) : null}
     </div>
