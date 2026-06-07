@@ -1,30 +1,8 @@
 import { NextResponse } from "next/server"
-import { z } from "zod"
+import { profileAboutUpdateSchema } from "@/lib/profile-about"
 import { isUsernameTaken, isValidUsername, sanitizeUsernameInput } from "@/lib/username"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
-
-const profileUpdateSchema = z
-  .object({
-    displayName: z.string().trim().min(1).max(50).optional(),
-    username: z.string().trim().optional(),
-    bio: z.string().max(280).optional(),
-    avatarUrl: z.union([z.string().url(), z.null()]).optional(),
-    profilePublic: z.boolean().optional(),
-    showQuizScores: z.boolean().optional(),
-    showCountry: z.boolean().optional(),
-  })
-  .refine(
-    (data) =>
-      data.displayName !== undefined ||
-      data.username !== undefined ||
-      data.bio !== undefined ||
-      data.avatarUrl !== undefined ||
-      data.profilePublic !== undefined ||
-      data.showQuizScores !== undefined ||
-      data.showCountry !== undefined,
-    { message: "account.validation.nothing_to_update" }
-  )
 
 export async function PATCH(request: Request) {
   try {
@@ -38,7 +16,7 @@ export async function PATCH(request: Request) {
     }
 
     const json = await request.json().catch(() => null)
-    const parsed = profileUpdateSchema.safeParse(json)
+    const parsed = profileAboutUpdateSchema.safeParse(json)
 
     if (!parsed.success) {
       const message = parsed.error.errors[0]?.message || "account.validation.invalid_form_data"
@@ -56,7 +34,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "account.info.save_error" }, { status: 500 })
     }
 
-    const updates: Record<string, string | boolean | null> = {
+    const updates: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     }
 
@@ -104,9 +82,77 @@ export async function PATCH(request: Request) {
       updates.show_country = nextProfilePublic ? parsed.data.showCountry : false
     }
 
+    if (parsed.data.hometown !== undefined) {
+      updates.hometown = parsed.data.hometown
+    }
+
+    if (parsed.data.languages !== undefined) {
+      updates.languages = parsed.data.languages.length ? parsed.data.languages : null
+    }
+
+    if (parsed.data.skills !== undefined) {
+      updates.skills = parsed.data.skills.length ? parsed.data.skills : null
+    }
+
+    if (parsed.data.prepGoal !== undefined) {
+      updates.prep_goal = parsed.data.prepGoal
+    }
+
+    if (parsed.data.yearsPreparing !== undefined) {
+      updates.years_preparing = parsed.data.yearsPreparing
+    }
+
+    if (parsed.data.householdAdults !== undefined) {
+      updates.household_adults = parsed.data.householdAdults
+    }
+
+    if (parsed.data.householdChildren !== undefined) {
+      updates.household_children = parsed.data.householdChildren
+    }
+
+    if (parsed.data.householdPets !== undefined) {
+      updates.household_pets = parsed.data.householdPets
+    }
+
+    if (parsed.data.householdSpecialNeeds !== undefined) {
+      updates.household_special_needs = parsed.data.householdSpecialNeeds.length
+        ? parsed.data.householdSpecialNeeds
+        : null
+    }
+
+    if (parsed.data.showHometown !== undefined) {
+      updates.show_hometown = nextProfilePublic ? parsed.data.showHometown : false
+    }
+
+    if (parsed.data.showLanguages !== undefined) {
+      updates.show_languages = nextProfilePublic ? parsed.data.showLanguages : false
+    }
+
+    if (parsed.data.showSkills !== undefined) {
+      updates.show_skills = nextProfilePublic ? parsed.data.showSkills : false
+    }
+
+    if (parsed.data.showPrepGoal !== undefined) {
+      updates.show_prep_goal = nextProfilePublic ? parsed.data.showPrepGoal : false
+    }
+
+    if (parsed.data.showYearsPreparing !== undefined) {
+      updates.show_years_preparing = nextProfilePublic ? parsed.data.showYearsPreparing : false
+    }
+
+    if (parsed.data.showHousehold !== undefined) {
+      updates.show_household = nextProfilePublic ? parsed.data.showHousehold : false
+    }
+
     if (parsed.data.profilePublic === false) {
       updates.show_quiz_scores = false
       updates.show_country = false
+      updates.show_hometown = false
+      updates.show_languages = false
+      updates.show_skills = false
+      updates.show_prep_goal = false
+      updates.show_years_preparing = false
+      updates.show_household = false
     }
 
     const { error: updateError } = await admin

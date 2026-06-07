@@ -20,6 +20,8 @@ import {
   showsPasswordForm,
   type PrimaryAuthMethod,
 } from "@/lib/account-auth"
+import { AboutMeForm } from "@/components/account/about-me-form"
+import type { ProfileAboutData } from "@/lib/profile-about"
 import { isValidUsername, sanitizeUsernameInput } from "@/lib/username"
 
 const BIO_MAX = 280
@@ -38,6 +40,7 @@ type AccountSettingsProps = {
   memberSince: string
   tier: Tier
   authMethod: PrimaryAuthMethod
+  aboutMe: ProfileAboutData
 }
 
 function fieldClassName() {
@@ -66,6 +69,7 @@ export function AccountSettings({
   memberSince,
   tier,
   authMethod,
+  aboutMe,
 }: AccountSettingsProps) {
   const { t, locale } = useI18n()
   const router = useRouter()
@@ -492,84 +496,7 @@ export function AccountSettings({
             </form>
           </section>
 
-          <section
-            className="rounded-2xl border border-[#d4dce8] bg-white p-6"
-            style={{ borderWidth: "0.5px" }}
-          >
-            {canChangePassword ? (
-              <>
-                <h2 className="text-lg font-medium text-[#0d1b2a]">{t("account.password.heading")}</h2>
-                <form onSubmit={handleChangePassword} className="mt-5 space-y-4">
-                  <div>
-                    <label htmlFor="current-password" className={labelClassName()}>
-                      {t("account.password.current_label")}
-                    </label>
-                    <input
-                      id="current-password"
-                      type="password"
-                      autoComplete="current-password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      className={fieldClassName()}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="new-password" className={labelClassName()}>
-                      {t("account.password.new_label")}
-                    </label>
-                    <input
-                      id="new-password"
-                      type="password"
-                      autoComplete="new-password"
-                      minLength={8}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className={fieldClassName()}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="confirm-password" className={labelClassName()}>
-                      {t("account.password.confirm_label")}
-                    </label>
-                    <input
-                      id="confirm-password"
-                      type="password"
-                      autoComplete="new-password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className={fieldClassName()}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={isSavingPassword}
-                    className="rounded-lg border border-[#d4dce8] bg-white px-5 py-2.5 text-sm font-medium text-[#0d1b2a] hover:border-[#009b70] disabled:opacity-60"
-                  >
-                    {isSavingPassword ? t("account.password.submitting") : t("account.password.submit")}
-                  </button>
-                  {passwordMessage && <p className="text-sm text-[#009b70]">{passwordMessage}</p>}
-                  {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
-                </form>
-              </>
-            ) : (
-              <>
-                <h2 className="text-lg font-medium text-[#0d1b2a]">
-                  {t("account.password.oauth_only_heading")}
-                </h2>
-                <p className="mt-2 text-sm text-[#3d5166]">{t("account.password.oauth_only_body")}</p>
-                {oauthSecurityUrl ? (
-                  <a
-                    href={oauthSecurityUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-flex rounded-lg border border-[#d4dce8] bg-white px-5 py-2.5 text-sm font-medium text-[#0d1b2a] hover:border-[#009b70]"
-                  >
-                    {t("account.password.oauth_open_provider")}
-                  </a>
-                ) : null}
-              </>
-            )}
-          </section>
+          <AboutMeForm initial={aboutMe} />
 
           <section
             className="rounded-2xl border border-[#d4dce8] bg-white p-6"
@@ -649,6 +576,85 @@ export function AccountSettings({
               {privacyMessage && <p className="text-sm text-[#009b70]">{privacyMessage}</p>}
               {privacyError && <p className="text-sm text-red-600">{privacyError}</p>}
             </form>
+          </section>
+
+          <section
+            className="rounded-2xl border border-[#d4dce8] bg-white p-6"
+            style={{ borderWidth: "0.5px" }}
+          >
+            {canChangePassword ? (
+              <>
+                <h2 className="text-lg font-medium text-[#0d1b2a]">{t("account.password.heading")}</h2>
+                <form onSubmit={handleChangePassword} className="mt-5 space-y-4">
+                  <div>
+                    <label htmlFor="current-password" className={labelClassName()}>
+                      {t("account.password.current_label")}
+                    </label>
+                    <input
+                      id="current-password"
+                      type="password"
+                      autoComplete="current-password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className={fieldClassName()}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="new-password" className={labelClassName()}>
+                      {t("account.password.new_label")}
+                    </label>
+                    <input
+                      id="new-password"
+                      type="password"
+                      autoComplete="new-password"
+                      minLength={8}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className={fieldClassName()}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="confirm-password" className={labelClassName()}>
+                      {t("account.password.confirm_label")}
+                    </label>
+                    <input
+                      id="confirm-password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className={fieldClassName()}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isSavingPassword}
+                    className="rounded-lg border border-[#d4dce8] bg-white px-5 py-2.5 text-sm font-medium text-[#0d1b2a] hover:border-[#009b70] disabled:opacity-60"
+                  >
+                    {isSavingPassword ? t("account.password.submitting") : t("account.password.submit")}
+                  </button>
+                  {passwordMessage && <p className="text-sm text-[#009b70]">{passwordMessage}</p>}
+                  {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
+                </form>
+              </>
+            ) : (
+              <>
+                <h2 className="text-lg font-medium text-[#0d1b2a]">
+                  {t("account.password.oauth_only_heading")}
+                </h2>
+                <p className="mt-2 text-sm text-[#3d5166]">{t("account.password.oauth_only_body")}</p>
+                {oauthSecurityUrl ? (
+                  <a
+                    href={oauthSecurityUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex rounded-lg border border-[#d4dce8] bg-white px-5 py-2.5 text-sm font-medium text-[#0d1b2a] hover:border-[#009b70]"
+                  >
+                    {t("account.password.oauth_open_provider")}
+                  </a>
+                ) : null}
+              </>
+            )}
           </section>
 
           <section

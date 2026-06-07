@@ -7,7 +7,11 @@ import { getTier } from "@/lib/auth-server"
 import { ensureProfileUsername } from "@/lib/username"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
+import { parseProfileAboutFromRow } from "@/lib/profile-about"
 import { createClient } from "@/lib/supabase/server"
+
+const PROFILE_SELECT =
+  "display_name, username, bio, avatar_url, profile_public, show_quiz_scores, show_country, hometown, languages, skills, prep_goal, years_preparing, household_adults, household_children, household_pets, household_special_needs, show_hometown, show_languages, show_skills, show_prep_goal, show_years_preparing, show_household"
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -30,9 +34,7 @@ export default async function AccountPage() {
 
   let { data: profile } = await supabase
     .from("profiles")
-    .select(
-      "display_name, username, bio, avatar_url, profile_public, show_quiz_scores, show_country"
-    )
+    .select(PROFILE_SELECT)
     .eq("id", user.id)
     .maybeSingle()
 
@@ -44,9 +46,7 @@ export default async function AccountPage() {
     }
     const refetch = await supabase
       .from("profiles")
-      .select(
-        "display_name, username, bio, avatar_url, profile_public, show_quiz_scores, show_country"
-      )
+      .select(PROFILE_SELECT)
       .eq("id", user.id)
       .maybeSingle()
     profile = refetch.data
@@ -73,6 +73,7 @@ export default async function AccountPage() {
       memberSince={user.created_at}
       tier={tier}
       authMethod={authMethod}
+      aboutMe={parseProfileAboutFromRow((profile ?? {}) as Record<string, unknown>)}
     />
   )
 }

@@ -1,6 +1,7 @@
 import "server-only"
 
 import { initialsFromDisplayName } from "@/lib/avatar-initials"
+import { parseProfileAboutFromRow, type ProfileAboutData } from "@/lib/profile-about"
 import { hasActiveProSubscription } from "@/lib/subscription-shared"
 import { createAdminClient } from "@/lib/supabase/admin"
 
@@ -16,6 +17,21 @@ export type PublicProfileRecord = {
   show_country: boolean
   bio: string | null
   avatar_url: string | null
+  hometown: unknown
+  languages: string[] | null
+  skills: string[] | null
+  prep_goal: string | null
+  years_preparing: string | null
+  household_adults: number | null
+  household_children: number | null
+  household_pets: boolean | null
+  household_special_needs: string[] | null
+  show_hometown: boolean
+  show_languages: boolean
+  show_skills: boolean
+  show_prep_goal: boolean
+  show_years_preparing: boolean
+  show_household: boolean
   subscription_status: string | null
   subscription_plan: string | null
 }
@@ -42,7 +58,7 @@ export async function fetchProfileByUsername(
   const { data, error } = await admin
     .from("profiles")
     .select(
-      "id, username, display_name, first_name, last_name, created_at, profile_public, show_quiz_scores, show_country, bio, avatar_url, subscription_status, subscription_plan"
+      "id, username, display_name, first_name, last_name, created_at, profile_public, show_quiz_scores, show_country, bio, avatar_url, hometown, languages, skills, prep_goal, years_preparing, household_adults, household_children, household_pets, household_special_needs, show_hometown, show_languages, show_skills, show_prep_goal, show_years_preparing, show_household, subscription_status, subscription_plan"
     )
     .ilike("username", normalized)
     .maybeSingle()
@@ -88,6 +104,10 @@ export function resolvePublicDisplayName(profile: PublicProfileRecord): string {
 
 export function profileInitials(profile: PublicProfileRecord): string {
   return initialsFromDisplayName(resolvePublicDisplayName(profile), profile.username)
+}
+
+export function profileAboutFromRecord(profile: PublicProfileRecord): ProfileAboutData {
+  return parseProfileAboutFromRow(profile as unknown as Record<string, unknown>)
 }
 
 export async function buildPublicProfileView(

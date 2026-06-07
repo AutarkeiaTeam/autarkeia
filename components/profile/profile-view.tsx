@@ -4,7 +4,9 @@ import Image from "next/image"
 import { Suspense } from "react"
 import { UserAvatar } from "@/components/user-avatar"
 import { OwnerOnlySection } from "@/components/profile/owner-only-section"
+import { ProfileAboutSection } from "@/components/profile/profile-about-section"
 import { useI18n } from "@/components/i18n-provider"
+import type { ProfileAboutData } from "@/lib/profile-about"
 import type { Tier } from "@/lib/auth-server"
 import type { QuizType } from "@/lib/quiz-data"
 import { QUIZ_TYPE_LIST, type QuizResultSummary } from "@/lib/quiz-results-shared"
@@ -22,6 +24,8 @@ export type ProfileViewProps = {
   initials: string
   isPrivate: boolean
   isOwner: boolean
+  profilePublic: boolean
+  about: ProfileAboutData
   ownerTier?: Tier
   canManageSubscription?: boolean
 }
@@ -62,6 +66,8 @@ function ProfileViewContent({
   initials,
   isPrivate,
   isOwner,
+  profilePublic,
+  about,
   ownerTier,
   canManageSubscription,
 }: ProfileViewProps) {
@@ -118,6 +124,8 @@ function ProfileViewContent({
               ) : null}
             </div>
           </div>
+
+          <ProfileAboutSection about={about} isOwner={isOwner} profilePublic={profilePublic} />
 
           {showQuizScoresSection ? (
             <div className="mt-8 border-t border-[#e8edf2] pt-8" style={{ borderTopWidth: "0.5px" }}>

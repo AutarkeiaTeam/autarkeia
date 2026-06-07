@@ -6,6 +6,7 @@ import {
   buildPublicProfileView,
   fetchCommunityInterestCountry,
   fetchProfileByUsername,
+  profileAboutFromRecord,
   profileInitials,
   resolvePublicDisplayName,
 } from "@/lib/public-profile"
@@ -151,6 +152,8 @@ export default async function ProfilePage({ params }: PageProps) {
       initials={initials}
       isPrivate={false}
       isOwner={isOwner}
+      profilePublic={profile.profile_public}
+      about={profileAboutFromRecord(profile)}
       ownerTier={ownerTier}
       canManageSubscription={canManageSubscriptionFlag}
     />
