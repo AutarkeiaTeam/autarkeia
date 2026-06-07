@@ -3,9 +3,11 @@ import { FormEvent, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { setAutarkeiaSessionCookies } from "@/lib/auth-session"
+import { useI18n } from "@/components/i18n-provider"
 import { signInWithGoogle, signUpWithEmail, type SignupMetadata } from "@/lib/supabase-auth"
 
 export default function Signup() {
+  const { t } = useI18n()
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -126,7 +128,7 @@ export default function Signup() {
           <p className="text-sm text-[#8a9bb0]">
             {step === "account"
               ? "Free to start. Get your self-sufficiency score today."
-              : "These details help personalise your Autarkeia dashboard."}
+              : t("auth.signup_sub_profile")}
           </p>
           <span className="mt-3 inline-block rounded-full bg-[#e8f8f3] px-3 py-1 text-xs font-medium text-[#009b70]">Free plan</span>
         </div>
