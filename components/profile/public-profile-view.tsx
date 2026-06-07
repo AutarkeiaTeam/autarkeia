@@ -43,6 +43,8 @@ export function PublicProfileView({
   country,
   showQuizScoresSection,
   quizScores,
+  bio,
+  avatarUrl,
   initials,
   isPrivate,
 }: PublicProfileViewProps) {
