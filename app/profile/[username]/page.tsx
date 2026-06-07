@@ -13,6 +13,7 @@ import {
 import {
   fetchLatestQuizSummariesForUser,
   fetchPublicProfileQuizScores,
+  fetchQuizResultHistorySummaries,
 } from "@/lib/quiz-results"
 import { canManageSubscription, getProfileSubscription } from "@/lib/subscription"
 import { getLocale } from "@/lib/i18n-server"
@@ -132,10 +133,12 @@ export default async function ProfilePage({ params }: PageProps) {
 
   let ownerTier
   let canManageSubscriptionFlag
+  let quizHistory
   if (isOwner) {
     ownerTier = await getTier()
     const subscriptionProfile = await getProfileSubscription(profile.id)
     canManageSubscriptionFlag = canManageSubscription(subscriptionProfile?.subscription_status)
+    quizHistory = await fetchQuizResultHistorySummaries(profile.id)
   }
 
   return (
@@ -156,6 +159,7 @@ export default async function ProfilePage({ params }: PageProps) {
       about={profileAboutFromRecord(profile)}
       ownerTier={ownerTier}
       canManageSubscription={canManageSubscriptionFlag}
+      quizHistory={quizHistory}
     />
   )
 }

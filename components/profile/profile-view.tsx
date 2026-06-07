@@ -28,6 +28,7 @@ export type ProfileViewProps = {
   about: ProfileAboutData
   ownerTier?: Tier
   canManageSubscription?: boolean
+  quizHistory?: QuizResultSummary[]
 }
 
 function formatRelativeTaken(takenAt: string, locale: "en" | "es"): string {
@@ -70,6 +71,7 @@ function ProfileViewContent({
   about,
   ownerTier,
   canManageSubscription,
+  quizHistory,
 }: ProfileViewProps) {
   const { t, locale } = useI18n()
 
@@ -94,7 +96,7 @@ function ProfileViewContent({
 
   return (
     <main className="min-h-screen bg-[#f5f7fa]">
-      <div className="mx-auto max-w-2xl px-4 py-12 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 py-12 lg:px-8">
         <section
           className="rounded-2xl border border-[#d4dce8] bg-white p-6 sm:p-8"
           style={{ borderWidth: "0.5px" }}
@@ -127,7 +129,7 @@ function ProfileViewContent({
 
           <ProfileAboutSection about={about} isOwner={isOwner} profilePublic={profilePublic} />
 
-          {showQuizScoresSection ? (
+          {showQuizScoresSection && !isOwner ? (
             <div className="mt-8 border-t border-[#e8edf2] pt-8" style={{ borderTopWidth: "0.5px" }}>
               <h2 className="text-lg font-medium text-[#0d1b2a]">{t("profile.quiz_scores.heading")}</h2>
               <div className="mt-4 space-y-4">
@@ -184,7 +186,15 @@ function ProfileViewContent({
         </section>
 
         {isOwner && ownerTier ? (
-          <OwnerOnlySection tier={ownerTier} canManageSubscription={canManageSubscription} />
+          <OwnerOnlySection
+            displayName={displayName}
+            avatarUrl={avatarUrl}
+            initials={initials}
+            tier={ownerTier}
+            canManageSubscription={canManageSubscription}
+            quizLatest={quizScores ?? {}}
+            quizHistory={quizHistory ?? []}
+          />
         ) : null}
       </div>
     </main>
