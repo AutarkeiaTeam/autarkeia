@@ -1,9 +1,17 @@
 "use client"
 
-import { FormEvent, useMemo, useState } from "react"
+import { FormEvent, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { UserAvatar } from "@/components/user-avatar"
 import { useI18n } from "@/components/i18n-provider"
+import { initialsFromDisplayName } from "@/lib/avatar-initials"
+import {
+  AVATAR_BUCKET,
+  avatarStoragePath,
+  resizeAvatarToWebp,
+  validateAvatarFile,
+} from "@/lib/avatar-upload"
 import { createClient } from "@/lib/supabase/client"
 import { supabaseClient } from "@/lib/supabase-client"
 import type { Tier } from "@/lib/auth-server"
@@ -14,11 +22,15 @@ import {
 } from "@/lib/account-auth"
 import { isValidUsername, sanitizeUsernameInput } from "@/lib/username"
 
+const BIO_MAX = 280
+
 type AccountSettingsProps = {
   userId: string
   email: string
   displayName: string
   username: string
+  bio: string
+  avatarUrl: string | null
   siteHost: string
   profilePublic: boolean
   showQuizScores: boolean
@@ -45,6 +57,8 @@ export function AccountSettings({
   email,
   displayName: initialDisplayName,
   username: initialUsername,
+  bio: initialBio,
+  avatarUrl: initialAvatarUrl,
   siteHost,
   profilePublic: initialProfilePublic,
   showQuizScores: initialShowQuizScores,
@@ -58,9 +72,15 @@ export function AccountSettings({
 
   const [displayName, setDisplayName] = useState(initialDisplayName)
   const [username, setUsername] = useState(initialUsername)
+  const [bio, setBio] = useState(initialBio)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(initialAvatarUrl)
   const [infoMessage, setInfoMessage] = useState("")
   const [infoError, setInfoError] = useState("")
   const [isSavingInfo, setIsSavingInfo] = useState(false)
+  const [avatarError, setAvatarError] = useState("")
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [isRemovingAvatar, setIsRemovingAvatar] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   const [profilePublic, setProfilePublic] = useState(initialProfilePublic)
   const [showQuizScores, setShowQuizScores] = useState(initialShowQuizScores)
@@ -105,6 +125,80 @@ export function AccountSettings({
   const translateAccountError = (message: string) =>
     message.startsWith("account.") ? t(message) : message
 
+  const avatarInitials = useMemo(
+    () => initialsFromDisplayName(displayName, username),
+    [displayName, username]
+  )
+
+  const patchProfile = async (body: Record<string, unknown>) => {
+    const response = await fetch("/api/account/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+    const data = (await response.json().catch(() => null)) as { error?: string; ok?: boolean }
+    if (!response.ok) {
+      throw new Error(data?.error || "account.info.save_error")
+    }
+  }
+
+  const handleAvatarSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file) return
+
+    setAvatarError("")
+    const validationError = validateAvatarFile(file)
+    if (validationError === "format") {
+      setAvatarError(t("account.info.avatar_error_format"))
+      return
+    }
+    if (validationError === "size") {
+      setAvatarError(t("account.info.avatar_error_size"))
+      return
+    }
+
+    try {
+      setIsUploadingAvatar(true)
+      const blob = await resizeAvatarToWebp(file)
+      const supabase = createClient()
+      const path = avatarStoragePath(userId)
+      const { error: uploadError } = await supabase.storage
+        .from(AVATAR_BUCKET)
+        .upload(path, blob, { upsert: true, contentType: "image/webp" })
+
+      if (uploadError) throw uploadError
+
+      const { data: publicData } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path)
+      const publicUrl = `${publicData.publicUrl}?t=${Date.now()}`
+      await patchProfile({ avatarUrl: publicUrl.split("?")[0] })
+      setAvatarUrl(publicUrl)
+      window.dispatchEvent(new Event("autarkeia-auth-change"))
+      router.refresh()
+    } catch {
+      setAvatarError(t("account.info.save_error"))
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
+
+  const handleRemoveAvatar = async () => {
+    setAvatarError("")
+    try {
+      setIsRemovingAvatar(true)
+      const supabase = createClient()
+      await supabase.storage.from(AVATAR_BUCKET).remove([avatarStoragePath(userId)])
+      await patchProfile({ avatarUrl: null })
+      setAvatarUrl(null)
+      window.dispatchEvent(new Event("autarkeia-auth-change"))
+      router.refresh()
+    } catch {
+      setAvatarError(t("account.info.save_error"))
+    } finally {
+      setIsRemovingAvatar(false)
+    }
+  }
+
   const handleSaveInfo = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setInfoMessage("")
@@ -126,24 +220,19 @@ export function AccountSettings({
       return
     }
 
+    const trimmedBio = bio.trim().slice(0, BIO_MAX)
+
     try {
       setIsSavingInfo(true)
-      const response = await fetch("/api/account/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          displayName: trimmed,
-          username: normalizedUsername,
-        }),
+      await patchProfile({
+        displayName: trimmed,
+        username: normalizedUsername,
+        bio: trimmedBio,
       })
-      const data = (await response.json().catch(() => null)) as { error?: string; ok?: boolean }
-
-      if (!response.ok) {
-        throw new Error(data?.error || "account.info.save_error")
-      }
 
       setDisplayName(trimmed)
       setUsername(normalizedUsername)
+      setBio(trimmedBio)
       setInfoMessage(t("account.info.save_success"))
       router.refresh()
     } catch (err) {
@@ -277,6 +366,42 @@ export function AccountSettings({
             <h2 className="text-lg font-medium text-[#0d1b2a]">{t("account.info.heading")}</h2>
             <form onSubmit={handleSaveInfo} className="mt-5 space-y-4">
               <div>
+                <p className={labelClassName()}>{t("account.info.avatar_label")}</p>
+                <div className="flex flex-wrap items-center gap-4">
+                  <UserAvatar src={avatarUrl} fallbackInitials={avatarInitials} size={96} />
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => void handleAvatarSelect(e)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => avatarInputRef.current?.click()}
+                      disabled={isUploadingAvatar || isRemovingAvatar}
+                      className="rounded-lg border border-[#d4dce8] bg-white px-4 py-2 text-sm font-medium text-[#0d1b2a] hover:border-[#009b70] disabled:opacity-60"
+                    >
+                      {isUploadingAvatar
+                        ? t("account.info.avatar_uploading")
+                        : t("account.info.avatar_upload_button")}
+                    </button>
+                    {avatarUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => void handleRemoveAvatar()}
+                        disabled={isUploadingAvatar || isRemovingAvatar}
+                        className="rounded-lg border border-[#d4dce8] bg-white px-4 py-2 text-sm font-medium text-[#9f1d1d] hover:border-[#c43a3a] disabled:opacity-60"
+                      >
+                        {t("account.info.avatar_remove_button")}
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+                {avatarError ? <p className="mt-2 text-sm text-red-600">{avatarError}</p> : null}
+              </div>
+              <div>
                 <label htmlFor="display-name" className={labelClassName()}>
                   {t("account.info.display_name_label")}
                 </label>
@@ -316,6 +441,27 @@ export function AccountSettings({
                       .replace("{username}", sanitizeUsernameInput(username) || "yourname")}
                   </p>
                 ) : null}
+              </div>
+              <div>
+                <label htmlFor="bio" className={labelClassName()}>
+                  {t("account.info.bio_label")}
+                </label>
+                <textarea
+                  id="bio"
+                  rows={4}
+                  maxLength={BIO_MAX}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value.slice(0, BIO_MAX))}
+                  className={`${fieldClassName()} resize-y`}
+                />
+                <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs text-[#8a9bb0]">{t("account.info.bio_helper")}</p>
+                  <p className="text-xs text-[#8a9bb0]">
+                    {t("account.info.bio_counter")
+                      .replace("{count}", String(bio.length))
+                      .replace("{max}", String(BIO_MAX))}
+                  </p>
+                </div>
               </div>
               <div>
                 <label className={labelClassName()}>{t("account.info.email_label")}</label>

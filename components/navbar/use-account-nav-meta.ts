@@ -5,6 +5,9 @@ import { useEffect, useState } from "react"
 export type AccountNavMeta = {
   username: string | null
   profilePublic: boolean
+  displayName: string | null
+  avatarUrl: string | null
+  initials: string | null
 }
 
 export function useAccountNavMeta(): AccountNavMeta | null {

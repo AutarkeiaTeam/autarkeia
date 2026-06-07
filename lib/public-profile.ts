@@ -1,5 +1,6 @@
 import "server-only"
 
+import { initialsFromDisplayName } from "@/lib/avatar-initials"
 import { hasActiveProSubscription } from "@/lib/subscription-shared"
 import { createAdminClient } from "@/lib/supabase/admin"
 
@@ -13,6 +14,8 @@ export type PublicProfileRecord = {
   profile_public: boolean
   show_quiz_scores: boolean
   show_country: boolean
+  bio: string | null
+  avatar_url: string | null
   subscription_status: string | null
   subscription_plan: string | null
 }
@@ -24,6 +27,8 @@ export type PublicProfileView = {
   isPro: boolean
   country: string | null
   showQuizScoresSection: boolean
+  bio: string | null
+  avatarUrl: string | null
   initials: string
 }
 
@@ -37,7 +42,7 @@ export async function fetchProfileByUsername(
   const { data, error } = await admin
     .from("profiles")
     .select(
-      "id, username, display_name, first_name, last_name, created_at, profile_public, show_quiz_scores, show_country, subscription_status, subscription_plan"
+      "id, username, display_name, first_name, last_name, created_at, profile_public, show_quiz_scores, show_country, bio, avatar_url, subscription_status, subscription_plan"
     )
     .ilike("username", normalized)
     .maybeSingle()
@@ -82,17 +87,7 @@ export function resolvePublicDisplayName(profile: PublicProfileRecord): string {
 }
 
 export function profileInitials(profile: PublicProfileRecord): string {
-  const displayName = resolvePublicDisplayName(profile)
-  if (displayName.startsWith("@")) {
-    return profile.username.slice(0, 2).toUpperCase()
-  }
-
-  const parts = displayName.split(/\s+/).filter(Boolean)
-  if (parts.length >= 2) {
-    return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase()
-  }
-
-  return displayName.slice(0, 2).toUpperCase()
+  return initialsFromDisplayName(resolvePublicDisplayName(profile), profile.username)
 }
 
 export async function buildPublicProfileView(
@@ -110,6 +105,8 @@ export async function buildPublicProfileView(
     isPro: hasActiveProSubscription(profile),
     country,
     showQuizScoresSection: profile.profile_public && profile.show_quiz_scores,
+    bio: profile.bio?.trim() || null,
+    avatarUrl: profile.avatar_url?.trim() || null,
     initials: profileInitials(profile),
   }
 }

@@ -8,6 +8,8 @@ const profileUpdateSchema = z
   .object({
     displayName: z.string().trim().min(1).max(50).optional(),
     username: z.string().trim().optional(),
+    bio: z.string().max(280).optional(),
+    avatarUrl: z.union([z.string().url(), z.null()]).optional(),
     profilePublic: z.boolean().optional(),
     showQuizScores: z.boolean().optional(),
     showCountry: z.boolean().optional(),
@@ -16,6 +18,8 @@ const profileUpdateSchema = z
     (data) =>
       data.displayName !== undefined ||
       data.username !== undefined ||
+      data.bio !== undefined ||
+      data.avatarUrl !== undefined ||
       data.profilePublic !== undefined ||
       data.showQuizScores !== undefined ||
       data.showCountry !== undefined,
@@ -52,12 +56,21 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "account.info.save_error" }, { status: 500 })
     }
 
-    const updates: Record<string, string | boolean> = {
+    const updates: Record<string, string | boolean | null> = {
       updated_at: new Date().toISOString(),
     }
 
     if (parsed.data.displayName !== undefined) {
       updates.display_name = parsed.data.displayName
+    }
+
+    if (parsed.data.bio !== undefined) {
+      const trimmedBio = parsed.data.bio.trim()
+      updates.bio = trimmedBio || null
+    }
+
+    if (parsed.data.avatarUrl !== undefined) {
+      updates.avatar_url = parsed.data.avatarUrl
     }
 
     if (parsed.data.username !== undefined) {

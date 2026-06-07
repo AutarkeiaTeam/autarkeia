@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ChevronDown } from "lucide-react"
+import { UserAvatar } from "@/components/user-avatar"
 import { useI18n } from "@/components/i18n-provider"
 import { useAccountNavMeta } from "@/components/navbar/use-account-nav-meta"
 import { supabaseClient } from "@/lib/supabase-client"
@@ -52,10 +53,17 @@ export function UserMenu() {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="flex items-center gap-1 rounded-md border border-[#d4dce8] bg-white px-2 py-1.5 text-[12px] font-normal text-[#0d1b2a] hover:bg-[#f5f7fa] 2xl:px-2.5 2xl:text-[13px]"
+        className="flex items-center gap-1.5 rounded-md border border-[#d4dce8] bg-white px-2 py-1.5 text-[12px] font-normal text-[#0d1b2a] hover:bg-[#f5f7fa] 2xl:px-2.5 2xl:text-[13px]"
         aria-haspopup="menu"
         aria-expanded={open}
       >
+        {navMeta?.initials ? (
+          <UserAvatar
+            src={navMeta.avatarUrl}
+            fallbackInitials={navMeta.initials}
+            size={32}
+          />
+        ) : null}
         <span>{t("nav.account_menu")}</span>
         <ChevronDown className="h-3 w-3" />
       </button>

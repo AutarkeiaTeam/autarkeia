@@ -74,6 +74,8 @@ export default async function PublicProfilePage({ params }: PageProps) {
         country={null}
         showQuizScoresSection={false}
         quizScores={null}
+        bio={null}
+        avatarUrl={null}
         initials=""
         isPrivate
       />
@@ -95,6 +97,8 @@ export default async function PublicProfilePage({ params }: PageProps) {
       country={view.country}
       showQuizScoresSection={view.showQuizScoresSection}
       quizScores={quizScores}
+      bio={view.bio}
+      avatarUrl={view.avatarUrl}
       initials={view.initials}
       isPrivate={false}
     />

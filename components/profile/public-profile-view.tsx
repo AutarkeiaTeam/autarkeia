@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { UserAvatar } from "@/components/user-avatar"
 import { useI18n } from "@/components/i18n-provider"
 import type { QuizType } from "@/lib/quiz-data"
 import { QUIZ_TYPE_LIST, type QuizResultSummary } from "@/lib/quiz-results-shared"
@@ -13,6 +14,8 @@ type PublicProfileViewProps = {
   country: string | null
   showQuizScoresSection: boolean
   quizScores: Partial<Record<QuizType, QuizResultSummary>> | null
+  bio: string | null
+  avatarUrl: string | null
   initials: string
   isPrivate: boolean
 }
@@ -72,17 +75,7 @@ export function PublicProfileView({
           style={{ borderWidth: "0.5px" }}
         >
           <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
-            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#d4dce8] bg-[#e8f8f3]">
-              <Image
-                src="/icon.png"
-                alt=""
-                width={48}
-                height={48}
-                className="absolute h-12 w-12 object-contain opacity-20"
-                aria-hidden
-              />
-              <span className="relative text-lg font-semibold text-[#009b70]">{initials}</span>
-            </div>
+            <UserAvatar src={avatarUrl} fallbackInitials={initials} size={80} />
             <div className="mt-4 sm:mt-0 sm:ml-6 sm:flex-1">
               <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                 <h1 className="text-2xl font-light text-[#0d1b2a]">{displayName}</h1>
@@ -100,6 +93,9 @@ export function PublicProfileView({
                 <p className="mt-1 text-sm text-[#3d5166]">
                   {t("profile.country").replace("{country}", country)}
                 </p>
+              ) : null}
+              {bio ? (
+                <p className="mt-3 whitespace-pre-wrap text-sm text-[#3d5166]">{bio}</p>
               ) : null}
             </div>
           </div>
@@ -140,7 +136,7 @@ export function PublicProfileView({
             </div>
           ) : null}
 
-          <div className="mt-8 flex justify-center sm:justify-start">
+          <div className="mt-8 flex flex-col items-center gap-3 sm:items-start">
             <button
               type="button"
               disabled
@@ -149,6 +145,12 @@ export function PublicProfileView({
             >
               {t("profile.send_message.button")}
             </button>
+            <a
+              href={`mailto:hello@autarkeia.world?subject=${encodeURIComponent(`Profile report - ${username}`)}`}
+              className="text-xs text-[#c5ced8] hover:text-[#8a9bb0]"
+            >
+              {t("profile.report")}
+            </a>
           </div>
         </section>
       </div>

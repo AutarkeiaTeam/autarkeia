@@ -31,7 +31,7 @@ export default async function AccountPage() {
   let { data: profile } = await supabase
     .from("profiles")
     .select(
-      "display_name, username, profile_public, show_quiz_scores, show_country"
+      "display_name, username, bio, avatar_url, profile_public, show_quiz_scores, show_country"
     )
     .eq("id", user.id)
     .maybeSingle()
@@ -45,7 +45,7 @@ export default async function AccountPage() {
     const refetch = await supabase
       .from("profiles")
       .select(
-        "display_name, username, profile_public, show_quiz_scores, show_country"
+        "display_name, username, bio, avatar_url, profile_public, show_quiz_scores, show_country"
       )
       .eq("id", user.id)
       .maybeSingle()
@@ -64,6 +64,8 @@ export default async function AccountPage() {
       email={user.email ?? ""}
       displayName={resolveDisplayName(profile?.display_name, user.email)}
       username={profile?.username ?? ""}
+      bio={profile?.bio ?? ""}
+      avatarUrl={profile?.avatar_url ?? null}
       siteHost={siteHost}
       profilePublic={profile?.profile_public === true}
       showQuizScores={profile?.show_quiz_scores === true}

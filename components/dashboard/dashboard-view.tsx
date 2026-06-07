@@ -18,6 +18,7 @@ import {
 import { supabaseClient } from "@/lib/supabase-client"
 import { openBillingPortal } from "@/lib/stripe-client"
 import { useTier, type Tier } from "@/lib/use-tier"
+import { UserAvatar } from "@/components/user-avatar"
 import { useI18n } from "@/components/i18n-provider"
 import type { QuizType } from "@/lib/quiz-data"
 import {
@@ -29,6 +30,8 @@ export type DashboardUser = {
   id: string
   email: string | null
   displayName: string
+  avatarUrl: string | null
+  initials: string
   tier: Tier
   isDemo: boolean
   canManageSubscription?: boolean
@@ -298,10 +301,20 @@ export function DashboardView({
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-light text-[#0d1b2a]">{t("dashboard.title")}</h1>
-            <p className="mt-1 text-sm text-[#3d5166]">
-              {t("dashboard.signed_in_as")} <span className="font-medium text-[#0d1b2a]">{user.displayName}</span> ·{" "}
-              <span className={`font-medium ${isPro ? "text-[#009b70]" : "text-[#3d5166]"}`}>
-                {isPro ? t("dashboard.member_pro") : t("dashboard.member_free")}
+            <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-[#3d5166]">
+              {!user.isDemo ? (
+                <UserAvatar
+                  src={user.avatarUrl}
+                  fallbackInitials={user.initials}
+                  size={24}
+                />
+              ) : null}
+              <span>
+                {t("dashboard.signed_in_as")}{" "}
+                <span className="font-medium text-[#0d1b2a]">{user.displayName}</span> ·{" "}
+                <span className={`font-medium ${isPro ? "text-[#009b70]" : "text-[#3d5166]"}`}>
+                  {isPro ? t("dashboard.member_pro") : t("dashboard.member_free")}
+                </span>
               </span>
             </p>
             {!user.isDemo ? (
