@@ -1,12 +1,15 @@
 "use client"
 
 import Image from "next/image"
+import { Suspense } from "react"
 import { UserAvatar } from "@/components/user-avatar"
+import { OwnerOnlySection } from "@/components/profile/owner-only-section"
 import { useI18n } from "@/components/i18n-provider"
+import type { Tier } from "@/lib/auth-server"
 import type { QuizType } from "@/lib/quiz-data"
 import { QUIZ_TYPE_LIST, type QuizResultSummary } from "@/lib/quiz-results-shared"
 
-type PublicProfileViewProps = {
+export type ProfileViewProps = {
   username: string
   displayName: string
   memberSinceLabel: string
@@ -18,6 +21,9 @@ type PublicProfileViewProps = {
   avatarUrl: string | null
   initials: string
   isPrivate: boolean
+  isOwner: boolean
+  ownerTier?: Tier
+  canManageSubscription?: boolean
 }
 
 function formatRelativeTaken(takenAt: string, locale: "en" | "es"): string {
@@ -35,7 +41,15 @@ function formatRelativeTaken(takenAt: string, locale: "en" | "es"): string {
   return rtf.format(-diffMonth, "month")
 }
 
-export function PublicProfileView({
+export function ProfileView(props: ProfileViewProps) {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f5f7fa]" />}>
+      <ProfileViewContent {...props} />
+    </Suspense>
+  )
+}
+
+function ProfileViewContent({
   username,
   displayName,
   memberSinceLabel,
@@ -47,7 +61,10 @@ export function PublicProfileView({
   avatarUrl,
   initials,
   isPrivate,
-}: PublicProfileViewProps) {
+  isOwner,
+  ownerTier,
+  canManageSubscription,
+}: ProfileViewProps) {
   const { t, locale } = useI18n()
 
   if (isPrivate) {
@@ -147,14 +164,20 @@ export function PublicProfileView({
             >
               {t("profile.send_message.button")}
             </button>
-            <a
-              href={`mailto:hello@autarkeia.world?subject=${encodeURIComponent(`Profile report - ${username}`)}`}
-              className="text-xs text-[#c5ced8] hover:text-[#8a9bb0]"
-            >
-              {t("profile.report")}
-            </a>
+            {!isOwner ? (
+              <a
+                href={`mailto:hello@autarkeia.world?subject=${encodeURIComponent(`Profile report - ${username}`)}`}
+                className="text-xs text-[#c5ced8] hover:text-[#8a9bb0]"
+              >
+                {t("profile.report")}
+              </a>
+            ) : null}
           </div>
         </section>
+
+        {isOwner && ownerTier ? (
+          <OwnerOnlySection tier={ownerTier} canManageSubscription={canManageSubscription} />
+        ) : null}
       </div>
     </main>
   )

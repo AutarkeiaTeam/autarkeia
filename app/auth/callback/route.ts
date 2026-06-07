@@ -3,6 +3,7 @@ import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { applyAutarkeiaSessionCookies } from "@/lib/auth-session-server"
 import { getLocale } from "@/lib/i18n-server"
+import { profilePath } from "@/lib/profile-path"
 import { upsertProfileFromAuthUser } from "@/lib/profiles"
 import { maybeSendWelcomeEmail } from "@/lib/welcome-email"
 
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
   }
 
   const cookieStore = await cookies()
-  const response = NextResponse.redirect(`${origin}/dashboard`)
+  let redirectPath = "/account"
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options)
+            cookieStore.set(name, value, options)
           })
         },
       },
@@ -60,13 +61,24 @@ export async function GET(request: Request) {
     )
   }
 
-  applyAutarkeiaSessionCookies(response, user)
-
   try {
     await upsertProfileFromAuthUser(user)
   } catch (syncError) {
     console.error("profile upsert from auth callback failed:", syncError)
   }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .maybeSingle()
+
+  if (profile?.username) {
+    redirectPath = profilePath(profile.username)
+  }
+
+  const response = NextResponse.redirect(`${origin}${redirectPath}`)
+  applyAutarkeiaSessionCookies(response, user)
 
   try {
     const locale = await getLocale()

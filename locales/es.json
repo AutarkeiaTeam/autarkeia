@@ -1351,6 +1351,8 @@
   "profile.badge.pro": "Miembro Pro",
   "profile.country": "País: {country}",
   "profile.member_since": "Se unió en {date}",
+  "profile.owner_only_heading": "Solo tú puedes ver esto",
+  "profile.owner_plan_label": "Plan:",
   "profile.meta.description": "Perfil público de {display_name} en Autarkeia.",
   "profile.meta.not_found_title": "Perfil no encontrado — Autarkeia",
   "profile.meta.private_description": "Este perfil de Autarkeia es privado.",

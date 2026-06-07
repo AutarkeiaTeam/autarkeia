@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react"
 import { Logo } from "./logo"
 import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "./language-switcher"
+import { DashboardLink } from "./navbar/dashboard-link"
 import { MobileProfileLink } from "./navbar/mobile-profile-link"
 import { UserMenu } from "./navbar/user-menu"
 import { useI18n } from "@/components/i18n-provider"
@@ -81,7 +82,7 @@ export function Navbar() {
                 className="whitespace-nowrap rounded-lg bg-[#009b70] px-2.5 text-[12px] font-medium text-white hover:bg-[#008060] 2xl:px-3 2xl:text-[13px]"
                 asChild
               >
-                <Link href="/dashboard">{t("nav.dashboard")}</Link>
+                <DashboardLink>{t("nav.dashboard")}</DashboardLink>
               </Button>
               <UserMenu />
               <LanguageSwitcher />
@@ -132,9 +133,9 @@ export function Navbar() {
               {authed ? (
                 <>
                   <Button className="bg-[#009b70] text-white hover:bg-[#008060] font-medium rounded-lg" asChild>
-                    <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                    <DashboardLink onClick={() => setMobileMenuOpen(false)}>
                       {t("nav.dashboard")}
-                    </Link>
+                    </DashboardLink>
                   </Button>
                   <MobileProfileLink onNavigate={() => setMobileMenuOpen(false)} />
                   <Link
