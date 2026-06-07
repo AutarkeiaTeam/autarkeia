@@ -19,6 +19,12 @@ import { supabaseClient } from "@/lib/supabase-client"
 import { openBillingPortal } from "@/lib/stripe-client"
 import { useTier, type Tier } from "@/lib/use-tier"
 import { useI18n } from "@/components/i18n-provider"
+import type { QuizAnswers, QuizType } from "@/lib/quiz-data"
+import {
+  QUIZ_TYPE_LIST,
+  type QuizResultSummary,
+} from "@/lib/quiz-results-shared"
+import { scoreQuiz } from "@/lib/quiz-scoring"
 
 export type DashboardUser = {
   id: string
@@ -27,6 +33,40 @@ export type DashboardUser = {
   tier: Tier
   isDemo: boolean
   canManageSubscription?: boolean
+}
+
+export type DashboardQuizData = {
+  latest: Partial<Record<QuizType, QuizResultSummary>>
+  history: QuizResultSummary[]
+}
+
+function scoreFromSessionStorage(quizType: QuizType): QuizResultSummary | null {
+  if (typeof sessionStorage === "undefined") return null
+  const raw = sessionStorage.getItem(`quiz-answers-${quizType}`)
+  if (!raw) return null
+  try {
+    const answers = JSON.parse(raw) as QuizAnswers
+    const scored = scoreQuiz(quizType, answers)
+    return {
+      quiz_type: quizType,
+      overall_score: scored.overall_score,
+      category_scores: scored.category_scores,
+      verdict_level: scored.score_label,
+      taken_at: new Date().toISOString(),
+    }
+  } catch {
+    return null
+  }
+}
+
+function pickMostRecentResult(
+  latest: Partial<Record<QuizType, QuizResultSummary>>
+): QuizResultSummary | null {
+  return (
+    QUIZ_TYPE_LIST.map((quizType) => latest[quizType])
+      .filter((row): row is QuizResultSummary => Boolean(row))
+      .sort((a, b) => new Date(b.taken_at).getTime() - new Date(a.taken_at).getTime())[0] ?? null
+  )
 }
 
 type ActionItem = { id: string; labelKey: string; done: boolean }
@@ -94,11 +134,20 @@ function withError(message: string, error: string): string {
   return message.replace("{error}", error)
 }
 
-export function DashboardView({ user }: { user: DashboardUser }) {
+export function DashboardView({
+  user,
+  quizData,
+}: {
+  user: DashboardUser
+  quizData?: DashboardQuizData
+}) {
   const { t, locale } = useI18n()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { tier, setTier } = useTier(user.tier)
+  const [mergedLatest, setMergedLatest] = useState<Partial<Record<QuizType, QuizResultSummary>>>(
+    quizData?.latest ?? {}
+  )
   const [plan, setPlan] = useState(initialPlan)
   const [chatInput, setChatInput] = useState("")
   const [signOutError, setSignOutError] = useState("")
@@ -115,6 +164,29 @@ export function DashboardView({ user }: { user: DashboardUser }) {
       router.refresh()
     }
   }, [searchParams, router])
+
+  useEffect(() => {
+    if (user.isDemo) return
+    const merged = { ...(quizData?.latest ?? {}) }
+    for (const quizType of QUIZ_TYPE_LIST) {
+      if (merged[quizType]) continue
+      const fromSession = scoreFromSessionStorage(quizType)
+      if (fromSession) merged[quizType] = fromSession
+    }
+    setMergedLatest(merged)
+  }, [quizData, user.isDemo])
+
+  const mostRecentResult = user.isDemo ? null : pickMostRecentResult(mergedLatest)
+  const categoryBreakdown = mostRecentResult
+    ? Object.entries(mostRecentResult.category_scores).map(([name, score]) => ({ name, score }))
+    : categoryScores.map((c) => ({ name: t(c.nameKey), score: c.score }))
+  const proHistory = user.isDemo
+    ? scoreHistory
+    : (quizData?.history ?? []).map((row) => ({
+        year: new Date(row.taken_at).getFullYear(),
+        month: new Date(row.taken_at).getMonth() + 1,
+        overall: row.overall_score,
+      }))
 
   const [chatLog, setChatLog] = useState<{ role: "user" | "assistant"; text: string }[]>([
     {
@@ -323,13 +395,38 @@ export function DashboardView({ user }: { user: DashboardUser }) {
             </div>
           </div>
 
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {QUIZ_TYPE_LIST.map((quizType) => {
+              const result = user.isDemo ? null : mergedLatest[quizType]
+              return (
+                <div
+                  key={quizType}
+                  className="rounded-xl border border-[#e8edf2] bg-[#fafbfc] p-4"
+                  style={{ borderWidth: "0.5px" }}
+                >
+                  <p className="text-sm font-medium text-[#0d1b2a]">{t(`quiz.${quizType}.title`)}</p>
+                  {result ? (
+                    <>
+                      <p className="mt-2 text-4xl font-light text-[#0d1b2a]">{result.overall_score}%</p>
+                      <p className="mt-1 text-sm text-[#3d5166]">
+                        {t(`quiz.${quizType}.verdict.${result.verdict_level}`)}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="mt-2 text-sm text-[#8a9bb0]">{t("dashboard.quiz_not_taken")}</p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
           {isPro ? (
             <div className="mt-6">
               <p className="text-sm font-medium text-[#0d1b2a]">{t("dashboard.category_breakdown")}</p>
               <div className="mt-3 space-y-2">
-                {categoryScores.map((c) => (
-                  <div key={c.nameKey} className="flex items-center gap-3">
-                    <span className="w-44 text-sm text-[#3d5166]">{t(c.nameKey)}</span>
+                {categoryBreakdown.map((c) => (
+                  <div key={c.name} className="flex items-center gap-3">
+                    <span className="w-44 text-sm text-[#3d5166]">{c.name}</span>
                     <div className="h-2 flex-1 rounded-full bg-[#e8eef5]">
                       <div className="h-full rounded-full bg-[#009b70]" style={{ width: `${c.score}%` }} />
                     </div>
@@ -386,14 +483,14 @@ export function DashboardView({ user }: { user: DashboardUser }) {
         </section>
 
         {/* Pro: Score history */}
-        {isPro && (
+        {isPro && proHistory.length > 0 && (
           <section className="mt-6 rounded-2xl border border-[#d4dce8] bg-white p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
               <TrendingUp className="mr-1 inline h-3 w-3" /> {t("dashboard.score_history")}
             </p>
             <h2 className="mt-1 text-xl font-medium text-[#0d1b2a]">{t("dashboard.trend_over_time")}</h2>
             <div className="mt-4 flex h-32 items-end gap-2">
-              {scoreHistory.map((point) => (
+              {proHistory.map((point) => (
                 <div key={`${point.year}-${point.month}`} className="flex flex-1 flex-col items-center gap-1">
                   <div
                     className="w-full rounded-t bg-[#009b70]"

@@ -2,6 +2,8 @@
 
 import Image from "next/image"
 import { useI18n } from "@/components/i18n-provider"
+import type { QuizType } from "@/lib/quiz-data"
+import { QUIZ_TYPE_LIST, type QuizResultSummary } from "@/lib/quiz-results-shared"
 
 type PublicProfileViewProps = {
   username: string
@@ -10,8 +12,24 @@ type PublicProfileViewProps = {
   isPro: boolean
   country: string | null
   showQuizScoresSection: boolean
+  quizScores: Partial<Record<QuizType, QuizResultSummary>> | null
   initials: string
   isPrivate: boolean
+}
+
+function formatRelativeTaken(takenAt: string, locale: "en" | "es"): string {
+  const diffMs = Date.now() - new Date(takenAt).getTime()
+  const rtf = new Intl.RelativeTimeFormat(locale === "es" ? "es" : "en", { numeric: "auto" })
+  const diffSec = Math.round(diffMs / 1000)
+  if (Math.abs(diffSec) < 60) return rtf.format(-diffSec, "second")
+  const diffMin = Math.round(diffSec / 60)
+  if (Math.abs(diffMin) < 60) return rtf.format(-diffMin, "minute")
+  const diffHour = Math.round(diffMin / 60)
+  if (Math.abs(diffHour) < 24) return rtf.format(-diffHour, "hour")
+  const diffDay = Math.round(diffHour / 24)
+  if (Math.abs(diffDay) < 30) return rtf.format(-diffDay, "day")
+  const diffMonth = Math.round(diffDay / 30)
+  return rtf.format(-diffMonth, "month")
 }
 
 export function PublicProfileView({
@@ -21,10 +39,11 @@ export function PublicProfileView({
   isPro,
   country,
   showQuizScoresSection,
+  quizScores,
   initials,
   isPrivate,
 }: PublicProfileViewProps) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   if (isPrivate) {
     return (
@@ -88,7 +107,36 @@ export function PublicProfileView({
           {showQuizScoresSection ? (
             <div className="mt-8 border-t border-[#e8edf2] pt-8" style={{ borderTopWidth: "0.5px" }}>
               <h2 className="text-lg font-medium text-[#0d1b2a]">{t("profile.quiz_scores.heading")}</h2>
-              <p className="mt-2 text-sm text-[#3d5166]">{t("profile.quiz_scores.coming_soon")}</p>
+              <div className="mt-4 space-y-4">
+                {QUIZ_TYPE_LIST.map((quizType) => {
+                  const result = quizScores?.[quizType]
+                  return (
+                    <div
+                      key={quizType}
+                      className={`rounded-xl border border-[#e8edf2] p-4 ${result ? "bg-white" : "bg-[#fafbfc] opacity-80"}`}
+                      style={{ borderWidth: "0.5px" }}
+                    >
+                      <p className="text-sm font-medium text-[#0d1b2a]">{t(`quiz.${quizType}.title`)}</p>
+                      {result ? (
+                        <>
+                          <p className="mt-2 text-4xl font-light text-[#009b70]">{result.overall_score}%</p>
+                          <p className="mt-1 text-sm text-[#3d5166]">
+                            {t(`quiz.${quizType}.verdict.${result.verdict_level}`)}
+                          </p>
+                          <p className="mt-2 text-xs text-[#8a9bb0]">
+                            {t("profile.quiz_scores.last_taken").replace(
+                              "{when}",
+                              formatRelativeTaken(result.taken_at, locale)
+                            )}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="mt-2 text-sm text-[#8a9bb0]">{t("profile.quiz_scores.not_taken")}</p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           ) : null}
 

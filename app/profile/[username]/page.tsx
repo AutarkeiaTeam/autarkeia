@@ -6,6 +6,7 @@ import {
   fetchProfileByUsername,
   resolvePublicDisplayName,
 } from "@/lib/public-profile"
+import { fetchPublicProfileQuizScores } from "@/lib/quiz-results"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
 
@@ -72,6 +73,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
         isPro={false}
         country={null}
         showQuizScoresSection={false}
+        quizScores={null}
         initials=""
         isPrivate
       />
@@ -80,6 +82,9 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
   const view = await buildPublicProfileView(profile)
   const memberSinceLabel = formatMemberSince(view.memberSince, locale)
+  const quizScores = view.showQuizScoresSection
+    ? await fetchPublicProfileQuizScores(profile.id)
+    : null
 
   return (
     <PublicProfileView
@@ -89,6 +94,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
       isPro={view.isPro}
       country={view.country}
       showQuizScoresSection={view.showQuizScoresSection}
+      quizScores={quizScores}
       initials={view.initials}
       isPrivate={false}
     />

@@ -6,6 +6,8 @@ import {
   parseAcceptLanguage,
   type Locale,
 } from '@/lib/i18n-core'
+import { persistQuizResult } from '@/lib/quiz-results'
+import { createClient } from '@/lib/supabase/server'
 import { scoreQuiz } from '@/lib/quiz-scoring'
 import { buildQuizAdvice } from '@/lib/quiz-advice'
 
@@ -34,6 +36,22 @@ export async function POST(req: Request) {
     requestQuizType = quizType
     requestAnswers = answers
     const deterministic = scoreQuiz(quizType, answers)
+
+    try {
+      const supabase = await createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (user) {
+        await persistQuizResult(supabase, user.id, quizType, answers, deterministic)
+      }
+    } catch (saveError) {
+      console.error(
+        "[quiz/analyze] save failed:",
+        saveError instanceof Error ? saveError.message : saveError
+      )
+    }
+
     const adviceResult = await buildQuizAdvice(quizType, answers, locale)
     if (adviceResult.usedFallback && adviceResult.reason) {
       console.error('[quiz/analyze] fallback:', adviceResult.reason)

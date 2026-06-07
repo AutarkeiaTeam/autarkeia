@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import type { Metadata } from "next"
 import { DashboardView, type DashboardUser } from "@/components/dashboard/dashboard-view"
 import { getTier, type Tier } from "@/lib/auth-server"
+import { fetchLatestQuizSummariesForUser, fetchQuizResultHistorySummaries } from "@/lib/quiz-results"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
 import { canManageSubscription, getProfileSubscription } from "@/lib/subscription"
@@ -52,6 +53,10 @@ export default async function DashboardPage() {
   if (user) {
     const tier = await getTier()
     const profile = await getProfileSubscription(user.id)
+    const [latestQuizResults, quizResultHistory] = await Promise.all([
+      fetchLatestQuizSummariesForUser(user.id),
+      fetchQuizResultHistorySummaries(user.id),
+    ])
     const dashboardUser: DashboardUser = {
       id: user.id,
       email: user.email ?? null,
@@ -62,7 +67,10 @@ export default async function DashboardPage() {
     }
     return (
       <Suspense fallback={<div className="min-h-screen bg-[#f5f7fa]" />}>
-        <DashboardView user={dashboardUser} />
+        <DashboardView
+          user={dashboardUser}
+          quizData={{ latest: latestQuizResults, history: quizResultHistory }}
+        />
       </Suspense>
     )
   }
