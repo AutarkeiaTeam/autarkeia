@@ -19,12 +19,11 @@ import { supabaseClient } from "@/lib/supabase-client"
 import { openBillingPortal } from "@/lib/stripe-client"
 import { useTier, type Tier } from "@/lib/use-tier"
 import { useI18n } from "@/components/i18n-provider"
-import type { QuizAnswers, QuizType } from "@/lib/quiz-data"
+import type { QuizType } from "@/lib/quiz-data"
 import {
   QUIZ_TYPE_LIST,
   type QuizResultSummary,
 } from "@/lib/quiz-results-shared"
-import { scoreQuiz } from "@/lib/quiz-scoring"
 
 export type DashboardUser = {
   id: string
@@ -40,23 +39,25 @@ export type DashboardQuizData = {
   history: QuizResultSummary[]
 }
 
-function scoreFromSessionStorage(quizType: QuizType): QuizResultSummary | null {
-  if (typeof sessionStorage === "undefined") return null
-  const raw = sessionStorage.getItem(`quiz-answers-${quizType}`)
-  if (!raw) return null
-  try {
-    const answers = JSON.parse(raw) as QuizAnswers
-    const scored = scoreQuiz(quizType, answers)
-    return {
-      quiz_type: quizType,
-      overall_score: scored.overall_score,
-      category_scores: scored.category_scores,
-      verdict_level: scored.score_label,
-      taken_at: new Date().toISOString(),
-    }
-  } catch {
-    return null
+type DashboardScoreSummary =
+  | { status: "none" }
+  | { status: "single"; score: number; quizType: QuizType }
+  | { status: "both"; score: number }
+
+function computeDashboardScoreSummary(
+  latest: Partial<Record<QuizType, QuizResultSummary>>
+): DashboardScoreSummary {
+  const taken = QUIZ_TYPE_LIST.map((quizType) => latest[quizType]).filter(
+    (row): row is QuizResultSummary => Boolean(row)
+  )
+  if (taken.length === 0) return { status: "none" }
+  if (taken.length === 1) {
+    return { status: "single", score: taken[0].overall_score, quizType: taken[0].quiz_type }
   }
+  const average = Math.round(
+    taken.reduce((sum, row) => sum + row.overall_score, 0) / taken.length
+  )
+  return { status: "both", score: average }
 }
 
 function pickMostRecentResult(
@@ -145,9 +146,6 @@ export function DashboardView({
   const router = useRouter()
   const searchParams = useSearchParams()
   const { tier, setTier } = useTier(user.tier)
-  const [mergedLatest, setMergedLatest] = useState<Partial<Record<QuizType, QuizResultSummary>>>(
-    quizData?.latest ?? {}
-  )
   const [plan, setPlan] = useState(initialPlan)
   const [chatInput, setChatInput] = useState("")
   const [signOutError, setSignOutError] = useState("")
@@ -165,18 +163,11 @@ export function DashboardView({
     }
   }, [searchParams, router])
 
-  useEffect(() => {
-    if (user.isDemo) return
-    const merged = { ...(quizData?.latest ?? {}) }
-    for (const quizType of QUIZ_TYPE_LIST) {
-      if (merged[quizType]) continue
-      const fromSession = scoreFromSessionStorage(quizType)
-      if (fromSession) merged[quizType] = fromSession
-    }
-    setMergedLatest(merged)
-  }, [quizData, user.isDemo])
-
-  const mostRecentResult = user.isDemo ? null : pickMostRecentResult(mergedLatest)
+  const dbLatest = quizData?.latest ?? {}
+  const scoreSummary = user.isDemo
+    ? ({ status: "both", score: scoreHistory[scoreHistory.length - 1]?.overall ?? 0 } as const)
+    : computeDashboardScoreSummary(dbLatest)
+  const mostRecentResult = user.isDemo ? null : pickMostRecentResult(dbLatest)
   const categoryBreakdown = mostRecentResult
     ? Object.entries(mostRecentResult.category_scores).map(([name, score]) => ({ name, score }))
     : categoryScores.map((c) => ({ name: t(c.nameKey), score: c.score }))
@@ -374,10 +365,29 @@ export function DashboardView({
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">{t("dashboard.quiz_results")}</p>
-              <p className="mt-1 text-3xl font-light text-[#0d1b2a]">{t("dashboard.overall_score")}</p>
-              <p className="mt-1 text-sm text-[#3d5166]">
-                {t("dashboard.score_based_on")}
-              </p>
+              {scoreSummary.status === "none" ? (
+                <p className="mt-1 text-lg font-light text-[#3d5166]">{t("dashboard.score_take_quiz")}</p>
+              ) : scoreSummary.status === "single" ? (
+                <>
+                  <p className="mt-1 text-3xl font-light text-[#0d1b2a]">
+                    {t("dashboard.score_latest").replace("{score}", String(scoreSummary.score))}
+                  </p>
+                  <p className="mt-1 text-sm text-[#3d5166]">
+                    {t("dashboard.score_based_on_single").replace(
+                      "{quiz}",
+                      t(`quiz.${scoreSummary.quizType}.title`)
+                    )}
+                  </p>
+                  <p className="mt-1 text-xs text-[#8a9bb0]">{t("dashboard.score_take_both_hint")}</p>
+                </>
+              ) : (
+                <>
+                  <p className="mt-1 text-3xl font-light text-[#0d1b2a]">
+                    {t("dashboard.score_overall").replace("{score}", String(scoreSummary.score))}
+                  </p>
+                  <p className="mt-1 text-sm text-[#3d5166]">{t("dashboard.score_based_on")}</p>
+                </>
+              )}
             </div>
             <div className="flex gap-2">
               <Link
@@ -397,7 +407,7 @@ export function DashboardView({
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {QUIZ_TYPE_LIST.map((quizType) => {
-              const result = user.isDemo ? null : mergedLatest[quizType]
+              const result = user.isDemo ? null : dbLatest[quizType]
               return (
                 <div
                   key={quizType}
