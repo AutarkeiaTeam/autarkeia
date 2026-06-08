@@ -5,10 +5,20 @@ import path from "path"
 import { randomUUID } from "crypto"
 import { fetchProfileAuthorInfo } from "@/lib/profiles"
 import {
+  fetchReplyCounts,
+  fetchReactionsForPosts,
+  fetchThreadViews,
+  isThreadUnread,
+  sortThreads,
+} from "@/lib/forums-engagement"
+import {
   CATEGORIES,
   type ForumCategory,
   type ForumPost,
+  type ForumSortMode,
   type ForumThread,
+  type ForumThreadListItem,
+  type PostReactionsData,
 } from "@/lib/forums-shared"
 
 export type { ForumCategory, ForumThread, ForumPost } from "@/lib/forums-shared"
@@ -125,22 +135,53 @@ export async function listCategories(): Promise<ForumCategory[]> {
   return CATEGORIES
 }
 
-export async function listThreads(category?: string): Promise<ForumThread[]> {
+export async function listThreads(options?: {
+  category?: string
+  sort?: ForumSortMode
+  viewerId?: string | null
+}): Promise<ForumThreadListItem[]> {
+  const category = options?.category
+  const sort = options?.sort ?? "recent"
+  const viewerId = options?.viewerId ?? null
+
+  let rows: ForumThreadRow[]
   if (supabaseConfigured()) {
     const query = category
-      ? `forums_threads?select=*&category=eq.${category}&order=updated_at.desc`
-      : `forums_threads?select=*&order=updated_at.desc`
-    const rows = await supabaseFetch<ForumThreadRow[]>(query)
-    return enrichThreads(rows)
+      ? `forums_threads?select=*&category=eq.${category}`
+      : `forums_threads?select=*`
+    rows = await supabaseFetch<ForumThreadRow[]>(query)
+  } else {
+    const store = await readStore()
+    rows = category ? store.threads.filter((t) => t.category === category) : [...store.threads]
   }
-  const store = await readStore()
-  const threads = category ? store.threads.filter((t) => t.category === category) : store.threads
-  return enrichThreads(
-    [...threads].sort((a, b) => b.updated_at.localeCompare(a.updated_at))
-  )
+
+  const threadIds = rows.map((t) => t.id)
+  const [enriched, replyCounts, views] = await Promise.all([
+    enrichThreads(rows),
+    fetchReplyCounts(threadIds),
+    viewerId ? fetchThreadViews(viewerId, threadIds) : Promise.resolve(new Map<string, string>()),
+  ])
+
+  const sorted = sortThreads(enriched, sort, replyCounts)
+  return sorted.map((thread) => ({
+    ...thread,
+    reply_count: replyCounts.get(thread.id) ?? 0,
+    is_unread: isThreadUnread({
+      thread,
+      viewerId,
+      lastViewedAt: views.get(thread.id),
+    }),
+  }))
 }
 
-export async function getThread(id: string): Promise<{ thread: ForumThread; posts: ForumPost[] } | null> {
+export async function getThread(
+  id: string,
+  viewerId?: string | null
+): Promise<{
+  thread: ForumThread
+  posts: ForumPost[]
+  reactionsByPostId: Map<string, PostReactionsData>
+} | null> {
   if (supabaseConfigured()) {
     const threads = await supabaseFetch<ForumThreadRow[]>(`forums_threads?id=eq.${id}&select=*`)
     if (!threads[0]) return null
@@ -149,7 +190,11 @@ export async function getThread(id: string): Promise<{ thread: ForumThread; post
     )
     const [thread] = await enrichThreads([threads[0]])
     const posts = await enrichPosts(postRows)
-    return { thread, posts }
+    const reactionsByPostId = await fetchReactionsForPosts(
+      posts.map((p) => p.id),
+      viewerId
+    )
+    return { thread, posts, reactionsByPostId }
   }
   const store = await readStore()
   const thread = store.threads.find((t) => t.id === id)
@@ -159,7 +204,11 @@ export async function getThread(id: string): Promise<{ thread: ForumThread; post
     .sort((a, b) => a.created_at.localeCompare(b.created_at))
   const [enrichedThread] = await enrichThreads([thread])
   const enrichedPosts = await enrichPosts(posts)
-  return { thread: enrichedThread, posts: enrichedPosts }
+  const reactionsByPostId = await fetchReactionsForPosts(
+    enrichedPosts.map((p) => p.id),
+    viewerId
+  )
+  return { thread: enrichedThread, posts: enrichedPosts, reactionsByPostId }
 }
 
 export async function createThread(input: {

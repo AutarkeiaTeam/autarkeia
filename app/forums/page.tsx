@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { Suspense } from "react"
 import { ForumAuthor } from "@/components/forums/forum-author"
+import { ThreadSort } from "@/components/forums/thread-sort"
 import { CATEGORIES, listThreads } from "@/lib/forums-store"
-import { isAuthenticated } from "@/lib/auth-server"
+import { getUserId, isAuthenticated } from "@/lib/auth-server"
+import { parseForumSortMode, type ForumSortMode } from "@/lib/forums-shared"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
 import { formatRelativeTime } from "@/lib/relative-time"
@@ -40,10 +42,14 @@ const externalForums: ExternalForum[] = [
   { key: "forums.external.18", href: "https://disboard.org/servers/tag/permaculture", platform: "Discord" },
 ]
 
-async function ForumsPageContent() {
+async function ForumsPageContent({ sort }: { sort: ForumSortMode }) {
   const locale = await getLocale()
   const t = (key: string) => translate(locale, key)
-  const [threads, authed] = await Promise.all([listThreads(), isAuthenticated()])
+  const viewerId = await getUserId()
+  const [threads, authed] = await Promise.all([
+    listThreads({ sort, viewerId }),
+    isAuthenticated(),
+  ])
 
   const counts = CATEGORIES.reduce<Record<string, number>>((acc, c) => {
     acc[c.id] = threads.filter((th) => th.category === c.id).length
@@ -96,6 +102,12 @@ async function ForumsPageContent() {
           </div>
         </section>
 
+        <section className="mt-10">
+          <Suspense fallback={null}>
+            <ThreadSort />
+          </Suspense>
+        </section>
+
         {CATEGORIES.map((c) => {
           const list = threads.filter((th) => th.category === c.id)
           return (
@@ -128,7 +140,14 @@ async function ForumsPageContent() {
                     <li key={th.id}>
                       <div className="rounded-xl border border-[#d4dce8] p-4 transition-colors hover:border-[#009b70]">
                         <Link href={`/forums/${th.id}`} className="block">
-                          <p className="text-sm font-medium text-[#0d1b2a]">{th.title}</p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-sm font-medium text-[#0d1b2a]">{th.title}</p>
+                            {viewerId && th.is_unread ? (
+                              <span className="rounded-full bg-[#009b70] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                                {t("forums.thread.unread_label")}
+                              </span>
+                            ) : null}
+                          </div>
                           {th.description && (
                             <p className="mt-1 text-xs text-[#3d5166]">{th.description}</p>
                           )}
@@ -173,9 +192,15 @@ async function ForumsPageContent() {
   )
 }
 
-export default async function ForumsPage() {
+export default async function ForumsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string }>
+}) {
   const locale = await getLocale()
   const loading = translate(locale, "forums.loading")
+  const params = await searchParams
+  const sort = parseForumSortMode(params.sort)
 
   return (
     <Suspense
@@ -185,7 +210,7 @@ export default async function ForumsPage() {
         </div>
       }
     >
-      <ForumsPageContent />
+      <ForumsPageContent sort={sort} />
     </Suspense>
   )
 }

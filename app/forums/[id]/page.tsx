@@ -6,7 +6,9 @@ import { canModerateForumContent, getForumDeleteAccess } from "@/lib/forum-permi
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
 import { formatRelativeTime } from "@/lib/relative-time"
+import { reactionsFromMap } from "@/components/forums/post-reactions"
 import { ForumAuthor } from "@/components/forums/forum-author"
+import { ThreadViewTracker } from "@/components/forums/thread-view-tracker"
 import { PostCard } from "./post-card"
 import { ReplyForm, DeleteThreadButton } from "./thread-actions"
 
@@ -27,16 +29,18 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
   const locale = await getLocale()
   const t = (key: string) => translate(locale, key)
   const { id } = await params
-  const [result, viewerId] = await Promise.all([getThread(id), getUserId()])
+  const viewerId = await getUserId()
+  const result = await getThread(id, viewerId)
   if (!result) notFound()
 
-  const { thread, posts } = result
+  const { thread, posts, reactionsByPostId } = result
   const { isAdmin: viewerIsAdmin } = await getForumDeleteAccess(viewerId)
   const category = CATEGORIES.find((c) => c.id === thread.category)
   const canDeleteThread = canModerateForumContent(viewerId, thread.author_id, viewerIsAdmin)
 
   return (
     <main className="min-h-screen bg-white">
+      {viewerId ? <ThreadViewTracker threadId={thread.id} /> : null}
       <div className="mx-auto max-w-3xl px-4 py-14 lg:px-8">
         <Link href="/forums" className="text-sm text-[#009b70]">{t("forums.back")}</Link>
         <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-[#009b70]">
@@ -62,6 +66,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
             <PostCard
               key={p.id}
               post={p}
+              reactions={reactionsFromMap(reactionsByPostId, p.id)}
               viewerId={viewerId}
               viewerIsAdmin={viewerIsAdmin}
             />

@@ -4,8 +4,9 @@ import { MoreVertical } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { ForumAuthor } from "@/components/forums/forum-author"
+import { PostReactions } from "@/components/forums/post-reactions"
 import { useI18n } from "@/components/i18n-provider"
-import type { ForumPost } from "@/lib/forums-shared"
+import type { ForumPost, PostReactionsData } from "@/lib/forums-shared"
 import { canModerateForumContent } from "@/lib/forum-permissions"
 import { postWasEdited } from "@/lib/forums-post"
 import { formatRelativeTime } from "@/lib/relative-time"
@@ -190,7 +191,10 @@ export function PostCard({ post: initialPost, viewerId, viewerIsAdmin }: PostCar
           </div>
         </div>
       ) : (
-        <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#3d5166]">{post.content}</p>
+        <>
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#3d5166]">{post.content}</p>
+          <PostReactions postId={post.id} initialReactions={reactions} viewerId={viewerId} />
+        </>
       )}
     </li>
   )

@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { CATEGORIES, createThread, listThreads } from "@/lib/forums-store"
 import { getUserId } from "@/lib/auth-server"
+import { parseForumSortMode } from "@/lib/forums-shared"
 
 export async function GET(req: NextRequest) {
   try {
     const category = req.nextUrl.searchParams.get("category") ?? undefined
-    const threads = await listThreads(category)
+    const sort = parseForumSortMode(req.nextUrl.searchParams.get("sort"))
+    const viewerId = await getUserId()
+    const threads = await listThreads({ category, sort, viewerId })
     return NextResponse.json({ threads })
   } catch (err) {
     console.error("[GET /api/forums/threads]", err)
