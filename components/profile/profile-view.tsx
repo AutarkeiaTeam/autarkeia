@@ -5,8 +5,10 @@ import { Suspense } from "react"
 import { UserAvatar } from "@/components/user-avatar"
 import { OwnerOnlySection } from "@/components/profile/owner-only-section"
 import { ProfileAboutSection } from "@/components/profile/profile-about-section"
+import { ProfileCommunitySection } from "@/components/profile/profile-community-section"
 import { useI18n } from "@/components/i18n-provider"
 import type { ProfileAboutData } from "@/lib/profile-about"
+import type { ProfileCommunityData } from "@/lib/profile-community"
 import type { Tier } from "@/lib/auth-server"
 import type { QuizType } from "@/lib/quiz-data"
 import { QUIZ_TYPE_LIST, type QuizResultSummary } from "@/lib/quiz-results-shared"
@@ -26,6 +28,7 @@ export type ProfileViewProps = {
   isOwner: boolean
   profilePublic: boolean
   about: ProfileAboutData
+  community: ProfileCommunityData
   ownerTier?: Tier
   canManageSubscription?: boolean
   quizHistory?: QuizResultSummary[]
@@ -69,6 +72,7 @@ function ProfileViewContent({
   isOwner,
   profilePublic,
   about,
+  community,
   ownerTier,
   canManageSubscription,
   quizHistory,
@@ -128,6 +132,12 @@ function ProfileViewContent({
           </div>
 
           <ProfileAboutSection about={about} isOwner={isOwner} profilePublic={profilePublic} />
+
+          <ProfileCommunitySection
+            community={community}
+            isOwner={isOwner}
+            profilePublic={profilePublic}
+          />
 
           {showQuizScoresSection && !isOwner ? (
             <div className="mt-8 border-t border-[#e8edf2] pt-8" style={{ borderTopWidth: "0.5px" }}>

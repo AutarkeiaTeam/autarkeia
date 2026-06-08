@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { profileAboutUpdateSchema } from "@/lib/profile-about"
+import { profileCommunityToDbUpdates } from "@/lib/profile-community"
 import { isUsernameTaken, isValidUsername, sanitizeUsernameInput } from "@/lib/username"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
@@ -144,6 +145,27 @@ export async function PATCH(request: Request) {
       updates.show_household = nextProfilePublic ? parsed.data.showHousehold : false
     }
 
+    Object.assign(updates, profileCommunityToDbUpdates(parsed.data))
+
+    if (parsed.data.showCommunityIntent !== undefined) {
+      updates.show_community_intent = nextProfilePublic ? parsed.data.showCommunityIntent : false
+    }
+    if (parsed.data.showCommunityLocations !== undefined) {
+      updates.show_community_locations = nextProfilePublic ? parsed.data.showCommunityLocations : false
+    }
+    if (parsed.data.showCommunityLivingPref !== undefined) {
+      updates.show_community_living_pref = nextProfilePublic ? parsed.data.showCommunityLivingPref : false
+    }
+    if (parsed.data.showCommunityInvestment !== undefined) {
+      updates.show_community_investment = nextProfilePublic ? parsed.data.showCommunityInvestment : false
+    }
+    if (parsed.data.showCommunityFoodPref !== undefined) {
+      updates.show_community_food_pref = nextProfilePublic ? parsed.data.showCommunityFoodPref : false
+    }
+    if (parsed.data.showCommunityTimeline !== undefined) {
+      updates.show_community_timeline = nextProfilePublic ? parsed.data.showCommunityTimeline : false
+    }
+
     if (parsed.data.profilePublic === false) {
       updates.show_quiz_scores = false
       updates.show_country = false
@@ -153,6 +175,12 @@ export async function PATCH(request: Request) {
       updates.show_prep_goal = false
       updates.show_years_preparing = false
       updates.show_household = false
+      updates.show_community_intent = false
+      updates.show_community_locations = false
+      updates.show_community_living_pref = false
+      updates.show_community_investment = false
+      updates.show_community_food_pref = false
+      updates.show_community_timeline = false
     }
 
     const { error: updateError } = await admin

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { communityInterestSchema, communityInterestToRow } from "@/lib/community-interest"
+import { communityInterestInputToProfileFields } from "@/lib/profile-community"
 import { sendCommunityInterestConfirmation } from "@/lib/resend"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
@@ -30,6 +31,22 @@ export async function POST(request: Request) {
         { error: "communities.validation.submit_save_failed" },
         { status: 500 }
       )
+    }
+
+    if (user?.id) {
+      const profileUpdates = communityInterestInputToProfileFields(parsed.data)
+      const { error: profileError } = await admin
+        .from("profiles")
+        .update({ ...profileUpdates, updated_at: new Date().toISOString() })
+        .eq("id", user.id)
+
+      if (profileError) {
+        console.error("community interest profile sync failed:", profileError.message)
+        return NextResponse.json(
+          { error: "communities.validation.submit_save_failed" },
+          { status: 500 }
+        )
+      }
     }
 
     try {

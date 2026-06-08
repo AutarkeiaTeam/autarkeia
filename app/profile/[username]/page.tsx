@@ -7,6 +7,7 @@ import {
   fetchCommunityInterestCountry,
   fetchProfileByUsername,
   profileAboutFromRecord,
+  profileCommunityFromRecord,
   profileInitials,
   resolvePublicDisplayName,
 } from "@/lib/public-profile"
@@ -18,6 +19,8 @@ import {
 import { canManageSubscription, getProfileSubscription } from "@/lib/subscription"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
+import { parseProfileCommunityFromRow } from "@/lib/profile-community"
+import { parseProfileAboutFromRow } from "@/lib/profile-about"
 import { createClient } from "@/lib/supabase/server"
 
 type PageProps = {
@@ -107,6 +110,9 @@ export default async function ProfilePage({ params }: PageProps) {
         initials=""
         isPrivate
         isOwner={false}
+        profilePublic={false}
+        about={parseProfileAboutFromRow({})}
+        community={parseProfileCommunityFromRow({})}
       />
     )
   }
@@ -157,6 +163,7 @@ export default async function ProfilePage({ params }: PageProps) {
       isOwner={isOwner}
       profilePublic={profile.profile_public}
       about={profileAboutFromRecord(profile)}
+      community={profileCommunityFromRecord(profile)}
       ownerTier={ownerTier}
       canManageSubscription={canManageSubscriptionFlag}
       quizHistory={quizHistory}

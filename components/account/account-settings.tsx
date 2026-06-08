@@ -21,7 +21,9 @@ import {
   type PrimaryAuthMethod,
 } from "@/lib/account-auth"
 import { AboutMeForm } from "@/components/account/about-me-form"
+import { CommunityPreferencesForm } from "@/components/account/community-preferences-form"
 import type { ProfileAboutData } from "@/lib/profile-about"
+import type { ProfileCommunityData } from "@/lib/profile-community"
 import { isValidUsername, sanitizeUsernameInput } from "@/lib/username"
 
 const BIO_MAX = 280
@@ -41,6 +43,7 @@ type AccountSettingsProps = {
   tier: Tier
   authMethod: PrimaryAuthMethod
   aboutMe: ProfileAboutData
+  communityPreferences: ProfileCommunityData
 }
 
 function fieldClassName() {
@@ -497,6 +500,8 @@ export function AccountSettings({
           </section>
 
           <AboutMeForm initial={aboutMe} />
+
+          <CommunityPreferencesForm initial={communityPreferences} />
 
           <section
             className="rounded-2xl border border-[#d4dce8] bg-white p-6"

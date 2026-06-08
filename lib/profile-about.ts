@@ -1,5 +1,9 @@
 import { z } from "zod"
 import { preferredLocationSchema, type PreferredLocation } from "@/lib/community-interest-location"
+import {
+  applyCommunityPreferenceValidation,
+  profileCommunityFieldSchema,
+} from "@/lib/profile-community"
 
 export const PROFILE_LANGUAGE_SLUGS = [
   "english",
@@ -121,31 +125,34 @@ const slugArray = <T extends readonly string[]>(allowed: T) =>
       return result
     })
 
-export const profileAboutUpdateSchema = z
-  .object({
-    displayName: z.string().trim().min(1).max(50).optional(),
-    username: z.string().trim().optional(),
-    bio: z.string().max(280).optional(),
-    avatarUrl: z.union([z.string().url(), z.null()]).optional(),
-    profilePublic: z.boolean().optional(),
-    showQuizScores: z.boolean().optional(),
-    showCountry: z.boolean().optional(),
-    hometown: preferredLocationSchema.nullable().optional(),
-    languages: slugArray(PROFILE_LANGUAGE_SLUGS).max(10).optional(),
-    skills: slugArray(PROFILE_SKILL_SLUGS).max(15).optional(),
-    prepGoal: z.enum(PROFILE_PREP_GOAL_SLUGS).nullable().optional(),
-    yearsPreparing: z.enum(PROFILE_YEARS_PREPARING_SLUGS).nullable().optional(),
-    householdAdults: z.number().int().min(1).max(10).nullable().optional(),
-    householdChildren: z.number().int().min(0).max(10).nullable().optional(),
-    householdPets: z.boolean().nullable().optional(),
-    householdSpecialNeeds: slugArray(PROFILE_SPECIAL_NEEDS_SLUGS).optional(),
-    showHometown: z.boolean().optional(),
-    showLanguages: z.boolean().optional(),
-    showSkills: z.boolean().optional(),
-    showPrepGoal: z.boolean().optional(),
-    showYearsPreparing: z.boolean().optional(),
-    showHousehold: z.boolean().optional(),
-  })
+const profileAboutFieldsSchema = z.object({
+  displayName: z.string().trim().min(1).max(50).optional(),
+  username: z.string().trim().optional(),
+  bio: z.string().max(280).optional(),
+  avatarUrl: z.union([z.string().url(), z.null()]).optional(),
+  profilePublic: z.boolean().optional(),
+  showQuizScores: z.boolean().optional(),
+  showCountry: z.boolean().optional(),
+  hometown: preferredLocationSchema.nullable().optional(),
+  languages: slugArray(PROFILE_LANGUAGE_SLUGS).max(10).optional(),
+  skills: slugArray(PROFILE_SKILL_SLUGS).max(15).optional(),
+  prepGoal: z.enum(PROFILE_PREP_GOAL_SLUGS).nullable().optional(),
+  yearsPreparing: z.enum(PROFILE_YEARS_PREPARING_SLUGS).nullable().optional(),
+  householdAdults: z.number().int().min(1).max(10).nullable().optional(),
+  householdChildren: z.number().int().min(0).max(10).nullable().optional(),
+  householdPets: z.boolean().nullable().optional(),
+  householdSpecialNeeds: slugArray(PROFILE_SPECIAL_NEEDS_SLUGS).optional(),
+  showHometown: z.boolean().optional(),
+  showLanguages: z.boolean().optional(),
+  showSkills: z.boolean().optional(),
+  showPrepGoal: z.boolean().optional(),
+  showYearsPreparing: z.boolean().optional(),
+  showHousehold: z.boolean().optional(),
+})
+
+export const profileAboutUpdateSchema = profileAboutFieldsSchema
+  .merge(profileCommunityFieldSchema)
+  .superRefine(applyCommunityPreferenceValidation)
   .refine(
     (data) =>
       data.displayName !== undefined ||
@@ -169,7 +176,30 @@ export const profileAboutUpdateSchema = z
       data.showSkills !== undefined ||
       data.showPrepGoal !== undefined ||
       data.showYearsPreparing !== undefined ||
-      data.showHousehold !== undefined,
+      data.showHousehold !== undefined ||
+      data.interestedInCommunities !== undefined ||
+      data.communityIntent !== undefined ||
+      data.communityPreferredLocations !== undefined ||
+      data.communityClimatePreference !== undefined ||
+      data.communityDistanceFromCity !== undefined ||
+      data.communityInvestmentCapacity !== undefined ||
+      data.communityInvestorType !== undefined ||
+      data.communityMoveTimeline !== undefined ||
+      data.communityLivingModel !== undefined ||
+      data.communityEnergyOwnership !== undefined ||
+      data.communityEnergyPreferences !== undefined ||
+      data.communityFoodOwnership !== undefined ||
+      data.communityFoodPreferences !== undefined ||
+      data.communityDietaryPreference !== undefined ||
+      data.communityFoodProducts !== undefined ||
+      data.communityFoodFrequency !== undefined ||
+      data.communityNotes !== undefined ||
+      data.showCommunityIntent !== undefined ||
+      data.showCommunityLocations !== undefined ||
+      data.showCommunityLivingPref !== undefined ||
+      data.showCommunityInvestment !== undefined ||
+      data.showCommunityFoodPref !== undefined ||
+      data.showCommunityTimeline !== undefined,
     { message: "account.validation.nothing_to_update" }
   )
 
