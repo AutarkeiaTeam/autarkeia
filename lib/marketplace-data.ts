@@ -1,3 +1,5 @@
+import { getAmazonAssociatesTag } from "@/lib/affiliate-urls"
+
 export type MarketplaceCategory =
   | "Water"
   | "Food"
@@ -544,7 +546,8 @@ const PRODUCT_NAMES: Record<MarketplaceCategory, string[]> = {
 }
 
 export function amazonSearchUrl(query: string): string {
-  return `https://www.amazon.es/s?k=${encodeURIComponent(query)}&tag=autarkeia-es`
+  const tag = getAmazonAssociatesTag()
+  return `https://www.amazon.es/s?k=${encodeURIComponent(query)}&tag=${encodeURIComponent(tag)}`
 }
 
 const GARDEN_HARVEST_PRODUCTS: { name: string; query: string }[] = [

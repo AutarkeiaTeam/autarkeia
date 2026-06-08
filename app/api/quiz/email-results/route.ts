@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { getTier } from "@/lib/auth-server"
 import { parseAcceptLanguage, translate } from "@/lib/i18n-core"
 import type { QuizAnswers, QuizType } from "@/lib/quiz-data"
 import { scoreQuiz } from "@/lib/quiz-scoring"
@@ -41,7 +42,11 @@ export async function POST(request: Request) {
   try {
     const quiz = quizType as QuizType
     const deterministic = scoreQuiz(quiz, answers)
-    const { advice } = await buildQuizAdvice(quiz, answers, locale)
+    const tier = await getTier()
+    const { advice } = await buildQuizAdvice(quiz, answers, locale, {
+      tier,
+      forEmail: true,
+    })
 
     await sendQuizResultsEmail({
       to: email,
@@ -70,6 +75,9 @@ export async function POST(request: Request) {
         beyondProducts: t("quiz.results.beyond_this_week.title"),
         actionRecommended: t("quiz.results.action.recommended_label"),
         estimatedPrice: t("quiz.email.label.estimated_price"),
+        priceLabel: t("quiz.email.affiliate.price_label"),
+        ctaBuyAt: t("quiz.email.affiliate.cta_buy_at"),
+        affiliateDisclosure: t("quiz.email.affiliate.affiliate_disclosure"),
         footerNote: t("quiz.email.footer.note"),
         footerSignature: t("quiz.email.footer.signature"),
         viewOnAutarkeia: t("quiz.email.footer.view_autarkeia"),

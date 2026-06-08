@@ -245,6 +245,9 @@ export async function sendQuizResultsEmail(options: {
     beyondProducts: string
     actionRecommended: string
     estimatedPrice: string
+    priceLabel: string
+    ctaBuyAt: string
+    affiliateDisclosure: string
     footerNote: string
     footerSignature: string
     viewOnAutarkeia: string
@@ -286,21 +289,62 @@ export async function sendQuizResultsEmail(options: {
       .join("")}
   `
 
+  const productCardHtml = (rec: QuizResult["product_recommendations"][number]) => {
+    const product = rec.catalog_product
+    if (!product?.affiliate_url) return ""
+
+    const ctaLabel = labels.ctaBuyAt.replace("{brand}", product.seller_name)
+    const imageCell = product.image_url
+      ? `<td style="width:72px;min-width:72px;vertical-align:top;padding-right:12px;">
+            <div style="width:72px;height:72px;min-width:72px;min-height:72px;background:#eef2f6;border:1px solid #e8edf2;border-radius:6px;overflow:hidden;line-height:0;">
+              <img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}" width="72" height="72" style="display:block;width:72px;height:72px;max-width:72px;max-height:72px;object-fit:contain;background:#ffffff;border:0;outline:none;text-decoration:none;" />
+            </div>
+          </td>`
+      : ""
+
+    return `
+      <div style="margin-top:12px;padding:12px;border:1px solid #e8edf2;border-radius:8px;background:#fafbfc;">
+        <table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;">
+          <tr>
+            ${imageCell}
+            <td style="vertical-align:top;">
+              <p style="margin:0 0 6px;font-size:14px;font-weight:600;color:#0d1b2a;">${escapeHtml(
+                product.name
+              )}</p>
+              ${
+                product.price
+                  ? `<p style="margin:0 0 10px;font-size:12px;color:#8a9bb0;">${escapeHtml(
+                      labels.priceLabel
+                    )}: ${escapeHtml(product.price)}</p>`
+                  : ""
+              }
+              <a href="${escapeHtml(product.affiliate_url)}" style="display:inline-block;background:#009b70;color:#ffffff;text-decoration:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;">${escapeHtml(
+                ctaLabel
+              )}</a>
+            </td>
+          </tr>
+        </table>
+      </div>`
+  }
+
   const recRows = options.productRecommendations
     .map((rec) => {
-      const linkHtml = ""
+      const showLegacyPrice = !rec.catalog_product?.affiliate_url && rec.estimated_price
       return `
       <tr>
         <td style="padding:10px;border-bottom:1px solid #eef2f6;">
           <p style="margin:0 0 4px;font-size:12px;color:#8a9bb0;text-transform:uppercase;">${escapeHtml(
             rec.category
           )}</p>
-          <p style="margin:0 0 4px;font-weight:600;color:#0d1b2a;">${escapeHtml(rec.name)}</p>
-          <p style="margin:0 0 4px;font-size:14px;color:#3d5166;">${escapeHtml(rec.why)}</p>
-          <p style="margin:0;font-size:12px;color:#8a9bb0;">${escapeHtml(
-            labels.estimatedPrice
-          )}: ${escapeHtml(rec.estimated_price)}</p>
-          ${linkHtml}
+          <p style="margin:0 0 8px;font-size:14px;color:#3d5166;line-height:1.5;">${escapeHtml(rec.why)}</p>
+          ${
+            showLegacyPrice
+              ? `<p style="margin:0 0 8px;font-size:12px;color:#8a9bb0;">${escapeHtml(
+                  labels.estimatedPrice
+                )}: ${escapeHtml(rec.estimated_price)}</p>`
+              : ""
+          }
+          ${productCardHtml(rec)}
         </td>
       </tr>
     `
@@ -391,6 +435,9 @@ export async function sendQuizResultsEmail(options: {
               <tr>
                 <td style="padding:16px 24px 24px;border-top:1px solid #eef2f6;background:#fafbfc;">
                   <p style="margin:0 0 10px;font-size:13px;color:#3d5166;">${escapeHtml(labels.footerNote)}</p>
+                  <p style="margin:0 0 10px;font-size:11px;color:#8a9bb0;line-height:1.5;">${escapeHtml(
+                    labels.affiliateDisclosure
+                  )}</p>
                   <p style="margin:0 0 12px;font-size:13px;color:#3d5166;">${escapeHtml(
                     labels.footerSignature
                   )}</p>

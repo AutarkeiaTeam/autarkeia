@@ -1,3 +1,4 @@
+import type { Tier } from "@/lib/auth-server"
 import type { QuizAnswers, QuizResult, QuizType } from "@/lib/quiz-data"
 import { getQuizConfig } from "@/lib/quiz-data"
 import type { Locale } from "@/lib/i18n-core"
@@ -6,6 +7,13 @@ import {
   buildScoreAwareFallback,
   enrichQuizAdviceWithBankProducts,
 } from "@/lib/quiz-advice-bank"
+import {
+  buildQuizCatalogBundle,
+  emailRecommendationCount,
+  resolveCatalogRecommendations,
+  type HaikuCatalogRecommendation,
+  type ResolvedCatalogProduct,
+} from "@/lib/quiz-catalog"
 
 function formatAnswersForPrompt(quizType: QuizType, answers: QuizAnswers): string {
   const config = getQuizConfig(quizType)
@@ -50,22 +58,65 @@ function buildFallback(
   })
 }
 
+export type BuildQuizAdviceOptions = {
+  tier?: Tier
+  forEmail?: boolean
+}
+
 export type QuizAdviceResult = {
   advice: Pick<QuizResult, "action_plan" | "product_recommendations" | "pro_bundle_upsells">
   usedFallback: boolean
   reason?: string
 }
 
+function buildEmailSystemPrompt(recommendationCount: number): string {
+  return [
+    "You are Autarkeia's AI advisor. Return ONLY raw JSON with no markdown or backticks.",
+    "The JSON must have:",
+    "action_plan (object with week/month/year arrays each with exactly 3 items having title/description/estimated_cost/priority as high or medium or low),",
+    `recommendations (array of exactly ${recommendationCount} items with category/advice_text/recommended_sku).`,
+    "For each recommendation, pick ONE product from the provided catalog by copying its exact sku into recommended_sku.",
+    "Do NOT invent product names or SKUs. If no catalog item fits, set recommended_sku to null.",
+    "Do NOT include score fields. Align advice with the computed score context and weakest categories.",
+  ].join(" ")
+}
+
 export async function buildQuizAdvice(
   quizType: QuizType,
   answers: QuizAnswers,
-  locale: Locale
+  locale: Locale,
+  options?: BuildQuizAdviceOptions
 ): Promise<QuizAdviceResult> {
   const deterministic = scoreQuiz(quizType, answers)
   const fallbackAdvice = buildFallback(locale, quizType, deterministic)
   const formattedAnswers = formatAnswersForPrompt(quizType, answers)
-  const systemPrompt =
-    "You are Autarkeia's AI advisor. Return ONLY raw JSON with no markdown or backticks. The JSON must have: action_plan (object with week/month/year arrays each with exactly 3 items having title/description/estimated_cost/priority as high or medium or low), product_recommendations (array of exactly 6 items with category/name/why/estimated_price). Do NOT include score fields. The score is already computed deterministically and you must align recommendations with it."
+  const forEmail = options?.forEmail === true
+  const tier = options?.tier ?? "free"
+  const orderedCategories = getQuizConfig(quizType).categories
+
+  let catalogContext = ""
+  let catalogLookup = new Map<string, ResolvedCatalogProduct>()
+  let weakestCategories: string[] = orderedCategories.slice(0, emailRecommendationCount())
+
+  if (forEmail) {
+    const bundle = await buildQuizCatalogBundle({
+      tier,
+      quizType,
+      categoryScores: deterministic.category_scores,
+      orderedCategories,
+    })
+    catalogLookup = bundle.lookup
+    weakestCategories = bundle.weakestCategories
+    catalogContext = JSON.stringify({
+      catalog: bundle.entries,
+      weakest_categories: bundle.weakestCategories,
+      tier,
+    })
+  }
+
+  const systemPrompt = forEmail
+    ? buildEmailSystemPrompt(emailRecommendationCount())
+    : "You are Autarkeia's AI advisor. Return ONLY raw JSON with no markdown or backticks. The JSON must have: action_plan (object with week/month/year arrays each with exactly 3 items having title/description/estimated_cost/priority as high or medium or low), product_recommendations (array of exactly 6 items with category/name/why/estimated_price). Do NOT include score fields. The score is already computed deterministically and you must align recommendations with it."
   const scoreContext = JSON.stringify({
     overall_score: deterministic.overall_score,
     category_scores: deterministic.category_scores,
@@ -95,7 +146,9 @@ export async function buildQuizAdvice(
       messages: [
         {
           role: "user",
-          content: `Computed score context:\n${scoreContext}\n\nUser answers:\n${formattedAnswers}`,
+          content: forEmail
+            ? `Computed score context:\n${scoreContext}\n\nWeakest categories (one recommendation each): ${weakestCategories.join(", ")}\n\nCatalog (pick recommended_sku from these only):\n${catalogContext}\n\nUser answers:\n${formattedAnswers}`
+            : `Computed score context:\n${scoreContext}\n\nUser answers:\n${formattedAnswers}`,
         },
       ],
     }),
@@ -127,18 +180,48 @@ export async function buildQuizAdvice(
     }
   }
   try {
-    const parsed = JSON.parse(jsonMatch[0]) as Pick<
-      QuizResult,
-      "action_plan" | "product_recommendations"
-    >
-    if (!parsed.action_plan || !parsed.product_recommendations) {
+    const parsed = JSON.parse(jsonMatch[0]) as {
+      action_plan?: QuizResult["action_plan"]
+      product_recommendations?: QuizResult["product_recommendations"]
+      recommendations?: HaikuCatalogRecommendation[]
+    }
+    if (!parsed.action_plan) {
       return {
         advice: fallbackAdvice,
         usedFallback: true,
         reason: "Anthropic returned 200 but shape validation failed",
       }
     }
-    const orderedCategories = getQuizConfig(quizType).categories
+
+    if (forEmail) {
+      const enriched = enrichQuizAdviceWithBankProducts({
+        quizType,
+        locale,
+        overallScore: deterministic.overall_score,
+        categoryScores: deterministic.category_scores,
+        orderedCategories,
+        action_plan: parsed.action_plan,
+      })
+      return {
+        advice: {
+          ...enriched,
+          product_recommendations: resolveCatalogRecommendations(
+            parsed.recommendations,
+            catalogLookup
+          ),
+        },
+        usedFallback: false,
+      }
+    }
+
+    if (!parsed.product_recommendations) {
+      return {
+        advice: fallbackAdvice,
+        usedFallback: true,
+        reason: "Anthropic returned 200 but shape validation failed",
+      }
+    }
+
     return {
       advice: enrichQuizAdviceWithBankProducts({
         quizType,

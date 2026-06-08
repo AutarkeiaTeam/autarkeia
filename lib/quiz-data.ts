@@ -44,11 +44,22 @@ export interface ActionItem {
   linked_product?: LinkedProductRecommendation | null
 }
 
+export interface EmailCatalogProduct {
+  sku: string
+  name: string
+  price: string
+  image_url: string | null
+  seller_name: string
+  affiliate_url: string
+}
+
 export interface ProductRecommendation {
   category: string
   name: string
   why: string
   estimated_price: string
+  recommended_sku?: string | null
+  catalog_product?: EmailCatalogProduct | null
 }
 
 export interface ProBundleUpsell {
