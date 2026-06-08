@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getUserId } from "@/lib/auth-server"
 import { togglePostReaction } from "@/lib/forums-engagement"
-import { getPost } from "@/lib/forums-store"
+import { getPost, getThread } from "@/lib/forums-store"
 import { isForumReactionEmoji } from "@/lib/forums-shared"
+import { getLocale } from "@/lib/i18n-server"
+import { notifyForumReaction } from "@/lib/notification-dispatch"
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const userId = await getUserId()
@@ -29,7 +31,26 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
   }
 
   try {
-    const reactions = await togglePostReaction(id, userId, emoji)
+    const { reactions, added } = await togglePostReaction(id, userId, emoji)
+
+    if (added) {
+      try {
+        const threadData = await getThread(post.thread_id)
+        const locale = await getLocale()
+        await notifyForumReaction({
+          postId: id,
+          threadId: post.thread_id,
+          threadTitle: threadData?.thread.title ?? "",
+          postAuthorId: post.author_id,
+          actorId: userId,
+          emoji,
+          locale,
+        })
+      } catch (notifyErr) {
+        console.error("[POST /api/forums/posts/[id]/reactions] notification failed:", notifyErr)
+      }
+    }
+
     return NextResponse.json({ reactions })
   } catch (err) {
     console.error("[POST /api/forums/posts/[id]/reactions]", err)

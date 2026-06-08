@@ -124,11 +124,16 @@ export async function fetchReactionsForPosts(
   return buildReactionsMap(rows, viewerId)
 }
 
+export type TogglePostReactionResult = {
+  reactions: PostReactionsData
+  added: boolean
+}
+
 export async function togglePostReaction(
   postId: string,
   userId: string,
   emoji: ForumReactionEmoji
-): Promise<PostReactionsData> {
+): Promise<TogglePostReactionResult> {
   if (!isForumReactionEmoji(emoji)) {
     throw new Error("forums.error.invalid_reaction")
   }
@@ -138,6 +143,7 @@ export async function togglePostReaction(
     const existing = await supabaseFetch<{ id: string }[]>(
       `forums_reactions?post_id=eq.${postId}&user_id=eq.${userId}&emoji=eq.${emojiFilter}&select=id`
     )
+    let added = false
     if (existing[0]) {
       await supabaseFetch<unknown>(
         `forums_reactions?post_id=eq.${postId}&user_id=eq.${userId}&emoji=eq.${emojiFilter}`,
@@ -148,15 +154,17 @@ export async function togglePostReaction(
         method: "POST",
         body: JSON.stringify({ post_id: postId, user_id: userId, emoji }),
       })
+      added = true
     }
     const map = await fetchReactionsForPosts([postId], userId)
-    return map.get(postId) ?? emptyPostReactions()
+    return { reactions: map.get(postId) ?? emptyPostReactions(), added }
   }
 
   const store = await readEngagementStore()
   const index = store.reactions.findIndex(
     (r) => r.post_id === postId && r.user_id === userId && r.emoji === emoji
   )
+  let added = false
   if (index >= 0) {
     store.reactions.splice(index, 1)
   } else {
@@ -167,13 +175,14 @@ export async function togglePostReaction(
       emoji,
       created_at: new Date().toISOString(),
     })
+    added = true
   }
   await writeEngagementStore(store)
   const map = buildReactionsMap(
     store.reactions.filter((r) => r.post_id === postId),
     userId
   )
-  return map.get(postId) ?? emptyPostReactions()
+  return { reactions: map.get(postId) ?? emptyPostReactions(), added }
 }
 
 export async function fetchReplyCounts(threadIds: string[]): Promise<Map<string, number>> {

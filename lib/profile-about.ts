@@ -4,6 +4,7 @@ import {
   applyCommunityPreferenceValidation,
   profileCommunityFieldSchema,
 } from "@/lib/profile-community"
+import { notificationPreferencesSchema } from "@/lib/profile-notifications"
 
 export const PROFILE_LANGUAGE_SLUGS = [
   "english",
@@ -152,6 +153,7 @@ const profileAboutFieldsSchema = z.object({
 
 export const profileAboutUpdateSchema = profileAboutFieldsSchema
   .merge(profileCommunityFieldSchema)
+  .merge(notificationPreferencesSchema)
   .superRefine(applyCommunityPreferenceValidation)
   .refine(
     (data) =>
@@ -199,7 +201,11 @@ export const profileAboutUpdateSchema = profileAboutFieldsSchema
       data.showCommunityLivingPref !== undefined ||
       data.showCommunityInvestment !== undefined ||
       data.showCommunityFoodPref !== undefined ||
-      data.showCommunityTimeline !== undefined,
+      data.showCommunityTimeline !== undefined ||
+      data.notifyEmailMode !== undefined ||
+      data.notifyInappEnabled !== undefined ||
+      data.notifyForumReplies !== undefined ||
+      data.notifyForumReactions !== undefined,
     { message: "account.validation.nothing_to_update" }
   )
 

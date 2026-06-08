@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { profileAboutUpdateSchema } from "@/lib/profile-about"
 import { profileCommunityToDbUpdates } from "@/lib/profile-community"
+import { notificationPreferencesToDbUpdates } from "@/lib/profile-notifications"
 import { isUsernameTaken, isValidUsername, sanitizeUsernameInput } from "@/lib/username"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
@@ -146,6 +147,7 @@ export async function PATCH(request: Request) {
     }
 
     Object.assign(updates, profileCommunityToDbUpdates(parsed.data))
+    Object.assign(updates, notificationPreferencesToDbUpdates(parsed.data))
 
     if (parsed.data.showCommunityIntent !== undefined) {
       updates.show_community_intent = nextProfilePublic ? parsed.data.showCommunityIntent : false

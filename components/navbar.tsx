@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "./language-switcher"
 import { DashboardLink } from "./navbar/dashboard-link"
 import { MobileProfileLink } from "./navbar/mobile-profile-link"
+import { NotificationBell } from "./navbar/notification-bell"
 import { UserMenu } from "./navbar/user-menu"
 import { useI18n } from "@/components/i18n-provider"
 
@@ -84,8 +85,9 @@ export function Navbar() {
               >
                 <DashboardLink>{t("nav.dashboard")}</DashboardLink>
               </Button>
-              <UserMenu />
               <LanguageSwitcher />
+              <NotificationBell />
+              <UserMenu />
             </>
           ) : (
             <>

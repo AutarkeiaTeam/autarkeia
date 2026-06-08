@@ -658,6 +658,116 @@ export async function sendContactNotification(data: ContactMessageInput): Promis
   })
 }
 
+export type NotificationEmailPayload = {
+  id: string
+  type: "forum_reply" | "forum_reaction"
+  actorName: string | null
+  actorAvatarUrl: string | null
+  metadata: Record<string, unknown>
+  href: string
+}
+
+export async function sendNotificationEmail(
+  notification: NotificationEmailPayload,
+  recipientEmail: string,
+  locale: Locale = "en"
+): Promise<void> {
+  const appUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://autarkeia.world").replace(/\/$/, "")
+  const actorDisplay = notification.actorName?.trim() || translate(locale, "notifications.actor_fallback")
+  const subjectKey =
+    notification.type === "forum_reply"
+      ? "emails.notification.subject.forum_reply"
+      : "emails.notification.subject.forum_reaction"
+  const subject = translate(locale, subjectKey).replace("{actor}", actorDisplay)
+
+  const actionKey =
+    notification.type === "forum_reply"
+      ? "notifications.types.forum_reply"
+      : "notifications.types.forum_reaction"
+  const emoji =
+    notification.type === "forum_reaction" && typeof notification.metadata.emoji === "string"
+      ? notification.metadata.emoji
+      : ""
+  const actionLine = translate(locale, actionKey)
+    .replace(/\{actor\}/g, actorDisplay)
+    .replace(/\{emoji\}/g, emoji)
+
+  const snippet =
+    typeof notification.metadata.snippet === "string" ? notification.metadata.snippet : ""
+  const threadTitle =
+    typeof notification.metadata.thread_title === "string" ? notification.metadata.thread_title : ""
+
+  const cta = translate(locale, "emails.notification.body.cta_reply")
+  const footerRaw = translate(locale, "emails.notification.body.footer_settings")
+  const accountUrl = `${appUrl}/account`
+  const footerHtml = footerRaw.replace(
+    "{link}",
+    `<a href="${escapeHtml(accountUrl)}" style="color:#009b70;text-decoration:none;">${escapeHtml(accountUrl)}</a>`
+  )
+
+  const threadUrl = `${appUrl}${notification.href.startsWith("/") ? notification.href : `/${notification.href}`}`
+
+  const avatarBlock = notification.actorAvatarUrl
+    ? `<img src="${escapeHtml(notification.actorAvatarUrl)}" alt="" width="40" height="40" style="border-radius:50%;object-fit:cover;display:block;" />`
+    : `<div style="width:40px;height:40px;border-radius:50%;background:#d4dce8;color:#3d5166;font-size:14px;font-weight:600;line-height:40px;text-align:center;">${escapeHtml(actorDisplay.charAt(0).toUpperCase())}</div>`
+
+  const snippetBlock = snippet
+    ? `<p style="margin:12px 0 0;padding:12px 14px;border-left:3px solid #009b70;background:#fafbfc;border-radius:0 8px 8px 0;font-size:13px;color:#3d5166;line-height:1.5;font-style:italic;">${escapeHtml(snippet)}</p>`
+    : ""
+
+  const threadBlock = threadTitle
+    ? `<p style="margin:8px 0 0;font-size:13px;color:#8a9bb0;">${escapeHtml(threadTitle)}</p>`
+    : ""
+
+  const html = `
+    <div style="margin:0;padding:0;background:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f7fa;padding:24px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="max-width:640px;border:1px solid #d4dce8;border-radius:14px;overflow:hidden;">
+              <tr>
+                <td style="background:#0d1b2a;padding:28px 24px;text-align:center;">
+                  <p style="margin:0;font-size:18px;font-weight:300;letter-spacing:3px;color:#ffffff;">
+                    AUT<span style="color:#009b70;">ARK</span>EIA
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:28px 24px 20px;background:#ffffff;">
+                  <table role="presentation" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="vertical-align:top;padding-right:12px;">${avatarBlock}</td>
+                      <td style="vertical-align:top;">
+                        <p style="margin:0;font-size:14px;color:#3d5166;line-height:1.5;">${escapeHtml(actionLine)}</p>
+                        ${threadBlock}
+                      </td>
+                    </tr>
+                  </table>
+                  ${snippetBlock}
+                  <p style="margin:24px 0 0;">
+                    <a href="${escapeHtml(threadUrl)}" style="display:inline-block;background:#009b70;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-size:14px;font-weight:600;">${escapeHtml(cta)}</a>
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:16px 24px 24px;border-top:1px solid #eef2f6;background:#fafbfc;">
+                  <p style="margin:0;font-size:13px;color:#8a9bb0;line-height:1.5;">${footerHtml}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `.trim()
+
+  await sendResendEmail({
+    to: [recipientEmail],
+    subject,
+    html,
+  })
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")

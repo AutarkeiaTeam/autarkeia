@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { addPost, getThread } from "@/lib/forums-store"
 import { getUserId } from "@/lib/auth-server"
+import { getLocale } from "@/lib/i18n-server"
+import { notifyForumReply } from "@/lib/notification-dispatch"
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const userId = await getUserId()
@@ -21,5 +23,19 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     return NextResponse.json({ error: "forums.error.reply_too_short" }, { status: 400 })
   }
   const post = await addPost(id, userId, content)
+
+  try {
+    const locale = await getLocale()
+    await notifyForumReply({
+      threadId: id,
+      actorId: userId,
+      postId: post.id,
+      content,
+      locale,
+    })
+  } catch (err) {
+    console.error("[POST /api/forums/threads/[id]/posts] notification failed:", err)
+  }
+
   return NextResponse.json({ post }, { status: 201 })
 }

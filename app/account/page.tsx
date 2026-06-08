@@ -9,10 +9,11 @@ import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
 import { parseProfileAboutFromRow } from "@/lib/profile-about"
 import { parseProfileCommunityFromRow } from "@/lib/profile-community"
+import { parseNotificationPreferencesFromRow } from "@/lib/profile-notifications"
 import { createClient } from "@/lib/supabase/server"
 
 const PROFILE_SELECT =
-  "display_name, username, bio, avatar_url, profile_public, show_quiz_scores, show_country, hometown, languages, skills, prep_goal, years_preparing, household_adults, household_children, household_pets, household_special_needs, show_hometown, show_languages, show_skills, show_prep_goal, show_years_preparing, show_household, interested_in_communities, community_intent, community_preferred_locations, community_climate_preference, community_distance_from_city, community_investment_capacity, community_investor_type, community_move_timeline, community_living_model, community_energy_ownership, community_energy_preferences, community_food_ownership, community_food_preferences, community_dietary_preference, community_food_products, community_food_frequency, community_notes, show_community_intent, show_community_locations, show_community_living_pref, show_community_investment, show_community_food_pref, show_community_timeline"
+  "display_name, username, bio, avatar_url, profile_public, show_quiz_scores, show_country, hometown, languages, skills, prep_goal, years_preparing, household_adults, household_children, household_pets, household_special_needs, show_hometown, show_languages, show_skills, show_prep_goal, show_years_preparing, show_household, interested_in_communities, community_intent, community_preferred_locations, community_climate_preference, community_distance_from_city, community_investment_capacity, community_investor_type, community_move_timeline, community_living_model, community_energy_ownership, community_energy_preferences, community_food_ownership, community_food_preferences, community_dietary_preference, community_food_products, community_food_frequency, community_notes, show_community_intent, show_community_locations, show_community_living_pref, show_community_investment, show_community_food_pref, show_community_timeline, notify_email_mode, notify_inapp_enabled, notify_forum_replies, notify_forum_reactions"
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -76,6 +77,9 @@ export default async function AccountPage() {
       authMethod={authMethod}
       aboutMe={parseProfileAboutFromRow((profile ?? {}) as Record<string, unknown>)}
       communityPreferences={parseProfileCommunityFromRow((profile ?? {}) as Record<string, unknown>)}
+      notificationPreferences={parseNotificationPreferencesFromRow(
+        (profile ?? {}) as Record<string, unknown>
+      )}
     />
   )
 }

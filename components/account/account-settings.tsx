@@ -22,8 +22,10 @@ import {
 } from "@/lib/account-auth"
 import { AboutMeForm } from "@/components/account/about-me-form"
 import { CommunityPreferencesForm } from "@/components/account/community-preferences-form"
+import { NotificationPreferencesForm } from "@/components/account/notification-preferences-form"
 import type { ProfileAboutData } from "@/lib/profile-about"
 import type { ProfileCommunityData } from "@/lib/profile-community"
+import type { NotificationPreferencesData } from "@/lib/profile-notifications"
 import { isValidUsername, sanitizeUsernameInput } from "@/lib/username"
 
 const BIO_MAX = 280
@@ -44,6 +46,7 @@ type AccountSettingsProps = {
   authMethod: PrimaryAuthMethod
   aboutMe: ProfileAboutData
   communityPreferences: ProfileCommunityData
+  notificationPreferences: NotificationPreferencesData
 }
 
 function fieldClassName() {
@@ -73,6 +76,8 @@ export function AccountSettings({
   tier,
   authMethod,
   aboutMe,
+  communityPreferences,
+  notificationPreferences,
 }: AccountSettingsProps) {
   const { t, locale } = useI18n()
   const router = useRouter()
@@ -500,6 +505,8 @@ export function AccountSettings({
           </section>
 
           <AboutMeForm initial={aboutMe} />
+
+          <NotificationPreferencesForm initial={notificationPreferences} />
 
           <CommunityPreferencesForm initial={communityPreferences} />
 
