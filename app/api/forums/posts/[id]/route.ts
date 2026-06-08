@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { deletePost, getPost, updatePost } from "@/lib/forums-store"
+import { deletePost, getPost, getThread, updatePost } from "@/lib/forums-store"
 import { getUserId } from "@/lib/auth-server"
 import { canModerateForumContent, getForumDeleteAccess } from "@/lib/forum-permissions"
+import { getLocale } from "@/lib/i18n-server"
+import { processPostMentions } from "@/lib/forums-mentions"
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const userId = await getUserId()
@@ -30,6 +32,21 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
 
   const post = await updatePost(id, content, userId, requesterIsAdmin)
   if (!post) return NextResponse.json({ error: "forums.error.not_found" }, { status: 404 })
+
+  try {
+    const threadData = await getThread(post.thread_id)
+    const locale = await getLocale()
+    await processPostMentions({
+      postId: post.id,
+      content,
+      authorId: post.author_id,
+      threadId: post.thread_id,
+      threadTitle: threadData?.thread.title ?? "",
+      locale,
+    })
+  } catch (err) {
+    console.error("[PATCH /api/forums/posts/[id]] mention processing failed:", err)
+  }
 
   return NextResponse.json({ post })
 }

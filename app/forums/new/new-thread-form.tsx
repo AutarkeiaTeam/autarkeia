@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { FormEvent, Suspense, useEffect, useState } from "react"
+import { MentionComposerTextarea } from "@/components/forums/mention-composer-textarea"
 import { useI18n } from "@/components/i18n-provider"
 import { CATEGORIES } from "@/lib/forums-shared"
 
@@ -113,9 +114,9 @@ function NewThreadFormInner({ authed }: { authed: boolean }) {
           </div>
           <div>
             <label className="block text-xs font-medium text-[#3d5166]">{t("forums.new.first_post_label")}</label>
-            <textarea
+            <MentionComposerTextarea
               value={body}
-              onChange={(e) => setBody(e.target.value)}
+              onValueChange={setBody}
               className="mt-1 w-full rounded-lg border border-[#d4dce8] p-3 text-sm outline-none focus:border-[#009b70]"
               rows={8}
               required

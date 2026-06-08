@@ -43,6 +43,22 @@ type ForumAuthorFields = Pick<
 type ForumThreadRow = Omit<ForumThread, keyof ForumAuthorFields>
 type ForumPostRow = Omit<ForumPost, keyof ForumAuthorFields>
 
+function normalizeThreadRow(row: Partial<ForumThreadRow> & { id: string }): ForumThreadRow {
+  return {
+    id: row.id,
+    title: row.title ?? "",
+    description: row.description ?? "",
+    author_id: row.author_id ?? "",
+    category: row.category ?? "general",
+    created_at: row.created_at ?? new Date().toISOString(),
+    updated_at: row.updated_at ?? new Date().toISOString(),
+    pinned: row.pinned === true,
+    locked: row.locked === true,
+    pinned_at: row.pinned_at ?? null,
+    locked_at: row.locked_at ?? null,
+  }
+}
+
 function authorFieldsForUser(
   authorId: string,
   authors: Awaited<ReturnType<typeof fetchProfileAuthorInfo>>
@@ -62,9 +78,10 @@ function authorFieldsForUser(
   }
 }
 
-async function enrichThreads(threads: ForumThreadRow[]): Promise<ForumThread[]> {
-  const authors = await fetchProfileAuthorInfo(threads.map((t) => t.author_id))
-  return threads.map((t) => ({
+async function enrichThreads(threads: Array<Partial<ForumThreadRow> & { id: string }>): Promise<ForumThread[]> {
+  const normalized = threads.map(normalizeThreadRow)
+  const authors = await fetchProfileAuthorInfo(normalized.map((t) => t.author_id))
+  return normalized.map((t) => ({
     ...t,
     ...authorFieldsForUser(t.author_id, authors),
   }))
@@ -217,7 +234,7 @@ export async function createThread(input: {
   category: string
   author_id: string
   body: string
-}): Promise<ForumThread> {
+}): Promise<{ thread: ForumThread; firstPost: ForumPost }> {
   const now = new Date().toISOString()
   const id = randomUUID()
   const threadRow: ForumThreadRow = {
@@ -228,6 +245,10 @@ export async function createThread(input: {
     author_id: input.author_id,
     created_at: now,
     updated_at: now,
+    pinned: false,
+    locked: false,
+    pinned_at: null,
+    locked_at: null,
   }
   const firstPostRow: ForumPostRow = {
     id: randomUUID(),
@@ -241,15 +262,16 @@ export async function createThread(input: {
     await supabaseFetch<unknown>("forums_threads", { method: "POST", body: JSON.stringify(threadRow) })
     await supabaseFetch<unknown>("forums_posts", { method: "POST", body: JSON.stringify(firstPostRow) })
     const [thread] = await enrichThreads([threadRow])
-    return thread
+    const [firstPost] = await enrichPosts([firstPostRow])
+    return { thread, firstPost }
   }
   const store = await readStore()
   const [thread] = await enrichThreads([threadRow])
   const [firstPost] = await enrichPosts([firstPostRow])
-  store.threads.push(thread)
-  store.posts.push(firstPost)
+  store.threads.push(threadRow)
+  store.posts.push(firstPostRow)
   await writeStore(store)
-  return thread
+  return { thread, firstPost }
 }
 
 export async function addPost(threadId: string, authorId: string, content: string): Promise<ForumPost> {
@@ -287,6 +309,66 @@ export async function getPost(postId: string): Promise<ForumPostRow | null> {
   }
   const store = await readStore()
   return store.posts.find((p) => p.id === postId) ?? null
+}
+
+export async function setThreadPinned(
+  threadId: string,
+  pinned: boolean
+): Promise<ForumThread | null> {
+  const now = new Date().toISOString()
+  const patch = {
+    pinned,
+    pinned_at: pinned ? now : null,
+    updated_at: now,
+  }
+
+  if (supabaseConfigured()) {
+    const rows = await supabaseFetch<ForumThreadRow[]>(`forums_threads?id=eq.${threadId}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    })
+    if (!rows[0]) return null
+    const [thread] = await enrichThreads([rows[0]])
+    return thread
+  }
+
+  const store = await readStore()
+  const index = store.threads.findIndex((t) => t.id === threadId)
+  if (index === -1) return null
+  store.threads[index] = { ...normalizeThreadRow(store.threads[index]), ...patch }
+  await writeStore(store)
+  const [thread] = await enrichThreads([store.threads[index]])
+  return thread
+}
+
+export async function setThreadLocked(
+  threadId: string,
+  locked: boolean
+): Promise<ForumThread | null> {
+  const now = new Date().toISOString()
+  const patch = {
+    locked,
+    locked_at: locked ? now : null,
+    updated_at: now,
+  }
+
+  if (supabaseConfigured()) {
+    const rows = await supabaseFetch<ForumThreadRow[]>(`forums_threads?id=eq.${threadId}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    })
+    if (!rows[0]) return null
+    const [thread] = await enrichThreads([rows[0]])
+    return thread
+  }
+
+  const store = await readStore()
+  const index = store.threads.findIndex((t) => t.id === threadId)
+  if (index === -1) return null
+  store.threads[index] = { ...normalizeThreadRow(store.threads[index]), ...patch }
+  await writeStore(store)
+  const [thread] = await enrichThreads([store.threads[index]])
+  return thread
 }
 
 export async function deleteThread(

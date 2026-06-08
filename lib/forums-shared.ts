@@ -16,6 +16,10 @@ export type ForumThread = {
   category: string
   created_at: string
   updated_at: string
+  pinned: boolean
+  locked: boolean
+  pinned_at: string | null
+  locked_at: string | null
 } & ForumAuthorDisplay
 
 export type ForumPost = {

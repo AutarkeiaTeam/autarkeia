@@ -660,11 +660,23 @@ export async function sendContactNotification(data: ContactMessageInput): Promis
 
 export type NotificationEmailPayload = {
   id: string
-  type: "forum_reply" | "forum_reaction"
+  type: "forum_reply" | "forum_reaction" | "forum_mention"
   actorName: string | null
   actorAvatarUrl: string | null
   metadata: Record<string, unknown>
   href: string
+}
+
+const NOTIFICATION_SUBJECT_KEYS: Record<NotificationEmailPayload["type"], string> = {
+  forum_reply: "emails.notification.subject.forum_reply",
+  forum_reaction: "emails.notification.subject.forum_reaction",
+  forum_mention: "emails.notification.subject.forum_mention",
+}
+
+const NOTIFICATION_ACTION_KEYS: Record<NotificationEmailPayload["type"], string> = {
+  forum_reply: "notifications.types.forum_reply",
+  forum_reaction: "notifications.types.forum_reaction",
+  forum_mention: "notifications.types.forum_mention",
 }
 
 export async function sendNotificationEmail(
@@ -674,16 +686,12 @@ export async function sendNotificationEmail(
 ): Promise<void> {
   const appUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://autarkeia.world").replace(/\/$/, "")
   const actorDisplay = notification.actorName?.trim() || translate(locale, "notifications.actor_fallback")
-  const subjectKey =
-    notification.type === "forum_reply"
-      ? "emails.notification.subject.forum_reply"
-      : "emails.notification.subject.forum_reaction"
-  const subject = translate(locale, subjectKey).replace("{actor}", actorDisplay)
+  const subject = translate(locale, NOTIFICATION_SUBJECT_KEYS[notification.type]).replace(
+    "{actor}",
+    actorDisplay
+  )
 
-  const actionKey =
-    notification.type === "forum_reply"
-      ? "notifications.types.forum_reply"
-      : "notifications.types.forum_reaction"
+  const actionKey = NOTIFICATION_ACTION_KEYS[notification.type]
   const emoji =
     notification.type === "forum_reaction" && typeof notification.metadata.emoji === "string"
       ? notification.metadata.emoji
@@ -763,6 +771,83 @@ export async function sendNotificationEmail(
 
   await sendResendEmail({
     to: [recipientEmail],
+    subject,
+    html,
+  })
+}
+
+const FORUM_REPORT_NOTIFY_EMAIL = process.env.CONTACT_NOTIFY_EMAIL ?? "hello@autarkeia.world"
+
+export async function sendForumReportNotification(options: {
+  reportId: string
+  reason: string
+  note: string | null
+  reporterName: string
+  reporterEmail: string
+  postSnippet: string
+  postUrl: string
+  threadTitle: string
+}): Promise<void> {
+  const appUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://autarkeia.world").replace(/\/$/, "")
+  const adminReportsUrl = `${appUrl}/admin/forums-reports`
+  const subject = `Forum post reported — ${options.reason}`
+
+  const body = [
+    `Report ID: ${options.reportId}`,
+    `Reason: ${options.reason}`,
+    `Thread: ${options.threadTitle}`,
+    "",
+    `Reporter: ${options.reporterName} <${options.reporterEmail}>`,
+    "",
+    "Post snippet:",
+    options.postSnippet,
+    "",
+    options.note ? `Reporter note:\n${options.note}` : "",
+    "",
+    `View post: ${options.postUrl}`,
+    `Admin reports (TODO): ${adminReportsUrl}`,
+  ]
+    .filter(Boolean)
+    .join("\n")
+
+  const html = `
+    <div style="margin:0;padding:0;background:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f7fa;padding:24px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="max-width:640px;border:1px solid #d4dce8;border-radius:14px;overflow:hidden;">
+              <tr>
+                <td style="background:#0d1b2a;padding:28px 24px;text-align:center;">
+                  <p style="margin:0;font-size:18px;font-weight:300;letter-spacing:3px;color:#ffffff;">
+                    AUT<span style="color:#009b70;">ARK</span>EIA
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:28px 24px 20px;background:#ffffff;">
+                  <p style="margin:0 0 12px;font-size:16px;color:#0d1b2a;font-weight:600;">Forum post reported</p>
+                  <p style="margin:0 0 8px;font-size:14px;color:#3d5166;"><strong>Reason:</strong> ${escapeHtml(options.reason)}</p>
+                  <p style="margin:0 0 8px;font-size:14px;color:#3d5166;"><strong>Thread:</strong> ${escapeHtml(options.threadTitle)}</p>
+                  <p style="margin:0 0 8px;font-size:14px;color:#3d5166;"><strong>Reporter:</strong> ${escapeHtml(options.reporterName)} &lt;${escapeHtml(options.reporterEmail)}&gt;</p>
+                  <pre style="margin:12px 0;padding:14px;border:1px solid #d4dce8;border-radius:10px;background:#fafbfc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:13px;line-height:1.5;color:#3d5166;white-space:pre-wrap;">${escapeHtml(options.postSnippet)}</pre>
+                  ${options.note ? `<p style="margin:0 0 8px;font-size:14px;color:#3d5166;"><strong>Note:</strong> ${escapeHtml(options.note)}</p>` : ""}
+                  <p style="margin:16px 0 0;font-size:14px;color:#3d5166;">
+                    <a href="${escapeHtml(options.postUrl)}" style="color:#009b70;text-decoration:none;font-weight:600;">View post →</a>
+                  </p>
+                  <p style="margin:12px 0 0;font-size:13px;color:#8a9bb0;">
+                    Admin moderation UI coming soon. Reports are in Supabase Table Editor for now.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `.trim()
+
+  await sendResendEmail({
+    to: [FORUM_REPORT_NOTIFY_EMAIL],
     subject,
     html,
   })

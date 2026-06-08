@@ -1,11 +1,20 @@
 "use client"
 
-import { Trash2 } from "lucide-react"
+import { Lock, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { FormEvent, useState } from "react"
+import { MentionComposerTextarea } from "@/components/forums/mention-composer-textarea"
 import { useI18n } from "@/components/i18n-provider"
 
-export function ReplyForm({ threadId }: { threadId: string }) {
+export function ReplyForm({
+  threadId,
+  locked = false,
+  viewerIsAdmin = false,
+}: {
+  threadId: string
+  locked?: boolean
+  viewerIsAdmin?: boolean
+}) {
   const { t } = useI18n()
   const router = useRouter()
   const [content, setContent] = useState("")
@@ -14,8 +23,11 @@ export function ReplyForm({ threadId }: { threadId: string }) {
   const translateError = (message: string) =>
     message.startsWith("forums.") ? t(message) : message
 
+  const disabled = locked && !viewerIsAdmin
+
   const submit = async (e: FormEvent) => {
     e.preventDefault()
+    if (disabled) return
     setError(null)
     setSubmitting(true)
     try {
@@ -35,12 +47,21 @@ export function ReplyForm({ threadId }: { threadId: string }) {
     }
   }
 
+  if (disabled) {
+    return (
+      <div className="flex items-start gap-3 rounded-2xl border border-[#d4dce8] bg-[#f9fafc] p-5 text-sm text-[#3d5166]">
+        <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[#8a9bb0]" aria-hidden />
+        <p>{t("forums.thread.locked_banner")}</p>
+      </div>
+    )
+  }
+
   return (
     <form onSubmit={submit} className="space-y-3 rounded-2xl border border-[#d4dce8] bg-white p-5">
       <p className="text-sm font-medium text-[#0d1b2a]">{t("forums.reply.label")}</p>
-      <textarea
+      <MentionComposerTextarea
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onValueChange={setContent}
         className="w-full rounded-lg border border-[#d4dce8] p-3 text-sm outline-none focus:border-[#009b70]"
         rows={5}
         required

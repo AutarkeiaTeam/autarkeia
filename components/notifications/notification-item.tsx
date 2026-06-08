@@ -31,7 +31,9 @@ export function NotificationItem({
   const actionKey =
     notification.type === "forum_reply"
       ? "notifications.types.forum_reply"
-      : "notifications.types.forum_reaction"
+      : notification.type === "forum_reaction"
+        ? "notifications.types.forum_reaction"
+        : "notifications.types.forum_mention"
 
   const actionSuffix = t(actionKey)
     .replace("{actor}", "")

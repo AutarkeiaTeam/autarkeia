@@ -35,6 +35,7 @@ export function NotificationPreferencesForm({ initial }: NotificationPreferences
           notifyInappEnabled: prefs.notifyInappEnabled,
           notifyForumReplies: prefs.notifyForumReplies,
           notifyForumReactions: prefs.notifyForumReactions,
+          notifyForumMentions: prefs.notifyForumMentions,
         }),
       })
       const data = (await response.json().catch(() => null)) as { error?: string }
@@ -148,6 +149,19 @@ export function NotificationPreferencesForm({ initial }: NotificationPreferences
               />
               <span className="text-sm text-[#3d5166]">
                 {t("account.notifications.reaction_toggle")}
+              </span>
+            </label>
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={prefs.notifyForumMentions}
+                onChange={(e) =>
+                  setPrefs((p) => ({ ...p, notifyForumMentions: e.target.checked }))
+                }
+                className={`mt-1 ${fieldClassName()}`}
+              />
+              <span className="text-sm text-[#3d5166]">
+                {t("account.notifications.mention_toggle")}
               </span>
             </label>
           </div>

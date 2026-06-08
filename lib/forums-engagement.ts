@@ -298,7 +298,7 @@ export async function recordThreadView(userId: string, threadId: string): Promis
   await writeEngagementStore(store)
 }
 
-export function sortThreads<T extends ForumThread>(
+function sortUnpinnedThreads<T extends ForumThread>(
   threads: T[],
   sort: ForumSortMode,
   replyCounts: Map<string, number>
@@ -318,6 +318,23 @@ export function sortThreads<T extends ForumThread>(
   }
   sorted.sort((a, b) => b.updated_at.localeCompare(a.updated_at))
   return sorted
+}
+
+export function sortThreads<T extends ForumThread>(
+  threads: T[],
+  sort: ForumSortMode,
+  replyCounts: Map<string, number>
+): T[] {
+  const pinned = threads.filter((t) => t.pinned)
+  const unpinned = threads.filter((t) => !t.pinned)
+
+  pinned.sort((a, b) => {
+    const aTime = a.pinned_at ?? a.updated_at
+    const bTime = b.pinned_at ?? b.updated_at
+    return bTime.localeCompare(aTime)
+  })
+
+  return [...pinned, ...sortUnpinnedThreads(unpinned, sort, replyCounts)]
 }
 
 export { FORUM_REACTION_EMOJIS }

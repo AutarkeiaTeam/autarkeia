@@ -9,6 +9,7 @@ export const notificationPreferencesSchema = z.object({
   notifyInappEnabled: z.boolean().optional(),
   notifyForumReplies: z.boolean().optional(),
   notifyForumReactions: z.boolean().optional(),
+  notifyForumMentions: z.boolean().optional(),
 })
 
 export type NotificationPreferencesData = {
@@ -28,6 +29,7 @@ export function parseNotificationPreferencesFromRow(
     notifyInappEnabled: row?.notify_inapp_enabled !== false,
     notifyForumReplies: row?.notify_forum_replies !== false,
     notifyForumReactions: row?.notify_forum_reactions !== false,
+    notifyForumMentions: row?.notify_forum_mentions !== false,
   }
 }
 
@@ -46,6 +48,9 @@ export function notificationPreferencesToDbUpdates(
   }
   if (data.notifyForumReactions !== undefined) {
     updates.notify_forum_reactions = data.notifyForumReactions
+  }
+  if (data.notifyForumMentions !== undefined) {
+    updates.notify_forum_mentions = data.notifyForumMentions
   }
   return updates
 }

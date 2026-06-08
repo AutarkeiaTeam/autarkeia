@@ -142,6 +142,16 @@ async function ForumsPageContent({ sort }: { sort: ForumSortMode }) {
                         <Link href={`/forums/${th.id}`} className="block">
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="text-sm font-medium text-[#0d1b2a]">{th.title}</p>
+                            {th.pinned ? (
+                              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#009b70]">
+                                📌 {t("forums.thread.pinned_badge")}
+                              </span>
+                            ) : null}
+                            {th.locked ? (
+                              <span className="text-[10px] font-semibold uppercase tracking-wide text-[#8a9bb0]">
+                                🔒
+                              </span>
+                            ) : null}
                             {viewerId && th.is_unread ? (
                               <span className="rounded-full bg-[#009b70] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
                                 {t("forums.thread.unread_label")}

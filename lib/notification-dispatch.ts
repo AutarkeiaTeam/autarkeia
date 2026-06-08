@@ -14,7 +14,7 @@ import type { Locale } from "@/lib/i18n-core"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 const RECIPIENT_SELECT =
-  "id, email, display_name, first_name, last_name, notify_email_mode, notify_inapp_enabled, notify_forum_replies, notify_forum_reactions"
+  "id, email, display_name, first_name, last_name, notify_email_mode, notify_inapp_enabled, notify_forum_replies, notify_forum_reactions, notify_forum_mentions"
 
 async function fetchRecipientPrefs(
   client: SupabaseClient,
@@ -187,5 +187,45 @@ export async function notifyForumReaction(params: {
     )
   } catch (err) {
     console.error("[notifyForumReaction] failed:", err)
+  }
+}
+
+export async function notifyForumMention(params: {
+  userId: string
+  actorId: string
+  postId: string
+  threadId: string
+  threadTitle: string
+  snippet: string
+  locale?: Locale
+}): Promise<void> {
+  if (params.actorId === params.userId) return
+
+  const locale = params.locale ?? "en"
+  const client = createAdminClient()
+  const prefsMap = await fetchRecipientPrefs(client, [params.userId])
+  const prefs = prefsMap.get(params.userId)
+  if (!prefs?.notifyForumMentions) return
+
+  try {
+    await createAndMaybeEmail(
+      client,
+      {
+        userId: params.userId,
+        type: "forum_mention",
+        actorId: params.actorId,
+        subjectType: "forum_post",
+        subjectId: params.postId,
+        metadata: {
+          thread_id: params.threadId,
+          thread_title: params.threadTitle,
+          snippet: params.snippet,
+        },
+      },
+      prefs,
+      locale
+    )
+  } catch (err) {
+    console.error("[notifyForumMention] failed:", err)
   }
 }

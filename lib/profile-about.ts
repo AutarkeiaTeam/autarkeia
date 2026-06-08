@@ -205,7 +205,8 @@ export const profileAboutUpdateSchema = profileAboutFieldsSchema
       data.notifyEmailMode !== undefined ||
       data.notifyInappEnabled !== undefined ||
       data.notifyForumReplies !== undefined ||
-      data.notifyForumReactions !== undefined,
+      data.notifyForumReactions !== undefined ||
+      data.notifyForumMentions !== undefined,
     { message: "account.validation.nothing_to_update" }
   )
 

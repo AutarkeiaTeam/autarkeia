@@ -3,6 +3,8 @@ import { addPost, getThread } from "@/lib/forums-store"
 import { getUserId } from "@/lib/auth-server"
 import { getLocale } from "@/lib/i18n-server"
 import { notifyForumReply } from "@/lib/notification-dispatch"
+import { processPostMentions } from "@/lib/forums-mentions"
+import { isAdmin } from "@/lib/profiles"
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const userId = await getUserId()
@@ -11,6 +13,10 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
   const { id } = await ctx.params
   const existing = await getThread(id)
   if (!existing) return NextResponse.json({ error: "forums.error.thread_not_found" }, { status: 404 })
+
+  if (existing.thread.locked && !(await isAdmin(userId))) {
+    return NextResponse.json({ error: "forums.error.thread_locked" }, { status: 409 })
+  }
 
   let body: { content?: string }
   try {
@@ -26,13 +32,23 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
 
   try {
     const locale = await getLocale()
-    await notifyForumReply({
-      threadId: id,
-      actorId: userId,
-      postId: post.id,
-      content,
-      locale,
-    })
+    await Promise.all([
+      notifyForumReply({
+        threadId: id,
+        actorId: userId,
+        postId: post.id,
+        content,
+        locale,
+      }),
+      processPostMentions({
+        postId: post.id,
+        content,
+        authorId: userId,
+        threadId: id,
+        threadTitle: existing.thread.title,
+        locale,
+      }),
+    ])
   } catch (err) {
     console.error("[POST /api/forums/threads/[id]/posts] notification failed:", err)
   }

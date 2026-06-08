@@ -15,10 +15,16 @@ const FILTERS: { value: NotificationFilter; labelKey: string }[] = [
   { value: "unread", labelKey: "notifications.page.filter_unread" },
   { value: "forum_reply", labelKey: "notifications.page.filter_replies" },
   { value: "forum_reaction", labelKey: "notifications.page.filter_reactions" },
+  { value: "forum_mention", labelKey: "notifications.page.filter_mentions" },
 ]
 
 function parseFilterParam(value: string | null): NotificationFilter {
-  if (value === "unread" || value === "forum_reply" || value === "forum_reaction") {
+  if (
+    value === "unread" ||
+    value === "forum_reply" ||
+    value === "forum_reaction" ||
+    value === "forum_mention"
+  ) {
     return value
   }
   return "all"

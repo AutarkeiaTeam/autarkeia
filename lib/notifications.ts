@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 export const NOTIFICATION_TYPES = [
   "forum_reply",
   "forum_reaction",
+  "forum_mention",
 ] as const
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number]
