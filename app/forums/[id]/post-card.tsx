@@ -3,6 +3,7 @@
 import { MoreVertical } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
+import { ForumAuthor } from "@/components/forums/forum-author"
 import { useI18n } from "@/components/i18n-provider"
 import type { ForumPost } from "@/lib/forums-shared"
 import { canModerateForumContent } from "@/lib/forum-permissions"
@@ -151,9 +152,7 @@ export function PostCard({ post: initialPost, viewerId, viewerIsAdmin }: PostCar
       )}
 
       <div className="flex items-center justify-between gap-4 pr-2">
-        <p className="text-xs font-medium text-[#0d1b2a]">
-          {post.author_name === "forums.member_fallback" ? t("forums.member_fallback") : post.author_name}
-        </p>
+        <ForumAuthor author={post} size={36} />
         <p className="shrink-0 text-[11px] text-[#8a9bb0]">
           {formatRelativeTime(post.created_at, locale)}
           {edited && <span className="ml-1 text-[#8a9bb0]">{t("forums.post.edited")}</span>}

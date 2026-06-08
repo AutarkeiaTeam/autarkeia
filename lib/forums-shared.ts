@@ -2,26 +2,30 @@
 
 export type ForumCategory = { id: string }
 
+export type ForumAuthorDisplay = {
+  author_name: string
+  author_username: string | null
+  author_avatar_url: string | null
+}
+
 export type ForumThread = {
   id: string
   title: string
   description: string
   author_id: string
-  author_name: string
   category: string
   created_at: string
   updated_at: string
-}
+} & ForumAuthorDisplay
 
 export type ForumPost = {
   id: string
   thread_id: string
   author_id: string
-  author_name: string
   content: string
   created_at: string
   updated_at: string
-}
+} & ForumAuthorDisplay
 
 export const CATEGORIES: ForumCategory[] = [
   { id: "housing-land" },

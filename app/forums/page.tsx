@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Suspense } from "react"
+import { ForumAuthor } from "@/components/forums/forum-author"
 import { CATEGORIES, listThreads } from "@/lib/forums-store"
 import { isAuthenticated } from "@/lib/auth-server"
 import { getLocale } from "@/lib/i18n-server"
@@ -125,16 +126,20 @@ async function ForumsPageContent() {
                 <ul className="mt-3 space-y-2">
                   {list.map((th) => (
                     <li key={th.id}>
-                      <Link
-                        href={`/forums/${th.id}`}
-                        className="block rounded-xl border border-[#d4dce8] p-4 transition-colors hover:border-[#009b70]"
-                      >
-                        <p className="text-sm font-medium text-[#0d1b2a]">{th.title}</p>
-                        {th.description && <p className="mt-1 text-xs text-[#3d5166]">{th.description}</p>}
-                        <p className="mt-2 text-[11px] text-[#8a9bb0]">
-                          {t("forums.updated")} {formatRelativeTime(th.updated_at, locale)}
-                        </p>
-                      </Link>
+                      <div className="rounded-xl border border-[#d4dce8] p-4 transition-colors hover:border-[#009b70]">
+                        <Link href={`/forums/${th.id}`} className="block">
+                          <p className="text-sm font-medium text-[#0d1b2a]">{th.title}</p>
+                          {th.description && (
+                            <p className="mt-1 text-xs text-[#3d5166]">{th.description}</p>
+                          )}
+                        </Link>
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                          <ForumAuthor author={th} size={32} />
+                          <p className="text-[11px] text-[#8a9bb0]">
+                            {t("forums.updated")} {formatRelativeTime(th.updated_at, locale)}
+                          </p>
+                        </div>
+                      </div>
                     </li>
                   ))}
                 </ul>

@@ -6,6 +6,7 @@ import { canModerateForumContent, getForumDeleteAccess } from "@/lib/forum-permi
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
 import { formatRelativeTime } from "@/lib/relative-time"
+import { ForumAuthor } from "@/components/forums/forum-author"
 import { PostCard } from "./post-card"
 import { ReplyForm, DeleteThreadButton } from "./thread-actions"
 
@@ -43,13 +44,17 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
         </p>
         <h1 className="mt-2 text-3xl font-light text-[#0d1b2a]">{thread.title}</h1>
         {thread.description && <p className="mt-2 text-sm text-[#3d5166]">{thread.description}</p>}
-        <p className="mt-2 text-xs text-[#8a9bb0]">
-          {t("forums.thread.started_by")}{" "}
-          <span className="font-medium text-[#3d5166]">
-            {thread.author_name === "forums.member_fallback" ? t("forums.member_fallback") : thread.author_name}
-          </span>{" "}
-          · {formatRelativeTime(thread.created_at, locale)}
-        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 text-xs text-[#8a9bb0]">
+          <span>{t("forums.thread.started_by")}</span>
+          <ForumAuthor
+            author={thread}
+            size={32}
+            linkClassName="text-xs font-medium text-[#3d5166] hover:text-[#009b70]"
+            plainClassName="text-xs font-medium text-[#3d5166]"
+          />
+          <span aria-hidden>·</span>
+          <span>{formatRelativeTime(thread.created_at, locale)}</span>
+        </div>
         {canDeleteThread && <DeleteThreadButton threadId={thread.id} />}
 
         <ol className="mt-8 space-y-4">

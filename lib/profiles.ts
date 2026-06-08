@@ -142,26 +142,49 @@ export async function syncProfileEmail(user: User): Promise<void> {
   return upsertProfileFromAuthUser(user)
 }
 
-export async function fetchProfileAuthorLabels(
+export type ProfileAuthorInfo = {
+  label: string
+  username: string | null
+  avatar_url: string | null
+}
+
+export async function fetchProfileAuthorInfo(
   userIds: string[]
-): Promise<Map<string, string>> {
+): Promise<Map<string, ProfileAuthorInfo>> {
   const unique = [...new Set(userIds.filter(Boolean))]
-  const map = new Map<string, string>()
+  const map = new Map<string, ProfileAuthorInfo>()
   if (unique.length === 0) return map
 
   const admin = createAdminClient()
   const { data, error } = await admin
     .from("profiles")
-    .select("id, email, first_name, last_name, display_name")
+    .select("id, email, first_name, last_name, display_name, username, avatar_url")
     .in("id", unique)
 
   if (error) {
-    console.error("fetchProfileAuthorLabels failed:", error.message)
+    console.error("fetchProfileAuthorInfo failed:", error.message)
     return map
   }
 
   for (const row of data ?? []) {
-    map.set(row.id, profileAuthorLabel(row))
+    const username = row.username?.trim() || null
+    const avatarUrl = row.avatar_url?.trim() || null
+    map.set(row.id, {
+      label: profileAuthorLabel(row),
+      username,
+      avatar_url: avatarUrl,
+    })
+  }
+  return map
+}
+
+export async function fetchProfileAuthorLabels(
+  userIds: string[]
+): Promise<Map<string, string>> {
+  const info = await fetchProfileAuthorInfo(userIds)
+  const map = new Map<string, string>()
+  for (const [id, author] of info) {
+    map.set(id, author.label)
   }
   return map
 }

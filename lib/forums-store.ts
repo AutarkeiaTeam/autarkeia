@@ -3,7 +3,7 @@ import "server-only"
 import { promises as fs } from "fs"
 import path from "path"
 import { randomUUID } from "crypto"
-import { fetchProfileAuthorLabels } from "@/lib/profiles"
+import { fetchProfileAuthorInfo } from "@/lib/profiles"
 import {
   CATEGORIES,
   type ForumCategory,
@@ -17,59 +17,54 @@ export { CATEGORIES } from "@/lib/forums-shared"
 /**
  * Forums data store. Two backends are wired:
  *
- *   1. Supabase (preferred for production)
+ *   1. Supabase (preferred for production) — see
+ *      supabase/migrations/20250615120000_forums_schema_rls.sql
  *   2. A JSON file at `.data/forums.json` (used when Supabase env vars
  *      are not configured)
  *
- * The exported helpers normalise both into the same shapes so route
- * handlers can stay unchanged when you flip env vars.
- *
- * Supabase schema (matches the JSON shape; create via SQL or migration):
- *
- *   table forums_categories (
- *     id          text primary key,
- *     name        text not null,
- *     description text
- *   );
- *
- *   table forums_threads (
- *     id          uuid primary key default gen_random_uuid(),
- *     title       text not null,
- *     description text,
- *     author_id   text not null,
- *     category    text not null references forums_categories(id),
- *     created_at  timestamptz not null default now(),
- *     updated_at  timestamptz not null default now(),
- *     deleted_at  timestamptz
- *   );
- *
- *   table forums_posts (
- *     id          uuid primary key default gen_random_uuid(),
- *     thread_id   uuid not null references forums_threads(id) on delete cascade,
- *     author_id   text not null,
- *     content     text not null,
- *     created_at  timestamptz not null default now(),
- *     updated_at  timestamptz not null default now(),
- *     deleted_at  timestamptz
- *   );
+ * Categories are code constants in lib/forums-shared.ts (no DB table).
  */
 
-type ForumThreadRow = Omit<ForumThread, "author_name">
-type ForumPostRow = Omit<ForumPost, "author_name">
+type ForumAuthorFields = Pick<
+  ForumThread,
+  "author_name" | "author_username" | "author_avatar_url"
+>
+
+type ForumThreadRow = Omit<ForumThread, keyof ForumAuthorFields>
+type ForumPostRow = Omit<ForumPost, keyof ForumAuthorFields>
+
+function authorFieldsForUser(
+  authorId: string,
+  authors: Awaited<ReturnType<typeof fetchProfileAuthorInfo>>
+): ForumAuthorFields {
+  const author = authors.get(authorId)
+  if (!author) {
+    return {
+      author_name: "forums.member_fallback",
+      author_username: null,
+      author_avatar_url: null,
+    }
+  }
+  return {
+    author_name: author.label,
+    author_username: author.username,
+    author_avatar_url: author.avatar_url,
+  }
+}
 
 async function enrichThreads(threads: ForumThreadRow[]): Promise<ForumThread[]> {
-  const labels = await fetchProfileAuthorLabels(threads.map((t) => t.author_id))
+  const authors = await fetchProfileAuthorInfo(threads.map((t) => t.author_id))
   return threads.map((t) => ({
     ...t,
-    author_name: labels.get(t.author_id) ?? "forums.member_fallback",
+    ...authorFieldsForUser(t.author_id, authors),
   }))
 }
 
 async function enrichPosts(posts: ForumPostRow[]): Promise<ForumPost[]> {
-  const labels = await fetchProfileAuthorLabels(posts.map((p) => p.author_id))
+  const authors = await fetchProfileAuthorInfo(posts.map((p) => p.author_id))
   return posts.map((p) => ({
     ...p,
-    author_name: labels.get(p.author_id) ?? "forums.member_fallback",
+    ...authorFieldsForUser(p.author_id, authors),
   }))
 }
 
