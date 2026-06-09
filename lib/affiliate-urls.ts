@@ -47,7 +47,7 @@ function buildAmazonAffiliateUrl(
   baseUrl: string,
   options: AffiliateLinkOptions
 ): string {
-  const tag = amazonAssociatesTag()
+  const tag = getAmazonAssociatesTag()
   try {
     const parsed = new URL(baseUrl)
     if (tag) parsed.searchParams.set("tag", tag)
