@@ -43,11 +43,6 @@ export function UserMenu() {
     }
   }
 
-  const profileHref =
-    navMeta?.profilePublic && navMeta.username
-      ? `/profile/${navMeta.username}`
-      : "/account"
-
   return (
     <div ref={containerRef} className="relative">
       <button
@@ -72,19 +67,6 @@ export function UserMenu() {
           role="menu"
           className="absolute right-0 z-50 mt-1 w-56 overflow-hidden rounded-lg border border-[#d4dce8] bg-white shadow-lg"
         >
-          <li>
-            <Link
-              href={profileHref}
-              role="menuitem"
-              className="block px-3 py-2 text-sm text-[#0d1b2a] hover:bg-[#f5f7fa]"
-              onClick={() => setOpen(false)}
-            >
-              {t("nav.view_profile")}
-            </Link>
-          </li>
-          {navMeta && !navMeta.profilePublic ? (
-            <li className="px-3 pb-2 text-xs text-[#8a9bb0]">{t("nav.view_profile_private_hint")}</li>
-          ) : null}
           <li>
             <Link
               href="/account"
