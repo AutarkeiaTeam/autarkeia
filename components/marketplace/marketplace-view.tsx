@@ -33,19 +33,19 @@ import {
   getAmazonProductsForAccess,
   getCategorySlug,
   getMarketplaceFilterCategories,
-  buildMarketplaceSellers,
   type MarketplaceCategory,
   type MarketplaceProduct,
 } from "@/lib/marketplace-data"
 import {
   getBundlesForAccess,
-  resolveProMarketplaceBundles,
+  marketplaceBundlesProDefinitions,
 } from "@/lib/marketplace-bundles"
-import { formatAwinPrice, type AwinMarketplaceProduct } from "@/lib/marketplace-awin"
+import type { MarketplaceBundle } from "@/lib/marketplace-data"
+import { marketplaceBundlesFree } from "@/lib/marketplace-data"
+import type { AwinMarketplaceProduct } from "@/lib/marketplace-awin"
 import { BRAND_PLACEHOLDER_COLORS, getBrandInitials } from "@/lib/marketplace-brand-ui"
 import {
   getMarketplaceBrandDescriptionKey,
-  getAwinSellerDisplayNames,
   resolveAdvertiserDisplayName,
 } from "@/lib/marketplace-brands"
 import { useI18n } from "@/components/i18n-provider"
@@ -79,14 +79,12 @@ const categoryMeta: Record<
 
 type Props = {
   hasPro: boolean
-  awinProducts: AwinMarketplaceProduct[]
-  awinProductCount: number
+  partnerStoreCards: AwinMarketplaceProduct[]
 }
 
 export function MarketplaceView({
   hasPro,
-  awinProducts,
-  awinProductCount,
+  partnerStoreCards,
 }: Props) {
   const { locale, t } = useI18n()
   const [active, setActive] = useState<MarketplaceCategory | "All">("All")
@@ -99,39 +97,59 @@ export function MarketplaceView({
     [hasPro]
   )
 
-  const awinCatalogProducts = useMemo(
-    () => awinProducts.filter((p) => !p.is_store_card),
-    [awinProducts]
-  )
-
-  const partnerStoreCards = useMemo(
-    () => (hasPro ? awinProducts.filter((p) => p.is_store_card) : []),
-    [hasPro, awinProducts]
-  )
-
-  const visibleProducts = useMemo(
-    () => (hasPro ? [...amazonProducts, ...awinCatalogProducts] : amazonProducts),
-    [hasPro, amazonProducts, awinCatalogProducts]
-  )
+  const curatedProductCount = useMemo(() => getAmazonProductCount(hasPro), [hasPro])
 
   const filterCategories = useMemo(
     () => getMarketplaceFilterCategories(hasPro),
     [hasPro]
   )
 
-  const bundles = useMemo(() => {
-    const resolvedPro = hasPro
-      ? resolveProMarketplaceBundles({ awinProducts })
-      : []
-    return getBundlesForAccess(hasPro, resolvedPro)
-  }, [hasPro, awinProducts])
+  useEffect(() => {
+    if (!hasPro || !bundlesOpen || resolvedProBundles.length > 0 || proBundlesLoading) {
+      return
+    }
+
+    let cancelled = false
+    setProBundlesLoading(true)
+    setProBundlesError(false)
+
+    fetch("/api/marketplace/pro-bundles")
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`pro-bundles ${res.status}`)
+        return res.json() as Promise<{ bundles?: MarketplaceBundle[] }>
+      })
+      .then((data) => {
+        if (!cancelled) {
+          setResolvedProBundles(data.bundles ?? [])
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setProBundlesError(true)
+      })
+      .finally(() => {
+        if (!cancelled) setProBundlesLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [hasPro, bundlesOpen, resolvedProBundles.length, proBundlesLoading])
+
+  const bundles = useMemo(
+    () => getBundlesForAccess(hasPro, resolvedProBundles),
+    [hasPro, resolvedProBundles]
+  )
+
+  const bundleHeadingCount = hasPro
+    ? marketplaceBundlesFree.length + marketplaceBundlesProDefinitions.length
+    : marketplaceBundlesFree.length
 
   const availableCategories = useMemo(
     () =>
       filterCategories.filter((cat) =>
-        visibleProducts.some((p) => p.category === cat)
+        amazonProducts.some((p) => p.category === cat)
       ),
-    [filterCategories, visibleProducts]
+    [filterCategories, amazonProducts]
   )
 
   useEffect(() => {
@@ -140,12 +158,12 @@ export function MarketplaceView({
     }
   }, [active, availableCategories])
 
-  const allSellers = useMemo(
-    () => (hasPro ? buildMarketplaceSellers(getAwinSellerDisplayNames()) : ["Amazon"]),
-    [hasPro]
-  )
+  const allSellers = useMemo(() => {
+    const sellers = [...new Set(amazonProducts.map((p) => p.seller))]
+    return sellers.length > 0 ? sellers : ["Amazon"]
+  }, [amazonProducts])
 
-  const filteredAmazon = useMemo(() => {
+  const filteredProducts = useMemo(() => {
     return amazonProducts.filter((p) => {
       const categoryMatch = active === "All" || p.category === active
       const sellerMatch = activeSeller === "All" || p.seller === activeSeller
@@ -153,25 +171,10 @@ export function MarketplaceView({
     })
   }, [active, activeSeller, amazonProducts])
 
-  const filteredAwin = useMemo(() => {
-    if (!hasPro) return []
-    return awinCatalogProducts.filter((p) => {
-      const categoryMatch = active === "All" || p.category === active
-      const sellerMatch =
-        activeSeller === "All" ||
-        resolveAdvertiserDisplayName(p.brand_slug, p.advertiser_name) === activeSeller
-      return categoryMatch && sellerMatch
-    })
-  }, [active, activeSeller, awinCatalogProducts, hasPro])
-
-  const totalCount = filteredAmazon.length + filteredAwin.length
-
-  const unfilteredCount = hasPro
-    ? getAmazonProductCount(true) + awinProductCount
-    : getAmazonProductCount(false)
-
   const displayCount =
-    active === "All" && activeSeller === "All" ? unfilteredCount : totalCount
+    active === "All" && activeSeller === "All"
+      ? curatedProductCount
+      : filteredProducts.length
 
   const categoryLabel =
     active !== "All"
@@ -185,7 +188,7 @@ export function MarketplaceView({
       <div className="mx-auto max-w-6xl px-4 py-12 lg:px-8">
         <h1 className="text-3xl font-light text-[#0d1b2a]">{t("marketplace.title")}</h1>
         <p className="mt-3 max-w-2xl text-sm text-[#3d5166]">
-          {formatMessage(t("marketplace.intro"), { count: awinProductCount }, locale)}
+          {formatMessage(t("marketplace.intro"), { count: curatedProductCount }, locale)}
         </p>
 
         <section className="mt-8 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
@@ -262,21 +265,12 @@ export function MarketplaceView({
           </button>
           {productsOpen && (
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredAmazon.map((p) => (
-                <AmazonProductCard key={`amazon-${p.id}`} product={p} />
+              {filteredProducts.map((p) => (
+                <AmazonProductCard key={`amazon-${p.asin}`} product={p} />
               ))}
-              {filteredAwin.map((p) => (
-                <AwinProductCard key={p.id} product={p} />
-              ))}
-              {totalCount === 0 && (
+              {filteredProducts.length === 0 && (
                 <p className="col-span-full py-8 text-center text-sm text-[#8a9bb0]">
                   {t("marketplace.empty.no_match")}
-                  {awinProducts.length === 0 && hasPro && (
-                    <>
-                      {" "}
-                      {t("marketplace.empty.awin_catalog")}
-                    </>
-                  )}
                 </p>
               )}
             </div>
@@ -293,7 +287,7 @@ export function MarketplaceView({
             <span className="text-2xl font-light text-[#0d1b2a]">
               {formatMessage(
                 t("marketplace.bundles_heading"),
-                { count: bundles.length },
+                { count: bundleHeadingCount },
                 locale
               )}
             </span>
@@ -303,6 +297,16 @@ export function MarketplaceView({
           </button>
           {bundlesOpen && (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {proBundlesLoading && hasPro && (
+                <p className="col-span-full text-center text-sm text-[#8a9bb0]">
+                  {t("marketplace.bundles_loading")}
+                </p>
+              )}
+              {proBundlesError && hasPro && resolvedProBundles.length === 0 && (
+                <p className="col-span-full text-center text-sm text-[#8a9bb0]">
+                  {t("marketplace.bundles_load_error")}
+                </p>
+              )}
               {bundles.map((bundle) => (
                 <article
                   key={bundle.name}
@@ -432,66 +436,6 @@ function AmazonProductCard({ product }: { product: MarketplaceProduct }) {
           {t("common.buy")}
         </a>
       </div>
-    </article>
-  )
-}
-
-function AwinProductCard({ product }: { product: AwinMarketplaceProduct }) {
-  const { t } = useI18n()
-  if (product.is_store_card) {
-    return <AwinStoreCard product={product} />
-  }
-
-  const meta = categoryMeta[product.category] ?? categoryMeta.Tools
-  const Icon = meta.icon
-  const priceLabel = formatAwinPrice(product.price, product.currency)
-
-  return (
-    <article className="rounded-xl border border-[#d4dce8] p-4 transition-colors hover:border-[#009b70]">
-      {product.image_url ? (
-        <div className="relative h-32 w-full overflow-hidden rounded-lg bg-[#f5f7fa]">
-          <Image
-            src={product.image_url}
-            alt=""
-            fill
-            className="object-contain p-2"
-            sizes="(max-width: 768px) 100vw, 33vw"
-            unoptimized
-          />
-        </div>
-      ) : (
-        <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${meta.bg}`}>
-          <Icon className={`h-5 w-5 ${meta.color}`} />
-        </div>
-      )}
-      <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
-        {t(`marketplace.categories.${getCategorySlug(product.category)}.name`)}
-      </p>
-      <h3 className="mt-1 line-clamp-2 text-sm font-medium text-[#0d1b2a]">{product.product_name}</h3>
-      <p className="mt-1 text-[11px] font-medium text-[#8a9bb0]">
-        {resolveAdvertiserDisplayName(product.brand_slug, product.advertiser_name)}
-      </p>
-      {product.description && (
-        <p className="mt-2 line-clamp-2 text-xs text-[#3d5166]">{product.description}</p>
-      )}
-      <div className="mt-3 flex items-center justify-between gap-2">
-        {priceLabel ? (
-          <span className="font-semibold text-[#0d1b2a]">{priceLabel}</span>
-        ) : (
-          <span className="text-xs text-[#8a9bb0]">{t("marketplace.card.see_store")}</span>
-        )}
-        <a
-          href={product.deep_link}
-          target="_blank"
-          rel="sponsored noopener noreferrer"
-          className="shrink-0 rounded-lg bg-[#009b70] px-3 py-1.5 text-xs text-white hover:bg-[#007a58]"
-        >
-          {t("common.buy")}
-        </a>
-      </div>
-      <p className="mt-2 text-[10px] uppercase tracking-wide text-[#8a9bb0]">
-        {t("marketplace.card.affiliate_partner")}
-      </p>
     </article>
   )
 }

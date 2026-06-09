@@ -22,6 +22,34 @@ export async function countAwinMarketplaceProducts(): Promise<number> {
   return count ?? 0
 }
 
+/** Partner brand store cards only — not the raw Awin SKU feed. */
+export async function listAwinMarketplaceStoreCards(): Promise<AwinMarketplaceProduct[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("marketplace_products")
+    .select(
+      "id, advertiser_id, advertiser_name, product_name, description, price, currency, image_url, deep_link, category, country, in_stock, brand_slug, is_store_card"
+    )
+    .eq("in_stock", true)
+    .eq("is_store_card", true)
+    .order("advertiser_name")
+
+  if (error) {
+    console.error("listAwinMarketplaceStoreCards:", error.message)
+    return []
+  }
+
+  return (data ?? []).map((row) => ({
+    ...(row as AwinMarketplaceProduct),
+    is_store_card: true,
+    category: normalizeMarketplaceCategory(
+      row.category,
+      row.product_name,
+      row.description ?? ""
+    ),
+  }))
+}
+
 export async function listAwinMarketplaceProducts(): Promise<AwinMarketplaceProduct[]> {
   const supabase = await createClient()
   const all: AwinMarketplaceProduct[] = []
