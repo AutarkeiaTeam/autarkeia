@@ -242,7 +242,8 @@ export function QuizResults({ quizType }: QuizResultsProps) {
   const [answers, setAnswers] = useState<QuizAnswers | null>(null)
   const [email, setEmail] = useState('')
   const [emailBusy, setEmailBusy] = useState(false)
-  const [emailFeedback, setEmailFeedback] = useState<string | null>(null)
+  const [emailQueued, setEmailQueued] = useState(false)
+  const [emailSendCooldown, setEmailSendCooldown] = useState(false)
   const [emailError, setEmailError] = useState<string | null>(null)
 
   const config = getQuizConfig(quizType)
@@ -299,21 +300,24 @@ export function QuizResults({ quizType }: QuizResultsProps) {
   }, [quizType, t, locale])
 
   async function sendResultsEmail() {
-    if (!result || !answers) return
+    if (!result || !answers || emailSendCooldown) return
     setEmailBusy(true)
     setEmailError(null)
-    setEmailFeedback(null)
+    setEmailQueued(false)
     try {
-      const response = await fetch('/api/quiz/email-results', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          quizType,
-          answers,
-          locale,
+      const [response] = await Promise.all([
+        fetch('/api/quiz/email-results', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            quizType,
+            answers,
+            locale,
+          }),
         }),
-      })
+        new Promise((resolve) => setTimeout(resolve, 200)),
+      ])
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {
         const translatedByKey =
@@ -324,7 +328,9 @@ export function QuizResults({ quizType }: QuizResultsProps) {
         )
         return
       }
-      setEmailFeedback(typeof data.message === 'string' ? data.message : t('quiz.results.email_success'))
+      setEmailQueued(true)
+      setEmailSendCooldown(true)
+      window.setTimeout(() => setEmailSendCooldown(false), 5000)
     } catch {
       setEmailError(t('quiz.results.network_error'))
     } finally {
@@ -428,14 +434,19 @@ export function QuizResults({ quizType }: QuizResultsProps) {
                 type="button"
                 className="text-white shrink-0"
                 style={{ backgroundColor: config.accentColor }}
-                disabled={emailBusy || !email.trim() || !answers}
+                disabled={emailBusy || emailSendCooldown || !email.trim() || !answers}
                 onClick={() => void sendResultsEmail()}
               >
                 {emailBusy ? t('quiz.results.sending') : t('quiz.results.send_email')}
               </Button>
             </div>
             {emailError && <p className="mt-2 text-sm text-red-600">{emailError}</p>}
-            {emailFeedback && <p className="mt-2 text-sm text-[#009b70]">{emailFeedback}</p>}
+            {emailQueued && (
+              <div className="mt-2">
+                <p className="text-sm font-medium text-[#009b70]">{t('quiz.email.send_queued_title')}</p>
+                <p className="text-sm text-[#3d5166]">{t('quiz.email.send_queued_body')}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

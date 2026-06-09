@@ -2711,6 +2711,8 @@
   "quiz.email.subject.emergency-readiness": "Tus resultados del Test de Preparación de Emergencia",
   "quiz.email.subject.self-sufficiency": "Tus resultados del Test de Autosuficiencia",
   "quiz.email.subtitle": "Una copia de tu puntuación más reciente, plan de acción y productos recomendados.",
+  "quiz.email.send_queued_body": "Tus resultados llegarán en aproximadamente un minuto. Revisa tu bandeja de entrada.",
+  "quiz.email.send_queued_title": "Correo en camino",
   "quiz.email.success.sent": "Revisa tu bandeja de entrada en breve.",
   "quiz.email.title": "Tus resultados del test",
   "quiz.emergency-readiness.card_desc": "¿Qué nivel de preparación tienes ante imprevistos? Evalúa agua, alimentos, salud y sistemas de respaldo.",
