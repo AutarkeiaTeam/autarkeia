@@ -107,6 +107,7 @@ export async function buildQuizAdvice(
       quizType,
       categoryScores: deterministic.category_scores,
       orderedCategories,
+      locale,
     })
     catalogLookup = bundle.lookup
     weakestCategories = bundle.weakestCategories

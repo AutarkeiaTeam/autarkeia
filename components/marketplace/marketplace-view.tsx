@@ -28,8 +28,8 @@ import {
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import {
-  AMAZON_ADJECTIVE_SLUGS,
   getAmazonProductCount,
+  getAmazonProductCopy,
   getAmazonProductsForAccess,
   getCategorySlug,
   getMarketplaceFilterCategories,
@@ -99,9 +99,19 @@ export function MarketplaceView({
     [hasPro]
   )
 
+  const awinCatalogProducts = useMemo(
+    () => awinProducts.filter((p) => !p.is_store_card),
+    [awinProducts]
+  )
+
+  const partnerStoreCards = useMemo(
+    () => (hasPro ? awinProducts.filter((p) => p.is_store_card) : []),
+    [hasPro, awinProducts]
+  )
+
   const visibleProducts = useMemo(
-    () => (hasPro ? [...amazonProducts, ...awinProducts] : amazonProducts),
-    [hasPro, amazonProducts, awinProducts]
+    () => (hasPro ? [...amazonProducts, ...awinCatalogProducts] : amazonProducts),
+    [hasPro, amazonProducts, awinCatalogProducts]
   )
 
   const filterCategories = useMemo(
@@ -145,14 +155,14 @@ export function MarketplaceView({
 
   const filteredAwin = useMemo(() => {
     if (!hasPro) return []
-    return awinProducts.filter((p) => {
+    return awinCatalogProducts.filter((p) => {
       const categoryMatch = active === "All" || p.category === active
       const sellerMatch =
         activeSeller === "All" ||
         resolveAdvertiserDisplayName(p.brand_slug, p.advertiser_name) === activeSeller
       return categoryMatch && sellerMatch
     })
-  }, [active, activeSeller, awinProducts, hasPro])
+  }, [active, activeSeller, awinCatalogProducts, hasPro])
 
   const totalCount = filteredAmazon.length + filteredAwin.length
 
@@ -321,6 +331,22 @@ export function MarketplaceView({
           )}
         </section>
 
+        {hasPro && partnerStoreCards.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-2xl font-light text-[#0d1b2a]">
+              {t("marketplace.partners_heading")}
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-[#3d5166]">
+              {t("marketplace.partners_intro")}
+            </p>
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {partnerStoreCards.map((p) => (
+                <AwinStoreCard key={p.id} product={p} />
+              ))}
+            </div>
+          </section>
+        )}
+
         <p className="mt-10 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] px-4 py-3 text-xs leading-relaxed text-[#3d5166]">
           {t("marketplace.disclosure")}
         </p>
@@ -358,24 +384,49 @@ function AmazonProductCard({ product }: { product: MarketplaceProduct }) {
   const meta = categoryMeta[product.category]
   const Icon = meta.icon
   const categoryName = t(`marketplace.categories.${getCategorySlug(product.category)}.name`)
-  const localized = getLocalizedAmazonProductCopy(product, categoryName, t, locale)
+  const copy = getAmazonProductCopy(product, locale)
+  const ratingLabel =
+    product.rating != null
+      ? formatMessage(
+          t("marketplace.card.rating"),
+          { rating: product.rating, count: product.review_count ?? 0 },
+          locale
+        )
+      : null
+
   return (
     <article className="rounded-xl border border-[#d4dce8] p-4 transition-colors hover:border-[#009b70]">
-      <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${meta.bg}`}>
-        <Icon className={`h-5 w-5 ${meta.color}`} />
-      </div>
+      {product.image_url ? (
+        <div className="relative h-32 w-full overflow-hidden rounded-lg bg-[#f5f7fa]">
+          <Image
+            src={product.image_url}
+            alt=""
+            fill
+            className="object-contain p-2"
+            sizes="(max-width: 768px) 100vw, 33vw"
+            unoptimized
+          />
+        </div>
+      ) : (
+        <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${meta.bg}`}>
+          <Icon className={`h-5 w-5 ${meta.color}`} />
+        </div>
+      )}
       <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
         {categoryName}
       </p>
-      <h3 className="mt-1 text-sm font-medium text-[#0d1b2a]">{localized.name}</h3>
+      <h3 className="mt-1 text-sm font-medium text-[#0d1b2a]">{copy.name}</h3>
       <p className="mt-1 text-[11px] font-medium text-[#8a9bb0]">{product.seller}</p>
-      <p className="mt-2 line-clamp-3 text-xs text-[#3d5166]">{localized.description}</p>
+      <p className="mt-3 text-sm leading-relaxed text-[#0d1b2a]">{copy.rationale}</p>
+      {ratingLabel && (
+        <p className="mt-2 text-xs text-[#8a9bb0]">{ratingLabel}</p>
+      )}
       <div className="mt-3 flex items-center justify-between">
         <span className="font-semibold text-[#0d1b2a]">{product.price}</span>
         <a
           href={product.affiliate}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noopener noreferrer sponsored"
           className="rounded-lg bg-[#009b70] px-3 py-1.5 text-xs text-white hover:bg-[#007a58]"
         >
           {t("common.buy")}
@@ -496,35 +547,3 @@ function bundleItems(id: string | undefined, fallback: string, t: (key: string) 
   return t(`marketplace.bundles.${id.startsWith("pro-") ? "pro" : "free"}.${id}.items`)
 }
 
-function getLocalizedAmazonProductCopy(
-  product: MarketplaceProduct,
-  categoryLabel: string,
-  t: (key: string) => string,
-  locale: string
-): { name: string; description: string } {
-  if (!product.i18n) {
-    return { name: product.name, description: product.description }
-  }
-
-  if (product.i18n.kind === "explicit") {
-    const key = `marketplace.amazon.explicit.${product.i18n.categorySlug}.${product.i18n.explicitIndex}`
-    return {
-      name: t(`${key}.name`),
-      description: t(`marketplace.amazon.explicit.${product.i18n.categorySlug}.description`),
-    }
-  }
-
-  const adjSlug = AMAZON_ADJECTIVE_SLUGS[product.i18n.adjectiveIndex]
-  const base = t(
-    `marketplace.amazon.base.${product.i18n.categorySlug}.${product.i18n.baseIndex}`
-  )
-  const adj = t(`marketplace.amazon.adj.${adjSlug}`)
-  return {
-    name: formatMessage(t("marketplace.amazon.rotating.name_template"), { base, adj }, locale),
-    description: formatMessage(
-      t("marketplace.amazon.rotating.description_template"),
-      { category: categoryLabel, base, variant: product.i18n.variant },
-      locale
-    ),
-  }
-}

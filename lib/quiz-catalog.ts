@@ -1,5 +1,8 @@
 import type { Tier } from "@/lib/auth-server"
+import type { Locale } from "@/lib/i18n-core"
 import {
+  amazonProductUrl,
+  getAmazonProductCopy,
   getAmazonProductsForAccess,
   type MarketplaceCategory,
   type MarketplaceProduct,
@@ -57,8 +60,8 @@ const QUIZ_TO_MARKETPLACE: Record<string, MarketplaceCategory[]> = {
   Skills: ["Tools", "Security"],
 }
 
-function amazonSku(id: number): string {
-  return `amazon:${id}`
+function amazonSku(asin: string): string {
+  return `amazon:${asin}`
 }
 
 function rankWeakestCategories(
@@ -86,15 +89,19 @@ function trimDescription(text: string, max = 140): string {
   return `${normalized.slice(0, max - 1)}…`
 }
 
-function toAmazonResolved(product: MarketplaceProduct): ResolvedCatalogProduct {
-  const sku = amazonSku(product.id)
+function toAmazonResolved(
+  product: MarketplaceProduct,
+  locale: string
+): ResolvedCatalogProduct {
+  const sku = amazonSku(product.asin)
+  const copy = getAmazonProductCopy(product, locale)
   const base: Omit<ResolvedCatalogProduct, "affiliate_url"> = {
     sku,
-    name: product.name,
+    name: copy.name,
     price: product.price,
-    image_url: null,
+    image_url: product.image_url,
     seller_name: "Amazon",
-    base_url: product.affiliate,
+    base_url: amazonProductUrl(product.asin),
   }
   return {
     ...base,
@@ -181,7 +188,9 @@ export async function buildQuizCatalogBundle(options: {
   quizType: QuizType
   categoryScores: Record<string, number>
   orderedCategories: string[]
+  locale: Locale
 }): Promise<QuizCatalogBundle> {
+  const { locale } = options
   const weakest = rankWeakestCategories(options.categoryScores, options.orderedCategories)
   const focusQuizCategories = weakest.slice(0, 5)
   const marketplaceCategories = marketplaceCategoriesForQuizCategories(focusQuizCategories)
@@ -200,12 +209,13 @@ export async function buildQuizCatalogBundle(options: {
   const lookup = new Map<string, ResolvedCatalogProduct>()
 
   for (const product of amazonProducts) {
-    const resolved = toAmazonResolved(product)
+    const resolved = toAmazonResolved(product, locale)
+    const copy = getAmazonProductCopy(product, locale)
     entries.push({
       sku: resolved.sku,
       name: resolved.name,
       category: product.category,
-      description: trimDescription(product.description),
+      description: trimDescription(copy.rationale),
       seller: "Amazon",
     })
     lookup.set(resolved.sku, resolved)
