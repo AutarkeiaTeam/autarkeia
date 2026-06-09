@@ -73,3 +73,10 @@ export function parseForumSortMode(value: string | null | undefined): ForumSortM
 export function emptyPostReactions(): PostReactionsData {
   return { counts: {}, userEmojis: [] }
 }
+
+export function reactionsFromMap(
+  map: Map<string, PostReactionsData>,
+  postId: string
+): PostReactionsData {
+  return map.get(postId) ?? emptyPostReactions()
+}

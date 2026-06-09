@@ -6,7 +6,6 @@ import { useEffect, useState } from "react"
 import { useI18n } from "@/components/i18n-provider"
 import {
   FORUM_REACTION_EMOJIS,
-  emptyPostReactions,
   type ForumReactionEmoji,
   type PostReactionsData,
 } from "@/lib/forums-shared"
@@ -116,11 +115,4 @@ function applyOptimisticToggle(
     counts: nextCounts,
     userEmojis: [...current.userEmojis, emoji],
   }
-}
-
-export function reactionsFromMap(
-  map: Map<string, PostReactionsData>,
-  postId: string
-): PostReactionsData {
-  return map.get(postId) ?? emptyPostReactions()
 }
