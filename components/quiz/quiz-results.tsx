@@ -442,10 +442,7 @@ export function QuizResults({ quizType }: QuizResultsProps) {
             </div>
             {emailError && <p className="mt-2 text-sm text-red-600">{emailError}</p>}
             {emailQueued && (
-              <div className="mt-2">
-                <p className="text-sm font-medium text-[#009b70]">{t('quiz.email.send_queued_title')}</p>
-                <p className="text-sm text-[#3d5166]">{t('quiz.email.send_queued_body')}</p>
-              </div>
+              <p className="mt-2 text-sm font-medium text-[#009b70]">{t('quiz.email.send_success')}</p>
             )}
           </div>
         </div>
