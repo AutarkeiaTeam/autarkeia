@@ -1367,7 +1367,6 @@
   "marketplace.bundles_heading": "{count, plural, one {Paquetes (#)} other {Paquetes (#)}}",
   "marketplace.bundles_load_error": "No se pudieron cargar los enlaces de paquetes Pro. Inténtalo de nuevo en un momento.",
   "marketplace.bundles_loading": "Cargando enlaces de paquetes Pro…",
-  "marketplace.bundles_tip": "💡 Consejo: mira la pestaña Paquetes para kits multi-producto seleccionados →",
   "marketplace.card.affiliate_partner": "Socio afiliado",
   "marketplace.card.see_store": "Ver tienda",
   "marketplace.card.store_badge": "Tienda",

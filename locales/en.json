@@ -1367,7 +1367,6 @@
   "marketplace.bundles_heading": "{count, plural, one {Bundles (#)} other {Bundles (#)}}",
   "marketplace.bundles_load_error": "Could not load Pro bundle links. Try again in a moment.",
   "marketplace.bundles_loading": "Loading Pro bundle links…",
-  "marketplace.bundles_tip": "💡 Pro tip: check our Bundles tab for curated multi-product kits →",
   "marketplace.card.affiliate_partner": "Affiliate partner",
   "marketplace.card.see_store": "See store",
   "marketplace.card.store_badge": "Store",

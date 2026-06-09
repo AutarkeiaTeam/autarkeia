@@ -78,15 +78,14 @@ const categoryMeta: Record<
   "Bartering & Currency": { icon: Coins, bg: "bg-amber-50", color: "text-amber-800" },
 }
 
-type MainTab = "products" | "bundles"
-
 type Props = {
   hasPro: boolean
 }
 
 export function MarketplaceView({ hasPro }: Props) {
   const { locale, t } = useI18n()
-  const [mainTab, setMainTab] = useState<MainTab>("products")
+  const [productsOpen, setProductsOpen] = useState(false)
+  const [bundlesOpen, setBundlesOpen] = useState(false)
   const [active, setActive] = useState<MarketplaceCategory | "All">("All")
   const [activeSeller, setActiveSeller] = useState<string>("All")
   const [resolvedProBundles, setResolvedProBundles] = useState<MarketplaceBundle[]>([])
@@ -106,7 +105,7 @@ export function MarketplaceView({ hasPro }: Props) {
   )
 
   useEffect(() => {
-    if (!hasPro || mainTab !== "bundles" || resolvedProBundles.length > 0 || proBundlesLoading) {
+    if (!hasPro || !bundlesOpen || resolvedProBundles.length > 0 || proBundlesLoading) {
       return
     }
 
@@ -132,7 +131,7 @@ export function MarketplaceView({ hasPro }: Props) {
     return () => {
       cancelled = true
     }
-  }, [hasPro, mainTab, resolvedProBundles.length, proBundlesLoading])
+  }, [hasPro, bundlesOpen, resolvedProBundles.length, proBundlesLoading])
 
   const bundles = useMemo(
     () => getBundlesForAccess(hasPro, resolvedProBundles),
@@ -200,139 +199,134 @@ export function MarketplaceView({ hasPro }: Props) {
           {formatMessage(t("marketplace.intro"), { count: curatedProductCount }, locale)}
         </p>
 
-        <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <TabButton
-            active={mainTab === "products"}
-            onClick={() => setMainTab("products")}
-            label={formatMessage(
-              t("marketplace.all_products_heading"),
-              { count: curatedProductCount },
-              locale
-            )}
-          />
-          <TabButton
-            active={mainTab === "bundles"}
-            onClick={() => setMainTab("bundles")}
-            label={formatMessage(
-              t("marketplace.bundles_heading"),
-              { count: bundleHeadingCount },
-              locale
-            )}
-          />
-        </div>
+        <section className="mt-8 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
+            {t("marketplace.browse_category")}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <CategoryPill
+              label={t("common.all")}
+              active={active === "All"}
+              onClick={() => setActive("All")}
+            />
+            {availableCategories.map((cat) => (
+              <CategoryPill
+                key={cat}
+                label={t(`marketplace.categories.${getCategorySlug(cat)}.name`)}
+                active={active === cat}
+                onClick={() => setActive(cat)}
+              />
+            ))}
+          </div>
+        </section>
 
-        {mainTab === "products" && (
-          <>
-            <button
-              type="button"
-              onClick={() => setMainTab("bundles")}
-              className="mt-6 w-full rounded-xl border border-[#009b70]/30 bg-[#f5f7fa] px-4 py-3 text-left text-sm text-[#3d5166] transition-colors hover:border-[#009b70]"
-            >
-              {t("marketplace.bundles_tip")}
-            </button>
+        <section className="mt-4 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
+            {t("marketplace.browse_seller")}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <CategoryPill
+              label={t("common.all")}
+              active={activeSeller === "All"}
+              onClick={() => setActiveSeller("All")}
+            />
+            {allSellers.map((seller) => (
+              <CategoryPill
+                key={seller}
+                label={seller}
+                active={activeSeller === seller}
+                onClick={() => setActiveSeller(seller)}
+              />
+            ))}
+          </div>
+          {!hasPro && (
+            <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <p className="text-xs text-[#8a9bb0]">{t("marketplace.sellers.pro_unlock")}</p>
+              <Link
+                href="/plans?from=marketplace"
+                className="text-xs font-medium text-[#009b70] hover:underline"
+              >
+                {t("marketplace.go_pro_cta")}
+              </Link>
+            </div>
+          )}
+        </section>
 
-            <section className="mt-4 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
-                {t("marketplace.browse_category")}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <CategoryPill
-                  label={t("common.all")}
-                  active={active === "All"}
-                  onClick={() => setActive("All")}
-                />
-                {availableCategories.map((cat) => (
-                  <CategoryPill
-                    key={cat}
-                    label={t(`marketplace.categories.${getCategorySlug(cat)}.name`)}
-                    active={active === cat}
-                    onClick={() => setActive(cat)}
-                  />
-                ))}
-              </div>
-            </section>
-
-            <section className="mt-4 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
-                {t("marketplace.browse_seller")}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <CategoryPill
-                  label={t("common.all")}
-                  active={activeSeller === "All"}
-                  onClick={() => setActiveSeller("All")}
-                />
-                {allSellers.map((seller) => (
-                  <CategoryPill
-                    key={seller}
-                    label={seller}
-                    active={activeSeller === seller}
-                    onClick={() => setActiveSeller(seller)}
-                  />
-                ))}
-              </div>
-              {!hasPro && (
-                <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <p className="text-xs text-[#8a9bb0]">{t("marketplace.sellers.pro_unlock")}</p>
-                  <Link
-                    href="/plans?from=marketplace"
-                    className="text-xs font-medium text-[#009b70] hover:underline"
-                  >
-                    {t("marketplace.go_pro_cta")}
-                  </Link>
-                </div>
+        <section className="mt-10">
+          <button
+            type="button"
+            onClick={() => setProductsOpen((open) => !open)}
+            className="flex w-full items-center justify-between rounded-xl border border-[#d4dce8] bg-white px-5 py-4 text-left transition-colors hover:border-[#009b70]"
+            aria-expanded={productsOpen}
+          >
+            <span className="text-2xl font-light text-[#0d1b2a]">
+              {formatMessage(
+                t("marketplace.all_products_heading"),
+                { count: displayCount },
+                locale
               )}
-            </section>
+              {categoryLabel}
+            </span>
+            <ChevronDown
+              className={`h-5 w-5 text-[#3d5166] transition-transform ${productsOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {productsOpen && (
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {activeBrand && brandStoreLink && (
+                <BrandStoreCard
+                  brandSlug={activeBrand.id}
+                  displayName={activeSeller}
+                  category={activeBrand.primaryCategory}
+                  deepLink={brandStoreLink.url}
+                  storeOnly={filteredProducts.length === 0}
+                />
+              )}
 
-            <section className="mt-6">
-              <h2 className="text-xl font-light text-[#0d1b2a]">
-                {formatMessage(
-                  t("marketplace.all_products_heading"),
-                  { count: displayCount },
-                  locale
+              {filteredProducts.map((p) => (
+                <CuratedProductCard key={`${p.source}-${p.sku}`} product={p} />
+              ))}
+
+              {activeSeller !== "All" &&
+                activeSeller !== "Amazon" &&
+                filteredProducts.length === 0 &&
+                !activeBrand && (
+                  <p className="col-span-full py-8 text-center text-sm text-[#8a9bb0]">
+                    {t("marketplace.empty.no_match")}
+                  </p>
                 )}
-                {categoryLabel}
-              </h2>
 
-              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {activeBrand && brandStoreLink && (
-                  <BrandStoreCard
-                    brandSlug={activeBrand.id}
-                    displayName={activeSeller}
-                    category={activeBrand.primaryCategory}
-                    deepLink={brandStoreLink.url}
-                    storeOnly={filteredProducts.length === 0}
-                  />
+              {active === "All" &&
+                activeSeller === "All" &&
+                filteredProducts.length === 0 && (
+                  <p className="col-span-full py-8 text-center text-sm text-[#8a9bb0]">
+                    {t("marketplace.empty.no_match")}
+                  </p>
                 )}
+            </div>
+          )}
+        </section>
 
-                {filteredProducts.map((p) => (
-                  <CuratedProductCard key={`${p.source}-${p.sku}`} product={p} />
-                ))}
-
-                {activeSeller !== "All" &&
-                  activeSeller !== "Amazon" &&
-                  filteredProducts.length === 0 &&
-                  !activeBrand && (
-                    <p className="col-span-full py-8 text-center text-sm text-[#8a9bb0]">
-                      {t("marketplace.empty.no_match")}
-                    </p>
-                  )}
-
-                {active === "All" &&
-                  activeSeller === "All" &&
-                  filteredProducts.length === 0 && (
-                    <p className="col-span-full py-8 text-center text-sm text-[#8a9bb0]">
-                      {t("marketplace.empty.no_match")}
-                    </p>
-                  )}
-              </div>
-            </section>
-          </>
-        )}
-
-        {mainTab === "bundles" && (
-          <section className="mt-6">
-            <div className="grid gap-4 md:grid-cols-2">
+        <section className="mt-4">
+          <button
+            type="button"
+            onClick={() => setBundlesOpen((open) => !open)}
+            className="flex w-full items-center justify-between rounded-xl border border-[#d4dce8] bg-white px-5 py-4 text-left transition-colors hover:border-[#009b70]"
+            aria-expanded={bundlesOpen}
+          >
+            <span className="text-2xl font-light text-[#0d1b2a]">
+              {formatMessage(
+                t("marketplace.bundles_heading"),
+                { count: bundleHeadingCount },
+                locale
+              )}
+            </span>
+            <ChevronDown
+              className={`h-5 w-5 text-[#3d5166] transition-transform ${bundlesOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {bundlesOpen && (
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
               {proBundlesLoading && hasPro && (
                 <p className="col-span-full text-center text-sm text-[#8a9bb0]">
                   {t("marketplace.bundles_loading")}
@@ -376,41 +370,14 @@ export function MarketplaceView({ hasPro }: Props) {
                 </article>
               ))}
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
         <p className="mt-10 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] px-4 py-3 text-xs leading-relaxed text-[#3d5166]">
           {t("marketplace.disclosure")}
         </p>
       </div>
     </main>
-  )
-}
-
-function TabButton({
-  label,
-  active,
-  onClick,
-}: {
-  label: string
-  active: boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex w-full items-center justify-between rounded-xl border px-5 py-4 text-left transition-colors ${
-        active
-          ? "border-[#009b70] bg-white text-[#0d1b2a]"
-          : "border-[#d4dce8] bg-white text-[#3d5166] hover:border-[#009b70]/50"
-      }`}
-    >
-      <span className="text-xl font-light">{label}</span>
-      <ChevronDown
-        className={`h-5 w-5 transition-transform ${active ? "rotate-180 text-[#009b70]" : ""}`}
-      />
-    </button>
   )
 }
 
