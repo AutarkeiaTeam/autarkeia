@@ -91,6 +91,9 @@ export function MarketplaceView({
   const [activeSeller, setActiveSeller] = useState<string>("All")
   const [productsOpen, setProductsOpen] = useState(true)
   const [bundlesOpen, setBundlesOpen] = useState(false)
+  const [resolvedProBundles, setResolvedProBundles] = useState<MarketplaceBundle[]>([])
+  const [proBundlesLoading, setProBundlesLoading] = useState(false)
+  const [proBundlesError, setProBundlesError] = useState(false)
 
   const amazonProducts = useMemo(
     () => getAmazonProductsForAccess(hasPro),
