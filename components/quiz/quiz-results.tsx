@@ -135,8 +135,7 @@ function ActionItem({
           <Button
             asChild
             size="sm"
-            variant="outline"
-            className="h-7 px-2.5 text-xs shrink-0 border-[#d4dce8] text-[#0d1b2a] hover:bg-[#f5f7fa]"
+            className="h-7 px-2.5 text-xs shrink-0 border-0 bg-[#009b70] text-white hover:bg-[#007a58]"
           >
             <a
               href={amazonSearchUrl(linked_product.name)}
