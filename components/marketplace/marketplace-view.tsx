@@ -28,10 +28,10 @@ import {
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import {
-  getAmazonProductCount,
   getAmazonProductCopy,
-  getAmazonProductsForAccess,
   getCategorySlug,
+  getCuratedProductCount,
+  getCuratedProductsForAccess,
   getMarketplaceFilterCategories,
   type MarketplaceCategory,
   type MarketplaceProduct,
@@ -42,11 +42,12 @@ import {
 } from "@/lib/marketplace-bundles"
 import type { MarketplaceBundle } from "@/lib/marketplace-data"
 import { marketplaceBundlesFree } from "@/lib/marketplace-data"
-import type { AwinMarketplaceProduct } from "@/lib/marketplace-awin"
 import { BRAND_PLACEHOLDER_COLORS, getBrandInitials } from "@/lib/marketplace-brand-ui"
 import {
+  getBrandByDisplayName,
   getMarketplaceBrandDescriptionKey,
-  resolveAdvertiserDisplayName,
+  getMarketplaceSellerFilterNames,
+  resolveAffiliateLink,
 } from "@/lib/marketplace-brands"
 import { useI18n } from "@/components/i18n-provider"
 import { formatMessage } from "@/lib/i18n-format"
@@ -77,30 +78,27 @@ const categoryMeta: Record<
   "Bartering & Currency": { icon: Coins, bg: "bg-amber-50", color: "text-amber-800" },
 }
 
+type MainTab = "products" | "bundles"
+
 type Props = {
   hasPro: boolean
-  partnerStoreCards: AwinMarketplaceProduct[]
 }
 
-export function MarketplaceView({
-  hasPro,
-  partnerStoreCards,
-}: Props) {
+export function MarketplaceView({ hasPro }: Props) {
   const { locale, t } = useI18n()
+  const [mainTab, setMainTab] = useState<MainTab>("products")
   const [active, setActive] = useState<MarketplaceCategory | "All">("All")
   const [activeSeller, setActiveSeller] = useState<string>("All")
-  const [productsOpen, setProductsOpen] = useState(true)
-  const [bundlesOpen, setBundlesOpen] = useState(false)
   const [resolvedProBundles, setResolvedProBundles] = useState<MarketplaceBundle[]>([])
   const [proBundlesLoading, setProBundlesLoading] = useState(false)
   const [proBundlesError, setProBundlesError] = useState(false)
 
-  const amazonProducts = useMemo(
-    () => getAmazonProductsForAccess(hasPro),
+  const curatedProducts = useMemo(
+    () => getCuratedProductsForAccess(hasPro),
     [hasPro]
   )
 
-  const curatedProductCount = useMemo(() => getAmazonProductCount(hasPro), [hasPro])
+  const curatedProductCount = useMemo(() => getCuratedProductCount(hasPro), [hasPro])
 
   const filterCategories = useMemo(
     () => getMarketplaceFilterCategories(hasPro),
@@ -108,7 +106,7 @@ export function MarketplaceView({
   )
 
   useEffect(() => {
-    if (!hasPro || !bundlesOpen || resolvedProBundles.length > 0 || proBundlesLoading) {
+    if (!hasPro || mainTab !== "bundles" || resolvedProBundles.length > 0 || proBundlesLoading) {
       return
     }
 
@@ -122,9 +120,7 @@ export function MarketplaceView({
         return res.json() as Promise<{ bundles?: MarketplaceBundle[] }>
       })
       .then((data) => {
-        if (!cancelled) {
-          setResolvedProBundles(data.bundles ?? [])
-        }
+        if (!cancelled) setResolvedProBundles(data.bundles ?? [])
       })
       .catch(() => {
         if (!cancelled) setProBundlesError(true)
@@ -136,7 +132,7 @@ export function MarketplaceView({
     return () => {
       cancelled = true
     }
-  }, [hasPro, bundlesOpen, resolvedProBundles.length, proBundlesLoading])
+  }, [hasPro, mainTab, resolvedProBundles.length, proBundlesLoading])
 
   const bundles = useMemo(
     () => getBundlesForAccess(hasPro, resolvedProBundles),
@@ -150,9 +146,9 @@ export function MarketplaceView({
   const availableCategories = useMemo(
     () =>
       filterCategories.filter((cat) =>
-        amazonProducts.some((p) => p.category === cat)
+        curatedProducts.some((p) => p.category === cat)
       ),
-    [filterCategories, amazonProducts]
+    [filterCategories, curatedProducts]
   )
 
   useEffect(() => {
@@ -161,18 +157,28 @@ export function MarketplaceView({
     }
   }, [active, availableCategories])
 
-  const allSellers = useMemo(() => {
-    const sellers = [...new Set(amazonProducts.map((p) => p.seller))]
-    return sellers.length > 0 ? sellers : ["Amazon"]
-  }, [amazonProducts])
+  const allSellers = useMemo(
+    () => getMarketplaceSellerFilterNames(hasPro),
+    [hasPro]
+  )
 
   const filteredProducts = useMemo(() => {
-    return amazonProducts.filter((p) => {
+    return curatedProducts.filter((p) => {
       const categoryMatch = active === "All" || p.category === active
       const sellerMatch = activeSeller === "All" || p.seller === activeSeller
       return categoryMatch && sellerMatch
     })
-  }, [active, activeSeller, amazonProducts])
+  }, [active, activeSeller, curatedProducts])
+
+  const activeBrand = useMemo(() => {
+    if (activeSeller === "All" || activeSeller === "Amazon") return null
+    return getBrandByDisplayName(activeSeller) ?? null
+  }, [activeSeller])
+
+  const brandStoreLink = useMemo(() => {
+    if (!activeBrand) return null
+    return resolveAffiliateLink(activeBrand, locale.startsWith("es") ? "ES" : "US")
+  }, [activeBrand, locale])
 
   const displayCount =
     active === "All" && activeSeller === "All"
@@ -194,112 +200,139 @@ export function MarketplaceView({
           {formatMessage(t("marketplace.intro"), { count: curatedProductCount }, locale)}
         </p>
 
-        <section className="mt-8 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
-            {t("marketplace.browse_category")}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <CategoryPill
-              label={t("common.all")}
-              active={active === "All"}
-              onClick={() => setActive("All")}
-            />
-            {availableCategories.map((cat) => (
-              <CategoryPill
-                key={cat}
-                label={t(`marketplace.categories.${getCategorySlug(cat)}.name`)}
-                active={active === cat}
-                onClick={() => setActive(cat)}
-              />
-            ))}
-          </div>
-        </section>
+        <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <TabButton
+            active={mainTab === "products"}
+            onClick={() => setMainTab("products")}
+            label={formatMessage(
+              t("marketplace.all_products_heading"),
+              { count: curatedProductCount },
+              locale
+            )}
+          />
+          <TabButton
+            active={mainTab === "bundles"}
+            onClick={() => setMainTab("bundles")}
+            label={formatMessage(
+              t("marketplace.bundles_heading"),
+              { count: bundleHeadingCount },
+              locale
+            )}
+          />
+        </div>
 
-        <section className="mt-4 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
-            {t("marketplace.browse_seller")}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <CategoryPill
-              label={t("common.all")}
-              active={activeSeller === "All"}
-              onClick={() => setActiveSeller("All")}
-            />
-            {allSellers.map((seller) => (
-              <CategoryPill
-                key={seller}
-                label={seller}
-                active={activeSeller === seller}
-                onClick={() => setActiveSeller(seller)}
-              />
-            ))}
-          </div>
-          {!hasPro && (
-            <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-              <p className="text-xs text-[#8a9bb0]">{t("marketplace.sellers.pro_unlock")}</p>
-              <Link
-                href="/plans?from=marketplace"
-                className="text-xs font-medium text-[#009b70] hover:underline"
-              >
-                {t("marketplace.go_pro_cta")}
-              </Link>
-            </div>
-          )}
-        </section>
+        {mainTab === "products" && (
+          <>
+            <button
+              type="button"
+              onClick={() => setMainTab("bundles")}
+              className="mt-6 w-full rounded-xl border border-[#009b70]/30 bg-[#f5f7fa] px-4 py-3 text-left text-sm text-[#3d5166] transition-colors hover:border-[#009b70]"
+            >
+              {t("marketplace.bundles_tip")}
+            </button>
 
-        <section className="mt-10">
-          <button
-            type="button"
-            onClick={() => setProductsOpen((open) => !open)}
-            className="flex w-full items-center justify-between rounded-xl border border-[#d4dce8] bg-white px-5 py-4 text-left transition-colors hover:border-[#009b70]"
-            aria-expanded={productsOpen}
-          >
-            <span className="text-2xl font-light text-[#0d1b2a]">
-              {formatMessage(
-                t("marketplace.all_products_heading"),
-                { count: displayCount },
-                locale
-              )}
-              {categoryLabel}
-            </span>
-            <ChevronDown
-              className={`h-5 w-5 text-[#3d5166] transition-transform ${productsOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-          {productsOpen && (
-            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredProducts.map((p) => (
-                <AmazonProductCard key={`amazon-${p.asin}`} product={p} />
-              ))}
-              {filteredProducts.length === 0 && (
-                <p className="col-span-full py-8 text-center text-sm text-[#8a9bb0]">
-                  {t("marketplace.empty.no_match")}
-                </p>
-              )}
-            </div>
-          )}
-        </section>
+            <section className="mt-4 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
+                {t("marketplace.browse_category")}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <CategoryPill
+                  label={t("common.all")}
+                  active={active === "All"}
+                  onClick={() => setActive("All")}
+                />
+                {availableCategories.map((cat) => (
+                  <CategoryPill
+                    key={cat}
+                    label={t(`marketplace.categories.${getCategorySlug(cat)}.name`)}
+                    active={active === cat}
+                    onClick={() => setActive(cat)}
+                  />
+                ))}
+              </div>
+            </section>
 
-        <section className="mt-4">
-          <button
-            type="button"
-            onClick={() => setBundlesOpen((open) => !open)}
-            className="flex w-full items-center justify-between rounded-xl border border-[#d4dce8] bg-white px-5 py-4 text-left transition-colors hover:border-[#009b70]"
-            aria-expanded={bundlesOpen}
-          >
-            <span className="text-2xl font-light text-[#0d1b2a]">
-              {formatMessage(
-                t("marketplace.bundles_heading"),
-                { count: bundleHeadingCount },
-                locale
+            <section className="mt-4 rounded-xl border border-[#d4dce8] bg-[#f5f7fa] p-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
+                {t("marketplace.browse_seller")}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <CategoryPill
+                  label={t("common.all")}
+                  active={activeSeller === "All"}
+                  onClick={() => setActiveSeller("All")}
+                />
+                {allSellers.map((seller) => (
+                  <CategoryPill
+                    key={seller}
+                    label={seller}
+                    active={activeSeller === seller}
+                    onClick={() => setActiveSeller(seller)}
+                  />
+                ))}
+              </div>
+              {!hasPro && (
+                <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <p className="text-xs text-[#8a9bb0]">{t("marketplace.sellers.pro_unlock")}</p>
+                  <Link
+                    href="/plans?from=marketplace"
+                    className="text-xs font-medium text-[#009b70] hover:underline"
+                  >
+                    {t("marketplace.go_pro_cta")}
+                  </Link>
+                </div>
               )}
-            </span>
-            <ChevronDown
-              className={`h-5 w-5 text-[#3d5166] transition-transform ${bundlesOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-          {bundlesOpen && (
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            </section>
+
+            <section className="mt-6">
+              <h2 className="text-xl font-light text-[#0d1b2a]">
+                {formatMessage(
+                  t("marketplace.all_products_heading"),
+                  { count: displayCount },
+                  locale
+                )}
+                {categoryLabel}
+              </h2>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {activeBrand && brandStoreLink && (
+                  <BrandStoreCard
+                    brandSlug={activeBrand.id}
+                    displayName={activeSeller}
+                    category={activeBrand.primaryCategory}
+                    deepLink={brandStoreLink.url}
+                    storeOnly={filteredProducts.length === 0}
+                  />
+                )}
+
+                {filteredProducts.map((p) => (
+                  <CuratedProductCard key={`${p.source}-${p.sku}`} product={p} />
+                ))}
+
+                {activeSeller !== "All" &&
+                  activeSeller !== "Amazon" &&
+                  filteredProducts.length === 0 &&
+                  !activeBrand && (
+                    <p className="col-span-full py-8 text-center text-sm text-[#8a9bb0]">
+                      {t("marketplace.empty.no_match")}
+                    </p>
+                  )}
+
+                {active === "All" &&
+                  activeSeller === "All" &&
+                  filteredProducts.length === 0 && (
+                    <p className="col-span-full py-8 text-center text-sm text-[#8a9bb0]">
+                      {t("marketplace.empty.no_match")}
+                    </p>
+                  )}
+              </div>
+            </section>
+          </>
+        )}
+
+        {mainTab === "bundles" && (
+          <section className="mt-6">
+            <div className="grid gap-4 md:grid-cols-2">
               {proBundlesLoading && hasPro && (
                 <p className="col-span-full text-center text-sm text-[#8a9bb0]">
                   {t("marketplace.bundles_loading")}
@@ -315,13 +348,21 @@ export function MarketplaceView({
                   key={bundle.name}
                   className="rounded-xl border-2 border-[#009b70]/25 bg-[#f5f7fa] p-5"
                 >
-                  <h3 className="font-medium text-[#0d1b2a]">{bundleName(bundle.id, bundle.name, t)}</h3>
-                  <p className="mt-1 text-sm text-[#3d5166]">{bundleItems(bundle.id, bundle.items, t)}</p>
+                  <h3 className="font-medium text-[#0d1b2a]">
+                    {bundleName(bundle.id, bundle.name, t)}
+                  </h3>
+                  <p className="mt-1 text-sm text-[#3d5166]">
+                    {bundleItems(bundle.id, bundle.items, t)}
+                  </p>
                   <div className="mt-3 flex items-end gap-3">
                     <span className="text-sm text-[#8a9bb0] line-through">{bundle.original}</span>
                     <span className="text-xl font-semibold text-[#0d1b2a]">{bundle.price}</span>
                     <span className="text-sm font-medium text-[#009b70]">
-                      {formatMessage(t("marketplace.bundle_save"), { amount: bundle.savings }, locale)}
+                      {formatMessage(
+                        t("marketplace.bundle_save"),
+                        { amount: bundle.savings },
+                        locale
+                      )}
                     </span>
                   </div>
                   <a
@@ -335,22 +376,6 @@ export function MarketplaceView({
                 </article>
               ))}
             </div>
-          )}
-        </section>
-
-        {hasPro && partnerStoreCards.length > 0 && (
-          <section className="mt-10">
-            <h2 className="text-2xl font-light text-[#0d1b2a]">
-              {t("marketplace.partners_heading")}
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm text-[#3d5166]">
-              {t("marketplace.partners_intro")}
-            </p>
-            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {partnerStoreCards.map((p) => (
-                <AwinStoreCard key={p.id} product={p} />
-              ))}
-            </div>
           </section>
         )}
 
@@ -359,6 +384,33 @@ export function MarketplaceView({
         </p>
       </div>
     </main>
+  )
+}
+
+function TabButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center justify-between rounded-xl border px-5 py-4 text-left transition-colors ${
+        active
+          ? "border-[#009b70] bg-white text-[#0d1b2a]"
+          : "border-[#d4dce8] bg-white text-[#3d5166] hover:border-[#009b70]/50"
+      }`}
+    >
+      <span className="text-xl font-light">{label}</span>
+      <ChevronDown
+        className={`h-5 w-5 transition-transform ${active ? "rotate-180 text-[#009b70]" : ""}`}
+      />
+    </button>
   )
 }
 
@@ -386,7 +438,7 @@ function CategoryPill({
   )
 }
 
-function AmazonProductCard({ product }: { product: MarketplaceProduct }) {
+function CuratedProductCard({ product }: { product: MarketplaceProduct }) {
   const { locale, t } = useI18n()
   const meta = categoryMeta[product.category]
   const Icon = meta.icon
@@ -425,9 +477,7 @@ function AmazonProductCard({ product }: { product: MarketplaceProduct }) {
       <h3 className="mt-1 text-sm font-medium text-[#0d1b2a]">{copy.name}</h3>
       <p className="mt-1 text-[11px] font-medium text-[#8a9bb0]">{product.seller}</p>
       <p className="mt-3 text-sm leading-relaxed text-[#0d1b2a]">{copy.rationale}</p>
-      {ratingLabel && (
-        <p className="mt-2 text-xs text-[#8a9bb0]">{ratingLabel}</p>
-      )}
+      {ratingLabel && <p className="mt-2 text-xs text-[#8a9bb0]">{ratingLabel}</p>}
       <div className="mt-3 flex items-center justify-between">
         <span className="font-semibold text-[#0d1b2a]">{product.price}</span>
         <a
@@ -439,17 +489,37 @@ function AmazonProductCard({ product }: { product: MarketplaceProduct }) {
           {t("common.buy")}
         </a>
       </div>
+      {product.source === "awin" && (
+        <p className="mt-2 text-[10px] uppercase tracking-wide text-[#8a9bb0]">
+          {t("marketplace.card.affiliate_partner")}
+        </p>
+      )}
     </article>
   )
 }
 
-function AwinStoreCard({ product }: { product: AwinMarketplaceProduct }) {
-  const { t } = useI18n()
-  const displayName = resolveAdvertiserDisplayName(product.brand_slug, product.advertiser_name)
-  const color = BRAND_PLACEHOLDER_COLORS[product.brand_slug] ?? "#009b70"
+function BrandStoreCard({
+  brandSlug,
+  displayName,
+  category,
+  deepLink,
+  storeOnly,
+}: {
+  brandSlug: string
+  displayName: string
+  category: MarketplaceCategory
+  deepLink: string
+  storeOnly: boolean
+}) {
+  const { locale, t } = useI18n()
+  const color = BRAND_PLACEHOLDER_COLORS[brandSlug] ?? "#009b70"
 
   return (
-    <article className="rounded-xl border border-[#d4dce8] p-4 transition-colors hover:border-[#009b70]">
+    <article
+      className={`rounded-xl border p-4 transition-colors hover:border-[#009b70] ${
+        storeOnly ? "col-span-full border-2 border-[#009b70]/30 bg-[#f5f7fa] md:col-span-2 lg:col-span-3" : "border-[#d4dce8]"
+      }`}
+    >
       <div
         className="flex h-14 w-14 items-center justify-center rounded-full text-sm font-semibold text-white"
         style={{ backgroundColor: color }}
@@ -462,20 +532,22 @@ function AwinStoreCard({ product }: { product: AwinMarketplaceProduct }) {
           {t("marketplace.card.store_badge")}
         </span>
         <span className="text-xs font-semibold uppercase tracking-wide text-[#8a9bb0]">
-          {t(`marketplace.categories.${getCategorySlug(product.category)}.name`)}
+          {t(`marketplace.categories.${getCategorySlug(category)}.name`)}
         </span>
       </div>
       <h3 className="mt-2 text-sm font-medium text-[#0d1b2a]">{displayName}</h3>
       <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-[#3d5166]">
-        {t(getMarketplaceBrandDescriptionKey(product.brand_slug))}
+        {storeOnly
+          ? formatMessage(t("marketplace.brand_store_only"), { brand: displayName }, locale)
+          : t(getMarketplaceBrandDescriptionKey(brandSlug))}
       </p>
       <a
-        href={product.deep_link}
+        href={deepLink}
         target="_blank"
         rel="sponsored noopener noreferrer"
         className="mt-4 inline-block rounded-lg bg-[#009b70] px-4 py-2 text-sm font-medium text-white hover:bg-[#007a58]"
       >
-        {t("marketplace.card.visit_store")}
+        {formatMessage(t("marketplace.card.visit_brand_store"), { brand: displayName }, locale)}
       </a>
       <p className="mt-2 text-[10px] uppercase tracking-wide text-[#8a9bb0]">
         {t("marketplace.card.affiliate_partner")}
@@ -493,4 +565,3 @@ function bundleItems(id: string | undefined, fallback: string, t: (key: string) 
   if (!id) return fallback
   return t(`marketplace.bundles.${id.startsWith("pro-") ? "pro" : "free"}.${id}.items`)
 }
-

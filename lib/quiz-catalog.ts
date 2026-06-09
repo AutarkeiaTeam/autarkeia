@@ -1,15 +1,11 @@
 import type { Tier } from "@/lib/auth-server"
 import type { Locale } from "@/lib/i18n-core"
 import {
-  amazonProductUrl,
   getAmazonProductCopy,
-  getAmazonProductsForAccess,
+  getCuratedProductsForAccess,
   type MarketplaceCategory,
   type MarketplaceProduct,
 } from "@/lib/marketplace-data"
-import { listAwinMarketplaceProducts } from "@/lib/marketplace-db"
-import type { AwinMarketplaceProduct } from "@/lib/marketplace-awin"
-import { formatAwinPrice } from "@/lib/marketplace-awin"
 import { buildAffiliateUrl } from "@/lib/affiliate-urls"
 import type {
   ActionItem,
@@ -60,10 +56,6 @@ const QUIZ_TO_MARKETPLACE: Record<string, MarketplaceCategory[]> = {
   Skills: ["Tools", "Security"],
 }
 
-function amazonSku(asin: string): string {
-  return `amazon:${asin}`
-}
-
 function rankWeakestCategories(
   categoryScores: Record<string, number>,
   orderedCategories: string[]
@@ -89,39 +81,18 @@ function trimDescription(text: string, max = 140): string {
   return `${normalized.slice(0, max - 1)}…`
 }
 
-function toAmazonResolved(
+function toCuratedResolved(
   product: MarketplaceProduct,
   locale: string
 ): ResolvedCatalogProduct {
-  const sku = amazonSku(product.asin)
   const copy = getAmazonProductCopy(product, locale)
   const base: Omit<ResolvedCatalogProduct, "affiliate_url"> = {
-    sku,
+    sku: product.sku,
     name: copy.name,
     price: product.price,
     image_url: product.image_url,
-    seller_name: "Amazon",
-    base_url: amazonProductUrl(product.asin),
-  }
-  return {
-    ...base,
-    affiliate_url: buildAffiliateUrl(base, {
-      source: "email",
-      campaign: "quiz_results",
-    }),
-  }
-}
-
-function toAwinResolved(product: AwinMarketplaceProduct): ResolvedCatalogProduct | null {
-  if (product.is_store_card) return null
-
-  const base: Omit<ResolvedCatalogProduct, "affiliate_url"> = {
-    sku: product.id,
-    name: product.product_name,
-    price: formatAwinPrice(product.price, product.currency),
-    image_url: product.image_url,
-    seller_name: product.advertiser_name,
-    base_url: product.deep_link,
+    seller_name: product.seller,
+    base_url: product.affiliate,
     advertiser_id: product.advertiser_id,
     is_store_card: false,
   }
@@ -134,7 +105,7 @@ function toAwinResolved(product: AwinMarketplaceProduct): ResolvedCatalogProduct
   }
 }
 
-function pickAmazonProducts(
+function pickCuratedProducts(
   products: MarketplaceProduct[],
   categories: Set<MarketplaceCategory>
 ): MarketplaceProduct[] {
@@ -158,31 +129,6 @@ function pickAmazonProducts(
   return picked
 }
 
-function pickAwinProducts(
-  products: AwinMarketplaceProduct[],
-  categories: Set<MarketplaceCategory>
-): AwinMarketplaceProduct[] {
-  const byCategory = new Map<MarketplaceCategory, AwinMarketplaceProduct[]>()
-  for (const product of products) {
-    if (product.is_store_card || !product.in_stock) continue
-    if (!categories.has(product.category)) continue
-    const bucket = byCategory.get(product.category) ?? []
-    if (bucket.length < MAX_PER_MARKETPLACE_CATEGORY) {
-      bucket.push(product)
-      byCategory.set(product.category, bucket)
-    }
-  }
-
-  const picked: AwinMarketplaceProduct[] = []
-  for (const items of byCategory.values()) {
-    for (const item of items) {
-      picked.push(item)
-      if (picked.length >= MAX_CATALOG_ITEMS) return picked
-    }
-  }
-  return picked
-}
-
 export async function buildQuizCatalogBundle(options: {
   tier: Tier
   quizType: QuizType
@@ -196,40 +142,23 @@ export async function buildQuizCatalogBundle(options: {
   const marketplaceCategories = marketplaceCategoriesForQuizCategories(focusQuizCategories)
 
   const hasPro = options.tier === "pro"
-  const amazonProducts = pickAmazonProducts(
-    getAmazonProductsForAccess(hasPro),
+  const curatedProducts = pickCuratedProducts(
+    getCuratedProductsForAccess(hasPro),
     marketplaceCategories
   )
-
-  const awinProducts = hasPro
-    ? pickAwinProducts(await listAwinMarketplaceProducts(), marketplaceCategories)
-    : []
 
   const entries: QuizCatalogPromptEntry[] = []
   const lookup = new Map<string, ResolvedCatalogProduct>()
 
-  for (const product of amazonProducts) {
-    const resolved = toAmazonResolved(product, locale)
+  for (const product of curatedProducts) {
+    const resolved = toCuratedResolved(product, locale)
     const copy = getAmazonProductCopy(product, locale)
     entries.push({
       sku: resolved.sku,
       name: resolved.name,
       category: product.category,
       description: trimDescription(copy.rationale),
-      seller: "Amazon",
-    })
-    lookup.set(resolved.sku, resolved)
-  }
-
-  for (const product of awinProducts) {
-    const resolved = toAwinResolved(product)
-    if (!resolved) continue
-    entries.push({
-      sku: resolved.sku,
-      name: resolved.name,
-      category: product.category,
-      description: trimDescription(product.description ?? ""),
-      seller: product.advertiser_name,
+      seller: product.seller,
     })
     lookup.set(resolved.sku, resolved)
   }

@@ -1,7 +1,7 @@
 {
   "version": "1.0",
-  "generated_at": "2026-06-09T18:00:00Z",
-  "notes": "Amazon picks verified via scripts/_amazon_es_probe.mjs (Jun 2026). Review counts from Amazon.es pages where probe returned null. Energy is Amazon-only; Awin energy picks ship in a follow-up once feed sync is verified.",
+  "generated_at": "2026-06-09T21:33:46.383Z",
+  "notes": "Amazon picks verified via scripts/_amazon_es_probe.mjs. Awin picks verified against production marketplace_products feed (Jun 2026). Awin products are Pro-only (free_tier_pick: false).",
   "categories": [
     {
       "slug": "energy",
@@ -83,6 +83,198 @@
           "use_case": "usb_rechargeable_light",
           "rationale_en": "2,000 lm aluminium torch; USB rechargeable; 4 modes; adjustable focus.",
           "rationale_es": "Linterna aluminio 2.000 lm; recargable USB; 4 modos; enfoque ajustable."
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "43009253733",
+          "sku": "awin:32269:43009253733",
+          "brand_slug": "bluetti",
+          "advertiser_id": 32269,
+          "name_en": "BLUETTI AC200L Portable Power Station (2,048 Wh)",
+          "name_es": "BLUETTI AC200L Estación Portátil (2.048 Wh)",
+          "price_eur": 1599,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acdn.shopify.com%2Fs%2Ffiles%2F1%2F0550%2F5620%2F3836%2Ffiles%2Fac200l-front-view.webp%3Fv%3D1768547688&feedId=74765&k=6f24c7d97375f75e3439afe20f9d6442d0a868c6",
+          "deep_link": "https://www.awin1.com/pclick.php?p=43009253733&a=2900523&m=32269",
+          "feed_country": "CA",
+          "use_case": "large_power_station",
+          "rationale_en": "2,048 Wh LiFePO₄; 2,400 W AC; expandable B210 battery — whole-room essentials backup.",
+          "rationale_es": "2.048 Wh LiFePO₄; 2.400 W CA; batería B210 ampliable — respaldo para estancias completas.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€30–€70",
+            "estimated_days": "12–21",
+            "notes": "International ship from Canada."
+          }
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "43880845965",
+          "sku": "awin:30415:43880845965",
+          "brand_slug": "jackery",
+          "advertiser_id": 30415,
+          "name_en": "Jackery Explorer 240 Portable Power Station",
+          "name_es": "Jackery Explorer 240 Estación de Energía Portátil",
+          "price_eur": 179,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acdn.shopify.com%2Fs%2Ffiles%2F1%2F0572%2F7217%2F2741%2Ffiles%2FEU-E240.jpg%3Fv%3D1700462658&feedId=72809&k=84fb70e903ca8d3c6071e846cdbcec111c699006",
+          "deep_link": "https://www.awin1.com/pclick.php?p=43880845965&a=2900523&m=30415",
+          "feed_country": "DE",
+          "use_case": "entry_power_station",
+          "rationale_en": "240 Wh; 200 W AC; MPPT solar input; ships from DE warehouse to Spain in ~5–9 days.",
+          "rationale_es": "240 Wh; 200 W CA; entrada solar MPPT; envío desde Alemania a España en ~5–9 días.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€8–€18",
+            "estimated_days": "5–9",
+            "notes": "Ships from Germany; EU delivery."
+          }
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "33339833237",
+          "sku": "awin:30415:33339833237",
+          "brand_slug": "jackery",
+          "advertiser_id": 30415,
+          "name_en": "Jackery SolarSaga 100W Solar Panel",
+          "name_es": "Jackery SolarSaga Panel Solar 100W",
+          "price_eur": 249,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acdn.shopify.com%2Fs%2Ffiles%2F1%2F0572%2F7217%2F2741%2Ffiles%2F100Weu.png%3Fv%3D1730081114&feedId=72809&k=4c8517e4eba2fb563baa3bf94ad59607911d26c5",
+          "deep_link": "https://www.awin1.com/pclick.php?p=33339833237&a=2900523&m=30415",
+          "feed_country": "DE",
+          "use_case": "foldable_solar_panel",
+          "rationale_en": "100 W foldable panel; 23.7% efficiency; IP68; dual USB — pairs with Jackery DE stations.",
+          "rationale_es": "100 W plegable; 23,7 % eficiencia; IP68; doble USB — combina con estaciones Jackery DE.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€8–€18",
+            "estimated_days": "5–9",
+            "notes": "Ships from Germany; EU delivery."
+          }
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "41835369552",
+          "sku": "awin:107468:41835369552",
+          "brand_slug": "allpowers",
+          "advertiser_id": 107468,
+          "name_en": "ALLPOWERS R600 Portable Power Station (299 Wh)",
+          "name_es": "ALLPOWERS R600 Estación Portátil (299 Wh)",
+          "price_eur": 219,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acdn.shopify.com%2Fs%2Ffiles%2F1%2F0566%2F0511%2F4454%2Fproducts%2FALLPOWERSR600_3.jpg%3Fv%3D1703322918&feedId=98528&k=64e321a806a80143bf448c422b57d022ccbe4ce8",
+          "deep_link": "https://www.awin1.com/pclick.php?p=41835369552&a=2900523&m=107468",
+          "feed_country": "ES",
+          "use_case": "compact_power_station",
+          "rationale_en": "299 Wh LiFePO₄; 600 W AC; ES storefront feed — fastest EU ship for ALLPOWERS in Spain.",
+          "rationale_es": "299 Wh LiFePO₄; 600 W CA; feed ES — envío ALLPOWERS más rápido dentro de la UE para España.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€0–€12",
+            "estimated_days": "3–7",
+            "notes": "Ships from EU/ES warehouse."
+          }
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "41835369545",
+          "sku": "awin:107468:41835369545",
+          "brand_slug": "allpowers",
+          "advertiser_id": 107468,
+          "name_en": "ALLPOWERS SP033 200W Portable Solar Panel",
+          "name_es": "ALLPOWERS SP033 Panel Solar Portátil 200W",
+          "price_eur": 239.99,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acdn.shopify.com%2Fs%2Ffiles%2F1%2F0566%2F0511%2F4454%2Fproducts%2FAP-SP-033-200w-solar-panel_1800x1800_6f729b24-2fb4-4e88-bdfc-4b05aad2eb44.webp%3Fv%3D1703322846&feedId=98528&k=2c28af144dac2b6c0a9b30f24da4a47c97c40929",
+          "deep_link": "https://www.awin1.com/pclick.php?p=41835369545&a=2900523&m=107468",
+          "feed_country": "ES",
+          "use_case": "foldable_solar_panel",
+          "rationale_en": "200 W foldable monocrystalline; ES feed; pairs with R600/R1500 for daily solar top-up.",
+          "rationale_es": "200 W monocristalino plegable; feed ES; combina con R600/R1500 para recarga solar diaria.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€0–€12",
+            "estimated_days": "3–7",
+            "notes": "Ships from EU/ES warehouse."
+          }
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "41835369610",
+          "sku": "awin:107468:41835369610",
+          "brand_slug": "allpowers",
+          "advertiser_id": 107468,
+          "name_en": "ALLPOWERS R1500 LITE Portable Power Station (1,056 Wh)",
+          "name_es": "ALLPOWERS R1500 LITE Estación Portátil (1.056 Wh)",
+          "price_eur": 499,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acdn.shopify.com%2Fs%2Ffiles%2F1%2F0566%2F0511%2F4454%2Ffiles%2F1_2a587bf0-c78d-432c-80a3-4a6e5d5f5523.jpg%3Fv%3D1751532419&feedId=98528&k=02da8fead3454797a4ac9060f76f8b00fabc84a3",
+          "deep_link": "https://www.awin1.com/pclick.php?p=41835369610&a=2900523&m=107468",
+          "feed_country": "ES",
+          "use_case": "mid_power_station",
+          "rationale_en": "1,056 Wh LiFePO₄; 1,600 W AC; ES feed — mid-tier whole-home essentials backup.",
+          "rationale_es": "1.056 Wh LiFePO₄; 1.600 W CA; feed ES — respaldo medio para electrodomésticos esenciales.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€0–€12",
+            "estimated_days": "3–7",
+            "notes": "Ships from EU/ES warehouse."
+          }
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "42612268328",
+          "sku": "awin:51793:42612268328",
+          "brand_slug": "ecoflow",
+          "advertiser_id": 51793,
+          "name_en": "EcoFlow RIVER 2 Max Portable Power Station",
+          "name_es": "EcoFlow RIVER 2 Max Estación de Energía Portátil",
+          "price_eur": 349,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acdn.shopify.com%2Fs%2Ffiles%2F1%2F0622%2F6758%2F8855%2Ffiles%2FR2M-DE_ES.png%3Fv%3D1780909880&feedId=85604&k=db191e3f57f76a9a4a4ecd5de1f71f38594ed9b6",
+          "deep_link": "https://www.awin1.com/pclick.php?p=42612268328&a=2900523&m=51793",
+          "feed_country": "DE",
+          "use_case": "compact_power_station",
+          "rationale_en": "512 Wh LFP; 500 W AC; fast X-Stream charge; DE feed ships across EU including Spain.",
+          "rationale_es": "512 Wh LFP; 500 W CA; carga rápida X-Stream; feed DE con envío UE incluido España.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€8–€18",
+            "estimated_days": "5–9",
+            "notes": "Ships from Germany; EU delivery."
+          }
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "43814107577",
+          "sku": "awin:123332:43814107577",
+          "brand_slug": "ecoflow",
+          "advertiser_id": 123332,
+          "name_en": "EcoFlow DELTA 2 Portable Power Station",
+          "name_es": "EcoFlow DELTA 2 Estación de Energía Portátil",
+          "price_eur": 748,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acdn.shopify.com%2Fs%2Ffiles%2F1%2F0963%2F3965%2F6980%2Ffiles%2Fecoflow-delta-2-portable-power-station-59647099568471.png%3Fv%3D1755573105&feedId=113247&k=b462b9e3a695ff3f2fe2c00e6deff784476a9497",
+          "deep_link": "https://www.awin1.com/pclick.php?p=43814107577&a=2900523&m=123332",
+          "feed_country": "NL",
+          "use_case": "large_power_station",
+          "rationale_en": "1,024 Wh LFP; 1,800 W AC; expandable extra battery — NL feed, EU-wide shipping.",
+          "rationale_es": "1.024 Wh LFP; 1.800 W CA; batería extra ampliable — feed NL con envío en la UE.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€8–€18",
+            "estimated_days": "5–9",
+            "notes": "Ships from Netherlands; EU delivery."
+          }
         }
       ]
     },
@@ -332,6 +524,30 @@
           "source": "amazon",
           "free_tier_pick": true,
           "stock_status": "amazon_buybox_in_stock"
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "35915204778",
+          "sku": "awin:37550:35915204778",
+          "brand_slug": "decathlon-ireland",
+          "advertiser_id": 37550,
+          "name_en": "Decathlon Arpenaz 4.1 Camping Tent (4 person)",
+          "name_es": "Decathlon Tienda de Campaña Arpenaz 4.1 (4 personas)",
+          "price_eur": 130,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acontents.mediadecathlon.com%2Fp2583236%2Fk%24e0e84ad4bf3bc0e371a631b0bd364884%2Fcamping-tent-with-poles-arpenaz-41-4-person-1-bedroom.jpg%3Fformat%3Dauto%26quality%3D40%26f%3D800x800&feedId=80635&k=086d3c87aa6e85046d9d8d977fba83dca835fdde",
+          "deep_link": "https://www.awin1.com/pclick.php?p=35915204778&a=2900523&m=37550",
+          "feed_country": "IE",
+          "use_case": "family_tent",
+          "rationale_en": "4-person dome tent; 1 bedroom; freestanding poles — family camp or guest shelter.",
+          "rationale_es": "Tienda cúpula 4 personas; 1 dormitorio; varillas autónomas — campamento familiar o refugio.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€10–€20",
+            "estimated_days": "5–10",
+            "notes": "Ships from Ireland; EU delivery."
+          }
         }
       ]
     },
@@ -498,6 +714,78 @@
           "source": "amazon",
           "free_tier_pick": true,
           "stock_status": "amazon_buybox_in_stock"
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "38044154672",
+          "sku": "awin:37550:38044154672",
+          "brand_slug": "decathlon-ireland",
+          "advertiser_id": 37550,
+          "name_en": "Decathlon Modular Silent Hunting Backpack 45/90 L",
+          "name_es": "Decathlon Mochila Modular Caza Silenciosa 45/90 L",
+          "price_eur": 145,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acontents.mediadecathlon.com%2Fp1935933%2Fk%2457e3810089907b7ef7c1fca5dea11587%2Fhunting-backpack-big-game-45-to-90-litres-green.jpg%3Fformat%3Dauto%26quality%3D40%26f%3D800x800&feedId=80635&k=fc3a05672ce946a568c33e1c3960e38e6e5b341d",
+          "deep_link": "https://www.awin1.com/pclick.php?p=38044154672&a=2900523&m=37550",
+          "feed_country": "IE",
+          "use_case": "hunting_backpack",
+          "rationale_en": "Expandable 45→90 L; silent fabric; modular straps — bug-out and field-load hauler.",
+          "rationale_es": "Expandible 45→90 L; tejido silencioso; correas modulares — mochila de evacuación y campo.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€10–€20",
+            "estimated_days": "5–10",
+            "notes": "Ships from Ireland; EU delivery."
+          }
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "37600039606",
+          "sku": "awin:37550:37600039606",
+          "brand_slug": "decathlon-ireland",
+          "advertiser_id": 37550,
+          "name_en": "Decathlon Folding Camping Table (4–6 people)",
+          "name_es": "Decathlon Mesa Plegable de Camping (4–6 personas)",
+          "price_eur": 45,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acontents.mediadecathlon.com%2Fp2423098%2Fk%243ffc914244461ff19da7948587e1dff8%2Ffolding-camping-table-4-to-6-people.jpg%3Fformat%3Dauto%26quality%3D40%26f%3D800x800&feedId=80635&k=cca775cf313f2bfbc38f9ee92eb5aa5c3a92e113",
+          "deep_link": "https://www.awin1.com/pclick.php?p=37600039606&a=2900523&m=37550",
+          "feed_country": "IE",
+          "use_case": "camp_table",
+          "rationale_en": "Aluminium folding table; seats 4–6; 5.9 kg — camp kitchen and indoor backup surface.",
+          "rationale_es": "Mesa plegable aluminio; 4–6 personas; 5,9 kg — cocina de campamento y superficie de respaldo.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€10–€20",
+            "estimated_days": "5–10",
+            "notes": "Ships from Ireland; EU delivery."
+          }
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "34727011527",
+          "sku": "awin:37550:34727011527",
+          "brand_slug": "decathlon-ireland",
+          "advertiser_id": 37550,
+          "name_en": "Decathlon Treemetic Adjustable Tripod",
+          "name_es": "Decathlon Trípode Ajustable Treemetic",
+          "price_eur": 27,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acontents.mediadecathlon.com%2Fp2255791%2Fk%244b9847b9c4afc7e4c1a5dcb76d8b74c5%2Fsteel-telescopic-hunting-tripod-brown-camouflage.jpg%3Fformat%3Dauto%26quality%3D40%26f%3D800x800&feedId=80635&k=df7ef90fad55a14d28ad710f17426d282026a6a1",
+          "deep_link": "https://www.awin1.com/pclick.php?p=34727011527&a=2900523&m=37550",
+          "feed_country": "IE",
+          "use_case": "field_tripod",
+          "rationale_en": "Adjustable steel tripod; stable observation and optics mount for field use.",
+          "rationale_es": "Trípode acero ajustable; soporte estable para observación y óptica en campo.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€10–€20",
+            "estimated_days": "5–10",
+            "notes": "Ships from Ireland; EU delivery."
+          }
         }
       ]
     },
@@ -581,6 +869,78 @@
           "source": "amazon",
           "free_tier_pick": true,
           "stock_status": "amazon_buybox_in_stock"
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "41687872710",
+          "sku": "awin:88727:41687872710",
+          "brand_slug": "survival-frog",
+          "advertiser_id": 88727,
+          "name_en": "Survival Frog Tact Bivvy 2.0 Emergency Sleeping Bag",
+          "name_es": "Survival Frog Saco Tact Bivvy 2.0 de Emergencia",
+          "price_eur": 24.97,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acdn.shopify.com%2Fs%2Ffiles%2F1%2F0397%2F9069%2Ffiles%2FCamoBivvyHero_8520da24-19e5-478a-b9d8-bbc9405be27e.jpg%3Fv%3D1725373446&feedId=103710&k=e2fb4a438d37ef3315cd79da528d9a243ab951d5",
+          "deep_link": "https://www.awin1.com/pclick.php?p=41687872710&a=2900523&m=88727",
+          "feed_country": "US",
+          "use_case": "emergency_bivvy",
+          "rationale_en": "Heat-reflective emergency bivvy; 4.8 oz; packs glove-box small — core go-bag warmth layer.",
+          "rationale_es": "Bivouac reflectante de emergencia; 136 g; cabe en guantera — capa térmica esencial del kit.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€25–€65",
+            "estimated_days": "10–18",
+            "notes": "International ship from US; customs may apply."
+          }
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "41687872749",
+          "sku": "awin:88727:41687872749",
+          "brand_slug": "survival-frog",
+          "advertiser_id": 88727,
+          "name_en": "Survival Frog 6-in-1 Tactical Knife",
+          "name_es": "Survival Frog Cuchillo Táctico 6 en 1",
+          "price_eur": 29.97,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acdn.shopify.com%2Fs%2Ffiles%2F1%2F0397%2F9069%2Fproducts%2Fknife_813685020658_125636.jpg%3Fv%3D1647029332&feedId=103710&k=599b9f12a65f56f091c40fbddff38cf9e01228ae",
+          "deep_link": "https://www.awin1.com/pclick.php?p=41687872749&a=2900523&m=88727",
+          "feed_country": "US",
+          "use_case": "tactical_knife",
+          "rationale_en": "Stainless 6-in-1 blade with seatbelt cutter, glass breaker, and fire starter.",
+          "rationale_es": "Hoja acero 6 en 1 con cortacinturones, rompecristales y encendedor.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€25–€65",
+            "estimated_days": "10–18",
+            "notes": "International ship from US; customs may apply."
+          }
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "41687872688",
+          "sku": "awin:88727:41687872688",
+          "brand_slug": "survival-frog",
+          "advertiser_id": 88727,
+          "name_en": "Survival Frog Hydrostop Dry Bag (Medium)",
+          "name_es": "Survival Frog Bolsa Estanca Hydrostop (Mediana)",
+          "price_eur": 24.97,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acdn.shopify.com%2Fs%2Ffiles%2F1%2F0397%2F9069%2Fproducts%2FDryBag_med_hero_new.jpg%3Fv%3D1671723126&feedId=103710&k=d954a9d0126e9969e7e89988d5410738d24d0ee4",
+          "deep_link": "https://www.awin1.com/pclick.php?p=41687872688&a=2900523&m=88727",
+          "feed_country": "US",
+          "use_case": "dry_bag",
+          "rationale_en": "Roll-top waterproof dry bag; keeps documents, electronics, and meds dry in transit.",
+          "rationale_es": "Bolsa estanca enrollable; protege documentos, electrónica y medicación en tránsito.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€25–€65",
+            "estimated_days": "10–18",
+            "notes": "International ship from US; customs may apply."
+          }
         }
       ]
     },
@@ -1026,6 +1386,30 @@
           "use_case": "oil_lamp",
           "rationale_en": "Brass oil lamp; wick fuel; non-electric room light.",
           "rationale_es": "Lámpara aceite latón; mecha; luz sin electricidad."
+        },
+        {
+          "stock_status": "awin_feed_in_stock",
+          "source": "awin",
+          "id": "41687872713",
+          "sku": "awin:88727:41687872713",
+          "brand_slug": "survival-frog",
+          "advertiser_id": 88727,
+          "name_en": "Survival Frog Mini Rechargeable Tact Flashlight",
+          "name_es": "Survival Frog Mini Linterna Táctica Recargable",
+          "price_eur": 19.97,
+          "image_url": "https://images2.productserve.com/?w=200&h=200&bg=white&trim=5&t=letterbox&url=ssl%3Acdn.shopify.com%2Fs%2Ffiles%2F1%2F0397%2F9069%2Fproducts%2FRechargeable_Flashlight_2.jpg%3Fv%3D1600450033&feedId=103710&k=7f0307eab3d0d9b5eb21f4ece277eacf927a20dd",
+          "deep_link": "https://www.awin1.com/pclick.php?p=41687872713&a=2900523&m=88727",
+          "feed_country": "US",
+          "use_case": "tactical_flashlight",
+          "rationale_en": "USB-rechargeable pocket torch; multiple modes; clips to kit for blackout and patrol.",
+          "rationale_es": "Linterna bolsillo USB; varios modos; engancha al kit para apagones y patrullas.",
+          "free_tier_pick": false,
+          "shipping_spain": {
+            "eligible": true,
+            "cost": "€25–€65",
+            "estimated_days": "10–18",
+            "notes": "International ship from US; customs may apply."
+          }
         }
       ]
     },

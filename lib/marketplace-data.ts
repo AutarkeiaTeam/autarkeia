@@ -89,11 +89,25 @@ export function getMarketplaceFilterCategories(hasPro: boolean): MarketplaceCate
     : MARKETPLACE_FILTER_CATEGORIES
 }
 
+export type CuratedProductSource = "amazon" | "awin"
+
+export type ShippingSpain = {
+  eligible: boolean
+  cost: string
+  estimated_days: string
+  notes: string
+}
+
 export type MarketplaceProduct = {
-  /** Amazon ASIN (also used as stable product id). */
+  source: CuratedProductSource
+  /** Catalog id: Amazon ASIN or Awin aw_product_id. */
   asin: string
+  /** Quiz/email SKU: `amazon:{ASIN}` or `awin:{advertiserId}:{aw_product_id}`. */
+  sku: string
   category: MarketplaceCategory
   seller: MarketplaceSeller
+  brand_slug?: string
+  advertiser_id?: number
   name_en: string
   name_es: string
   rationale_en: string
@@ -107,6 +121,7 @@ export type MarketplaceProduct = {
   review_count: number | null
   free_tier_pick: boolean
   use_case: string
+  shipping_spain?: ShippingSpain
 }
 
 export type MarketplaceSeller = "Amazon" | (string & {})
@@ -130,6 +145,10 @@ export type MarketplaceBundle = {
 type CuratedCatalogProduct = {
   source: string
   id: string
+  sku?: string
+  brand_slug?: string
+  advertiser_id?: number
+  deep_link?: string
   name_en: string
   name_es: string
   price_eur: number
@@ -140,6 +159,16 @@ type CuratedCatalogProduct = {
   rationale_en: string
   rationale_es: string
   free_tier_pick?: boolean
+  shipping_spain?: ShippingSpain
+}
+
+const AWIN_SELLER_DISPLAY: Record<string, string> = {
+  allpowers: "ALLPOWERS",
+  bluetti: "Bluetti",
+  ecoflow: "EcoFlow",
+  jackery: "Jackery",
+  "decathlon-ireland": "Decathlon",
+  "survival-frog": "Survival Frog",
 }
 
 type CuratedCatalogCategory = {
@@ -166,7 +195,7 @@ export function amazonProductUrl(asin: string): string {
   return tag ? `${base}?tag=${encodeURIComponent(tag)}` : base
 }
 
-function loadCuratedAmazonProducts(): MarketplaceProduct[] {
+function loadCuratedProducts(): MarketplaceProduct[] {
   const catalog = curatedCatalog as {
     categories: CuratedCatalogCategory[]
   }
@@ -177,24 +206,57 @@ function loadCuratedAmazonProducts(): MarketplaceProduct[] {
     if (!marketplaceCategory) continue
 
     for (const product of category.products) {
-      if (product.source !== "amazon") continue
-      products.push({
-        asin: product.id,
-        category: marketplaceCategory,
-        seller: "Amazon",
-        name_en: product.name_en,
-        name_es: product.name_es,
-        rationale_en: product.rationale_en,
-        rationale_es: product.rationale_es,
-        description: product.rationale_en,
-        price: formatPriceEur(product.price_eur),
-        affiliate: amazonProductUrl(product.id),
-        image_url: product.image_url ?? null,
-        rating: product.rating ?? null,
-        review_count: product.review_count ?? null,
-        free_tier_pick: product.free_tier_pick ?? false,
-        use_case: product.use_case,
-      })
+      if (product.source === "amazon") {
+        products.push({
+          source: "amazon",
+          asin: product.id,
+          sku: `amazon:${product.id}`,
+          category: marketplaceCategory,
+          seller: "Amazon",
+          name_en: product.name_en,
+          name_es: product.name_es,
+          rationale_en: product.rationale_en,
+          rationale_es: product.rationale_es,
+          description: product.rationale_en,
+          price: formatPriceEur(product.price_eur),
+          affiliate: amazonProductUrl(product.id),
+          image_url: product.image_url ?? null,
+          rating: product.rating ?? null,
+          review_count: product.review_count ?? null,
+          free_tier_pick: product.free_tier_pick ?? false,
+          use_case: product.use_case,
+        })
+        continue
+      }
+
+      if (product.source === "awin" && product.brand_slug && product.deep_link) {
+        const seller =
+          AWIN_SELLER_DISPLAY[product.brand_slug] ?? product.brand_slug
+        products.push({
+          source: "awin",
+          asin: product.id,
+          sku:
+            product.sku ??
+            `awin:${product.advertiser_id ?? 0}:${product.id}`,
+          category: marketplaceCategory,
+          seller,
+          brand_slug: product.brand_slug,
+          advertiser_id: product.advertiser_id,
+          name_en: product.name_en,
+          name_es: product.name_es,
+          rationale_en: product.rationale_en,
+          rationale_es: product.rationale_es,
+          description: product.rationale_en,
+          price: formatPriceEur(product.price_eur),
+          affiliate: product.deep_link,
+          image_url: product.image_url ?? null,
+          rating: null,
+          review_count: null,
+          free_tier_pick: false,
+          use_case: product.use_case,
+          shipping_spain: product.shipping_spain,
+        })
+      }
     }
   }
 
@@ -212,7 +274,16 @@ export function getAmazonProductCopy(
   }
 }
 
-export const marketplaceProducts: MarketplaceProduct[] = loadCuratedAmazonProducts()
+export const marketplaceProducts: MarketplaceProduct[] = loadCuratedProducts()
+
+export function getCuratedProductsForAccess(hasPro: boolean): MarketplaceProduct[] {
+  if (hasPro) return marketplaceProducts
+  return marketplaceProducts.filter((p) => p.free_tier_pick)
+}
+
+export function getCuratedProductCount(hasPro: boolean): number {
+  return getCuratedProductsForAccess(hasPro).length
+}
 
 export function amazonSearchUrl(query: string): string {
   const tag = getAmazonAssociatesTag()
@@ -423,12 +494,13 @@ export const marketplaceBundlesFree: MarketplaceBundle[] = [
 /** @deprecated Use marketplaceBundlesFree — kept for existing imports. */
 export const marketplaceBundles = marketplaceBundlesFree
 
+/** @deprecated Use getCuratedProductsForAccess */
 export function getAmazonProductsForAccess(hasPro: boolean): MarketplaceProduct[] {
-  if (hasPro) return marketplaceProducts
-  return marketplaceProducts.filter((p) => p.free_tier_pick)
+  return getCuratedProductsForAccess(hasPro)
 }
 
+/** @deprecated Use getCuratedProductCount */
 export function getAmazonProductCount(hasPro: boolean): number {
-  return getAmazonProductsForAccess(hasPro).length
+  return getCuratedProductCount(hasPro)
 }
 

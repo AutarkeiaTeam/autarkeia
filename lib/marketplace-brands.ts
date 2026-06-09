@@ -355,6 +355,16 @@ export function getBrandBySlug(slug: string): Brand | undefined {
   return marketplaceBrands.find((b) => b.id === slug)
 }
 
+export function getBrandByDisplayName(displayName: string): Brand | undefined {
+  return marketplaceBrands.find((b) => getBrandDisplayName(b) === displayName)
+}
+
+/** All partner brands for seller filter (includes storecard-only). */
+export function getMarketplaceSellerFilterNames(hasPro: boolean): string[] {
+  if (!hasPro) return ["Amazon"]
+  return ["Amazon", ...marketplaceBrands.map((b) => getBrandDisplayName(b))]
+}
+
 export function getMarketplaceSyncTargets(): MarketplaceSyncTarget[] {
   const targets: MarketplaceSyncTarget[] = []
   for (const brand of marketplaceBrands) {
