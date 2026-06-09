@@ -8,7 +8,13 @@ import { listAwinMarketplaceProducts } from "@/lib/marketplace-db"
 import type { AwinMarketplaceProduct } from "@/lib/marketplace-awin"
 import { formatAwinPrice } from "@/lib/marketplace-awin"
 import { buildAffiliateUrl } from "@/lib/affiliate-urls"
-import type { ProductRecommendation, QuizType } from "@/lib/quiz-data"
+import type {
+  ActionItem,
+  EmailCatalogProduct,
+  ProductRecommendation,
+  QuizResult,
+  QuizType,
+} from "@/lib/quiz-data"
 
 const MAX_CATALOG_ITEMS = 50
 const MAX_PER_MARKETPLACE_CATEGORY = 10
@@ -231,6 +237,65 @@ export type HaikuCatalogRecommendation = {
   recommended_sku: string | null
 }
 
+function normalizeSku(sku: string | null | undefined): string {
+  return typeof sku === "string" ? sku.trim() : ""
+}
+
+export function resolveCatalogProduct(
+  sku: string | null | undefined,
+  lookup: Map<string, ResolvedCatalogProduct>,
+  context?: string
+): EmailCatalogProduct | null {
+  const normalized = normalizeSku(sku)
+  if (!normalized) return null
+
+  const resolved = lookup.get(normalized)
+  if (!resolved) {
+    console.warn(
+      "[quiz-catalog] Haiku returned unknown SKU:",
+      normalized,
+      context ? `context: ${context}` : ""
+    )
+    return null
+  }
+
+  return {
+    sku: resolved.sku,
+    name: resolved.name,
+    price: resolved.price,
+    image_url: resolved.image_url,
+    seller_name: resolved.seller_name,
+    affiliate_url: resolved.affiliate_url,
+  }
+}
+
+export function resolveActionPlanCatalogProducts(
+  actionPlan: QuizResult["action_plan"],
+  lookup: Map<string, ResolvedCatalogProduct>
+): QuizResult["action_plan"] {
+  const resolveHorizon = (items: ActionItem[], horizon: string) =>
+    items.map((item, index) => {
+      const sku = normalizeSku(item.recommended_sku)
+      const catalog_product = resolveCatalogProduct(
+        sku,
+        lookup,
+        `action_plan.${horizon}[${index}]`
+      )
+
+      return {
+        ...item,
+        recommended_sku: sku || null,
+        catalog_product,
+      }
+    })
+
+  return {
+    week: resolveHorizon(actionPlan.week ?? [], "week"),
+    month: resolveHorizon(actionPlan.month ?? [], "month"),
+    year: resolveHorizon(actionPlan.year ?? [], "year"),
+  }
+}
+
 export function resolveCatalogRecommendations(
   items: HaikuCatalogRecommendation[] | undefined,
   lookup: Map<string, ResolvedCatalogProduct>
@@ -238,31 +303,20 @@ export function resolveCatalogRecommendations(
   if (!items?.length) return []
 
   return items.map((item) => {
-    const sku = typeof item.recommended_sku === "string" ? item.recommended_sku.trim() : ""
-    const resolved = sku ? lookup.get(sku) : undefined
-
-    if (sku && !resolved) {
-      console.warn("[quiz-catalog] Haiku returned unknown SKU:", sku, "category:", item.category)
-    }
-
-    const catalogProduct = resolved
-      ? {
-          sku: resolved.sku,
-          name: resolved.name,
-          price: resolved.price,
-          image_url: resolved.image_url,
-          seller_name: resolved.seller_name,
-          affiliate_url: resolved.affiliate_url,
-        }
-      : null
+    const sku = normalizeSku(item.recommended_sku)
+    const catalog_product = resolveCatalogProduct(
+      sku,
+      lookup,
+      `recommendation category: ${item.category}`
+    )
 
     return {
       category: item.category,
-      name: resolved?.name ?? item.category,
+      name: catalog_product?.name ?? item.category,
       why: item.advice_text,
-      estimated_price: resolved?.price ?? "",
+      estimated_price: catalog_product?.price ?? "",
       recommended_sku: sku || null,
-      catalog_product: catalogProduct,
+      catalog_product,
     }
   })
 }

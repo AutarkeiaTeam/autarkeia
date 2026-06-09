@@ -42,6 +42,8 @@ export interface ActionItem {
   estimated_cost: string
   priority: 'high' | 'medium' | 'low'
   linked_product?: LinkedProductRecommendation | null
+  recommended_sku?: string | null
+  catalog_product?: EmailCatalogProduct | null
 }
 
 export interface EmailCatalogProduct {

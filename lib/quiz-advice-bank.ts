@@ -508,9 +508,17 @@ export function enrichQuizAdviceWithBankProducts(options: {
   categoryScores: Record<string, number>
   orderedCategories: string[]
   action_plan: QuizResult["action_plan"]
+  attachBankLinkedProducts?: boolean
 }): Pick<QuizResult, "action_plan" | "product_recommendations" | "pro_bundle_upsells"> {
-  const { quizType, locale, overallScore, categoryScores, orderedCategories, action_plan } =
-    options
+  const {
+    quizType,
+    locale,
+    overallScore,
+    categoryScores,
+    orderedCategories,
+    action_plan,
+    attachBankLinkedProducts = true,
+  } = options
   const band = bandFromScore(overallScore)
   const ranked = rankWeakestCategories(categoryScores, orderedCategories)
   const weakest1 = ranked[0] ?? orderedCategories[0]
@@ -535,7 +543,12 @@ export function enrichQuizAdviceWithBankProducts(options: {
       if (product) inlineProductNameKeys.add(product.nameKey)
       return {
         ...action,
-        linked_product: product ? localizedLinkedProduct(locale, product) : null,
+        linked_product:
+          attachBankLinkedProducts && product
+            ? localizedLinkedProduct(locale, product)
+            : attachBankLinkedProducts
+              ? null
+              : action.linked_product,
       }
     })
   }

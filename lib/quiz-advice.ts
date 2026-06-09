@@ -10,6 +10,7 @@ import {
 import {
   buildQuizCatalogBundle,
   emailRecommendationCount,
+  resolveActionPlanCatalogProducts,
   resolveCatalogRecommendations,
   type HaikuCatalogRecommendation,
   type ResolvedCatalogProduct,
@@ -73,10 +74,12 @@ function buildEmailSystemPrompt(recommendationCount: number): string {
   return [
     "You are Autarkeia's AI advisor. Return ONLY raw JSON with no markdown or backticks.",
     "The JSON must have:",
-    "action_plan (object with week/month/year arrays each with exactly 3 items having title/description/estimated_cost/priority as high or medium or low),",
+    "action_plan (object with week/month/year arrays each with exactly 3 items having title/description/estimated_cost/priority as high or medium or low/recommended_sku),",
     `recommendations (array of exactly ${recommendationCount} items with category/advice_text/recommended_sku).`,
-    "For each recommendation, pick ONE product from the provided catalog by copying its exact sku into recommended_sku.",
-    "Do NOT invent product names or SKUs. If no catalog item fits, set recommended_sku to null.",
+    "The catalog is provided in the user message. For BOTH action_plan items AND recommendations:",
+    "when a catalog product genuinely supports the action or advice, copy its exact sku into recommended_sku.",
+    "If the action is behavioral only (e.g. evacuation plan, family meeting) or no catalog item fits, set recommended_sku to null.",
+    "Do NOT invent product names or SKUs.",
     "Do NOT include score fields. Align advice with the computed score context and weakest categories.",
   ].join(" ")
 }
@@ -141,13 +144,13 @@ export async function buildQuizAdvice(
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 2200,
+      max_tokens: 2800,
       system: systemPrompt,
       messages: [
         {
           role: "user",
           content: forEmail
-            ? `Computed score context:\n${scoreContext}\n\nWeakest categories (one recommendation each): ${weakestCategories.join(", ")}\n\nCatalog (pick recommended_sku from these only):\n${catalogContext}\n\nUser answers:\n${formattedAnswers}`
+            ? `Computed score context:\n${scoreContext}\n\nWeakest categories (one recommendation each): ${weakestCategories.join(", ")}\n\nCatalog (pick recommended_sku for action_plan items and recommendations from these only):\n${catalogContext}\n\nUser answers:\n${formattedAnswers}`
             : `Computed score context:\n${scoreContext}\n\nUser answers:\n${formattedAnswers}`,
         },
       ],
@@ -201,10 +204,12 @@ export async function buildQuizAdvice(
         categoryScores: deterministic.category_scores,
         orderedCategories,
         action_plan: parsed.action_plan,
+        attachBankLinkedProducts: false,
       })
       return {
         advice: {
           ...enriched,
+          action_plan: resolveActionPlanCatalogProducts(enriched.action_plan, catalogLookup),
           product_recommendations: resolveCatalogRecommendations(
             parsed.recommendations,
             catalogLookup

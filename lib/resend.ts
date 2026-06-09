@@ -14,7 +14,7 @@ import {
 } from "@/lib/community-interest"
 import { formatPreferredLocationsForDisplay } from "@/lib/community-interest-location"
 import { translate, type Locale } from "@/lib/i18n-core"
-import type { QuizResult, QuizType } from "@/lib/quiz-data"
+import type { EmailCatalogProduct, QuizResult, QuizType } from "@/lib/quiz-data"
 
 const FROM_EMAIL = "Autarkeia <noreply@send.autarkeia.world>"
 const CONTACT_NOTIFY_EMAIL = process.env.CONTACT_NOTIFY_EMAIL ?? "hello@autarkeia.world"
@@ -256,41 +256,8 @@ export async function sendQuizResultsEmail(options: {
   quizType: QuizType
 }): Promise<void> {
   const { labels } = options
-  const actionSection = (heading: string, items: QuizResult["action_plan"]["week"]) => `
-    <h3 style="margin:16px 0 8px;font-size:16px;color:#0d1b2a;">${escapeHtml(heading)}</h3>
-    ${items
-      .map(
-        (item) => `
-      <div style="border:1px solid #d4dce8;border-radius:10px;padding:12px;margin-bottom:10px;background:#ffffff;">
-        <p style="margin:0 0 6px;font-weight:600;color:#0d1b2a;">${escapeHtml(item.title)}</p>
-        <p style="margin:0 0 8px;color:#3d5166;font-size:14px;">${escapeHtml(item.description)}</p>
-        <p style="margin:0 0 8px;color:#8a9bb0;font-size:12px;">
-          ${escapeHtml(labels.estimatedCost)}: ${escapeHtml(item.estimated_cost)} · ${escapeHtml(
-          labels.priority
-        )}: ${escapeHtml(item.priority)}
-        </p>
-        ${
-          item.linked_product && safeString(item.linked_product.name).trim()
-            ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8edf2;">
-          <p style="margin:0 0 4px;font-size:11px;color:#8a9bb0;text-transform:uppercase;">${escapeHtml(
-            labels.actionRecommended
-          )}</p>
-          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#3d5166;">${escapeHtml(
-            item.linked_product.name
-          )}</p>
-          <p style="margin:0;font-size:12px;color:#8a9bb0;">${escapeHtml(
-            labels.estimatedPrice
-          )}: ${escapeHtml(item.linked_product.estimated_price)}</p>
-        </div>`
-            : ""
-        }
-      </div>`
-      )
-      .join("")}
-  `
 
-  const productCardHtml = (rec: QuizResult["product_recommendations"][number]) => {
-    const product = rec.catalog_product
+  const catalogProductCardHtml = (product: EmailCatalogProduct | null | undefined) => {
     if (!product) return ""
 
     const sku = safeString(product.sku).trim()
@@ -334,6 +301,41 @@ export async function sendQuizResultsEmail(options: {
       </div>`
   }
 
+  const actionSection = (heading: string, items: QuizResult["action_plan"]["week"]) => `
+    <h3 style="margin:16px 0 8px;font-size:16px;color:#0d1b2a;">${escapeHtml(heading)}</h3>
+    ${items
+      .map(
+        (item) => `
+      <div style="border:1px solid #d4dce8;border-radius:10px;padding:12px;margin-bottom:10px;background:#ffffff;">
+        <p style="margin:0 0 6px;font-weight:600;color:#0d1b2a;">${escapeHtml(item.title)}</p>
+        <p style="margin:0 0 8px;color:#3d5166;font-size:14px;">${escapeHtml(item.description)}</p>
+        <p style="margin:0 0 8px;color:#8a9bb0;font-size:12px;">
+          ${escapeHtml(labels.estimatedCost)}: ${escapeHtml(item.estimated_cost)} · ${escapeHtml(
+          labels.priority
+        )}: ${escapeHtml(item.priority)}
+        </p>
+        ${
+          item.catalog_product
+            ? catalogProductCardHtml(item.catalog_product)
+            : item.linked_product && safeString(item.linked_product.name).trim()
+              ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8edf2;">
+          <p style="margin:0 0 4px;font-size:11px;color:#8a9bb0;text-transform:uppercase;">${escapeHtml(
+            labels.actionRecommended
+          )}</p>
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#3d5166;">${escapeHtml(
+            item.linked_product.name
+          )}</p>
+          <p style="margin:0;font-size:12px;color:#8a9bb0;">${escapeHtml(
+            labels.estimatedPrice
+          )}: ${escapeHtml(item.linked_product.estimated_price)}</p>
+        </div>`
+              : ""
+        }
+      </div>`
+      )
+      .join("")}
+  `
+
   const recRows = options.productRecommendations
     .map((rec) => {
       const legacyPrice = safeString(rec.estimated_price).trim()
@@ -352,7 +354,7 @@ export async function sendQuizResultsEmail(options: {
                 )}: ${escapeHtml(legacyPrice)}</p>`
               : ""
           }
-          ${productCardHtml(rec)}
+          ${catalogProductCardHtml(rec.catalog_product)}
         </td>
       </tr>
     `
