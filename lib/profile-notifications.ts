@@ -17,6 +17,7 @@ export type NotificationPreferencesData = {
   notifyInappEnabled: boolean
   notifyForumReplies: boolean
   notifyForumReactions: boolean
+  notifyForumMentions: boolean
 }
 
 export function parseNotificationPreferencesFromRow(

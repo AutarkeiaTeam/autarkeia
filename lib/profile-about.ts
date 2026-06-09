@@ -111,20 +111,21 @@ export type ProfilePrepGoalSlug = (typeof PROFILE_PREP_GOAL_SLUGS)[number]
 export type ProfileYearsPreparingSlug = (typeof PROFILE_YEARS_PREPARING_SLUGS)[number]
 export type ProfileSpecialNeedsSlug = (typeof PROFILE_SPECIAL_NEEDS_SLUGS)[number]
 
-const slugArray = <T extends readonly string[]>(allowed: T) =>
-  z
-    .array(z.string())
-    .transform((items) => {
-      const seen = new Set<string>()
-      const result: string[] = []
-      for (const item of items) {
-        const slug = item.trim()
-        if (!slug || !(allowed as readonly string[]).includes(slug) || seen.has(slug)) continue
-        seen.add(slug)
-        result.push(slug)
-      }
-      return result
-    })
+const slugArray = <T extends readonly string[]>(allowed: T, max?: number) => {
+  let schema = z.array(z.string())
+  if (max !== undefined) schema = schema.max(max)
+  return schema.transform((items) => {
+    const seen = new Set<string>()
+    const result: string[] = []
+    for (const item of items) {
+      const slug = item.trim()
+      if (!slug || !(allowed as readonly string[]).includes(slug) || seen.has(slug)) continue
+      seen.add(slug)
+      result.push(slug)
+    }
+    return result
+  })
+}
 
 const profileAboutFieldsSchema = z.object({
   displayName: z.string().trim().min(1).max(50).optional(),
@@ -135,8 +136,8 @@ const profileAboutFieldsSchema = z.object({
   showQuizScores: z.boolean().optional(),
   showCountry: z.boolean().optional(),
   hometown: preferredLocationSchema.nullable().optional(),
-  languages: slugArray(PROFILE_LANGUAGE_SLUGS).max(10).optional(),
-  skills: slugArray(PROFILE_SKILL_SLUGS).max(15).optional(),
+  languages: slugArray(PROFILE_LANGUAGE_SLUGS, 10).optional(),
+  skills: slugArray(PROFILE_SKILL_SLUGS, 15).optional(),
   prepGoal: z.enum(PROFILE_PREP_GOAL_SLUGS).nullable().optional(),
   yearsPreparing: z.enum(PROFILE_YEARS_PREPARING_SLUGS).nullable().optional(),
   householdAdults: z.number().int().min(1).max(10).nullable().optional(),
