@@ -270,7 +270,7 @@ export async function sendQuizResultsEmail(options: {
         )}: ${escapeHtml(item.priority)}
         </p>
         ${
-          item.linked_product?.name
+          item.linked_product && safeString(item.linked_product.name).trim()
             ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8edf2;">
           <p style="margin:0 0 4px;font-size:11px;color:#8a9bb0;text-transform:uppercase;">${escapeHtml(
             labels.actionRecommended
@@ -291,13 +291,22 @@ export async function sendQuizResultsEmail(options: {
 
   const productCardHtml = (rec: QuizResult["product_recommendations"][number]) => {
     const product = rec.catalog_product
-    if (!product?.affiliate_url) return ""
+    if (!product) return ""
 
-    const ctaLabel = labels.ctaBuyAt.replace("{brand}", product.seller_name)
-    const imageCell = product.image_url
+    const sku = safeString(product.sku).trim()
+    const name = safeString(product.name).trim()
+    const affiliateUrl = safeString(product.affiliate_url).trim()
+    if (!sku || !name || !affiliateUrl) return ""
+
+    const sellerName = safeString(product.seller_name).trim() || "Autarkeia"
+    const ctaLabel = safeString(labels.ctaBuyAt).replace("{brand}", sellerName)
+    const imageUrl = safeString(product.image_url).trim()
+    const price = safeString(product.price).trim()
+
+    const imageCell = imageUrl
       ? `<td style="width:72px;min-width:72px;vertical-align:top;padding-right:12px;">
             <div style="width:72px;height:72px;min-width:72px;min-height:72px;background:#eef2f6;border:1px solid #e8edf2;border-radius:6px;overflow:hidden;line-height:0;">
-              <img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}" width="72" height="72" style="display:block;width:72px;height:72px;max-width:72px;max-height:72px;object-fit:contain;background:#ffffff;border:0;outline:none;text-decoration:none;" />
+              <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(name)}" width="72" height="72" style="display:block;width:72px;height:72px;max-width:72px;max-height:72px;object-fit:contain;background:#ffffff;border:0;outline:none;text-decoration:none;" />
             </div>
           </td>`
       : ""
@@ -308,17 +317,15 @@ export async function sendQuizResultsEmail(options: {
           <tr>
             ${imageCell}
             <td style="vertical-align:top;">
-              <p style="margin:0 0 6px;font-size:14px;font-weight:600;color:#0d1b2a;">${escapeHtml(
-                product.name
-              )}</p>
+              <p style="margin:0 0 6px;font-size:14px;font-weight:600;color:#0d1b2a;">${escapeHtml(name)}</p>
               ${
-                product.price
+                price
                   ? `<p style="margin:0 0 10px;font-size:12px;color:#8a9bb0;">${escapeHtml(
                       labels.priceLabel
-                    )}: ${escapeHtml(product.price)}</p>`
+                    )}: ${escapeHtml(price)}</p>`
                   : ""
               }
-              <a href="${escapeHtml(product.affiliate_url)}" style="display:inline-block;background:#009b70;color:#ffffff;text-decoration:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;">${escapeHtml(
+              <a href="${escapeHtml(affiliateUrl)}" style="display:inline-block;background:#009b70;color:#ffffff;text-decoration:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;">${escapeHtml(
                 ctaLabel
               )}</a>
             </td>
@@ -329,7 +336,8 @@ export async function sendQuizResultsEmail(options: {
 
   const recRows = options.productRecommendations
     .map((rec) => {
-      const showLegacyPrice = !rec.catalog_product?.affiliate_url && rec.estimated_price
+      const legacyPrice = safeString(rec.estimated_price).trim()
+      const showLegacyPrice = !rec.catalog_product?.affiliate_url && legacyPrice
       return `
       <tr>
         <td style="padding:10px;border-bottom:1px solid #eef2f6;">
@@ -341,7 +349,7 @@ export async function sendQuizResultsEmail(options: {
             showLegacyPrice
               ? `<p style="margin:0 0 8px;font-size:12px;color:#8a9bb0;">${escapeHtml(
                   labels.estimatedPrice
-                )}: ${escapeHtml(rec.estimated_price)}</p>`
+                )}: ${escapeHtml(legacyPrice)}</p>`
               : ""
           }
           ${productCardHtml(rec)}
@@ -367,7 +375,7 @@ export async function sendQuizResultsEmail(options: {
     options.quizType === "self-sufficiency"
       ? "/quiz/self-sufficiency/results"
       : "/quiz/emergency-readiness/results"
-  const viewUrl = `${options.appUrl.replace(/\/$/, "")}${resultsPath}`
+  const viewUrl = `${safeString(options.appUrl).replace(/\/$/, "")}${resultsPath}`
 
   const html = `
     <div style="margin:0;padding:0;background:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
@@ -853,8 +861,13 @@ export async function sendForumReportNotification(options: {
   })
 }
 
-function escapeHtml(value: string): string {
-  return value
+function safeString(value: unknown): string {
+  if (value == null) return ""
+  return String(value)
+}
+
+function escapeHtml(value: unknown): string {
+  return safeString(value)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
