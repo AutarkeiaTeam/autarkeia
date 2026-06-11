@@ -10,6 +10,7 @@ import {
   AVATAR_BUCKET,
   avatarStoragePath,
   avatarUrlWithCacheBust,
+  preloadAvatarImageUrl,
   resizeAvatarToWebp,
   validateAvatarFile,
 } from "@/lib/avatar-upload"
@@ -184,6 +185,7 @@ export function AccountSettings({
 
       const { data: publicData } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path)
       const publicUrl = avatarUrlWithCacheBust(publicData.publicUrl)
+      await preloadAvatarImageUrl(publicUrl)
       await patchProfile({ avatarUrl: publicUrl })
       setAvatarUrl(publicUrl)
       window.dispatchEvent(new Event("autarkeia-auth-change"))

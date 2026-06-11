@@ -1,6 +1,8 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { preloadAvatarImageUrl } from "@/lib/avatar-upload"
 import { cn } from "@/lib/utils"
 
 type UserAvatarProps = {
@@ -16,15 +18,32 @@ export function UserAvatar({
   size = 32,
   className,
 }: UserAvatarProps) {
+  const [displaySrc, setDisplaySrc] = useState<string | null>(src ?? null)
   const dimension = `${size}px`
   const fontSize = Math.max(10, Math.round(size * 0.35))
+
+  useEffect(() => {
+    if (!src) {
+      setDisplaySrc(null)
+      return
+    }
+
+    let cancelled = false
+    void preloadAvatarImageUrl(src).then(() => {
+      if (!cancelled) setDisplaySrc(src)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [src])
 
   return (
     <Avatar
       className={cn("border border-[#d4dce8] bg-[#e8f8f3]", className)}
       style={{ width: dimension, height: dimension }}
     >
-      {src ? <AvatarImage src={src} alt="" className="object-cover" /> : null}
+      {displaySrc ? <AvatarImage src={displaySrc} alt="" className="object-cover" /> : null}
       <AvatarFallback
         className="rounded-full bg-[#e8f8f3] font-semibold text-[#009b70]"
         style={{ fontSize }}

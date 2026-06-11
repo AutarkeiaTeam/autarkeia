@@ -74,3 +74,44 @@ export function avatarUrlBase(publicUrl: string): string {
 export function avatarUrlWithCacheBust(publicUrl: string, version = Date.now()): string {
   return `${avatarUrlBase(publicUrl)}?v=${version}`
 }
+
+export const AVATAR_IMAGE_PRELOAD_TIMEOUT_MS = 5000
+
+/** Warm browser cache before swapping avatar src to avoid initials fallback flash. */
+export function preloadAvatarImageUrl(
+  url: string,
+  timeoutMs = AVATAR_IMAGE_PRELOAD_TIMEOUT_MS
+): Promise<void> {
+  if (typeof window === "undefined") {
+    return Promise.resolve()
+  }
+
+  return new Promise((resolve) => {
+    let settled = false
+    const done = () => {
+      if (settled) return
+      settled = true
+      window.clearTimeout(timer)
+      resolve()
+    }
+
+    const timer = window.setTimeout(done, timeoutMs)
+    const img = new Image()
+
+    const onReady = () => {
+      if (typeof img.decode === "function") {
+        void img.decode().then(done).catch(done)
+      } else {
+        done()
+      }
+    }
+
+    img.onload = onReady
+    img.onerror = done
+    img.src = url
+
+    if (img.complete && img.naturalWidth > 0) {
+      onReady()
+    }
+  })
+}
