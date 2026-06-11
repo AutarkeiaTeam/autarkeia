@@ -9,6 +9,7 @@ import { initialsFromDisplayName } from "@/lib/avatar-initials"
 import {
   AVATAR_BUCKET,
   avatarStoragePath,
+  avatarUrlWithCacheBust,
   resizeAvatarToWebp,
   validateAvatarFile,
 } from "@/lib/avatar-upload"
@@ -182,8 +183,8 @@ export function AccountSettings({
       if (uploadError) throw uploadError
 
       const { data: publicData } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path)
-      const publicUrl = `${publicData.publicUrl}?t=${Date.now()}`
-      await patchProfile({ avatarUrl: publicUrl.split("?")[0] })
+      const publicUrl = avatarUrlWithCacheBust(publicData.publicUrl)
+      await patchProfile({ avatarUrl: publicUrl })
       setAvatarUrl(publicUrl)
       window.dispatchEvent(new Event("autarkeia-auth-change"))
       router.refresh()

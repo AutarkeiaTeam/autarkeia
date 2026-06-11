@@ -64,3 +64,13 @@ export async function resizeAvatarToWebp(
 export function avatarStoragePath(userId: string): string {
   return `${userId}/${AVATAR_FILENAME}`
 }
+
+/** Strip any query string (e.g. prior ?v= cache bust) from a stored avatar URL. */
+export function avatarUrlBase(publicUrl: string): string {
+  return publicUrl.split("?")[0] ?? publicUrl
+}
+
+/** Append ?v=timestamp so browsers and Supabase CDN fetch the latest upload. */
+export function avatarUrlWithCacheBust(publicUrl: string, version = Date.now()): string {
+  return `${avatarUrlBase(publicUrl)}?v=${version}`
+}
