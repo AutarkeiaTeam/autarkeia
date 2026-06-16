@@ -73,7 +73,7 @@ function buildPayload(
     foodPreferences: requiresLiving && showFoodMethods ? prefs.foodPreferences : null,
     foodProducts: requiresFoodBuyer ? prefs.foodProducts : null,
     foodFrequency: requiresFoodBuyer ? prefs.foodFrequency : null,
-    notes: prefs.notes.trim() || null,
+    notes: prefs.notes.trim(),
   }
 }
 

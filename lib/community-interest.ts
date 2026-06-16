@@ -239,7 +239,7 @@ export const communityInterestSchema = z
     investmentCapacity: z.enum(INVESTMENT_CAPACITY).nullable().optional(),
     investorType: z.enum(INVESTOR_TYPES).nullable().optional(),
     moveTimeline: z.enum(MOVE_TIMELINES).nullable().optional(),
-    notes: z.string().trim().max(5000).optional().default(""),
+    notes: z.string().trim().max(5000).nullable().optional().default(""),
     intent: z.enum(COMMUNITY_INTENTS),
     foodProducts: z
       .array(z.enum(FOOD_PRODUCT_OPTIONS))
