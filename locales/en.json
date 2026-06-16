@@ -1665,8 +1665,6 @@
   "profile.quiz_scores.last_taken": "Last taken: {when}",
   "profile.quiz_scores.not_taken": "Hasn't taken this quiz yet",
   "profile.report": "Report this profile",
-  "profile.send_message.button": "Send message",
-  "profile.send_message.tooltip": "Coming soon",
   "quiz.advice.action.emergency-readiness.advanced.communication.month.1.description": "Practice channel plans, repeater fallback, and relay discipline across incident phases.",
   "quiz.advice.action.emergency-readiness.advanced.communication.month.1.title": "Run repeater-aware communication drills",
   "quiz.advice.action.emergency-readiness.advanced.communication.month.2.description": "Map coverage gaps, dead zones, and handoff points across alternate evacuation routes.",

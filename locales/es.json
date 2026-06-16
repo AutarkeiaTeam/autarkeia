@@ -1665,8 +1665,6 @@
   "profile.quiz_scores.last_taken": "Última vez: {when}",
   "profile.quiz_scores.not_taken": "Aún no ha hecho este test",
   "profile.report": "Reportar este perfil",
-  "profile.send_message.button": "Enviar mensaje",
-  "profile.send_message.tooltip": "Próximamente",
   "quiz.advice.action.emergency-readiness.advanced.communication.month.1.description": "Practica planes de canal, respaldo con repetidores y disciplina de relevo entre fases del incidente.",
   "quiz.advice.action.emergency-readiness.advanced.communication.month.1.title": "Ejecuta simulacros de comunicación con uso de repetidores",
   "quiz.advice.action.emergency-readiness.advanced.communication.month.2.description": "Mapea huecos de cobertura, zonas muertas y puntos de relevo entre rutas alternativas de evacuación.",

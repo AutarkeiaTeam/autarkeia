@@ -178,24 +178,16 @@ function ProfileViewContent({
             </div>
           ) : null}
 
-          <div className="mt-8 flex flex-col items-center gap-3 sm:items-start">
-            <button
-              type="button"
-              disabled
-              title={t("profile.send_message.tooltip")}
-              className="cursor-not-allowed rounded-lg border border-[#d4dce8] bg-[#f9fafc] px-5 py-2.5 text-sm font-medium text-[#8a9bb0]"
-            >
-              {t("profile.send_message.button")}
-            </button>
-            {!isOwner ? (
+          {!isOwner ? (
+            <div className="mt-8 flex flex-col items-center sm:items-start">
               <a
                 href={`mailto:hello@autarkeia.world?subject=${encodeURIComponent(`Profile report - ${username}`)}`}
                 className="text-xs text-[#c5ced8] hover:text-[#8a9bb0]"
               >
                 {t("profile.report")}
               </a>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </section>
 
         {isOwner && ownerTier ? (
