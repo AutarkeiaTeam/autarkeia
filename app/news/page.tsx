@@ -93,6 +93,7 @@ function NewsArticleCard({
 
   return (
     <article
+      id={`article-${article.id}`}
       className={
         heroImage
           ? "flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white/5 md:flex-row"

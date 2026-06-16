@@ -19,6 +19,8 @@ import {
 import { canManageSubscription, getProfileSubscription } from "@/lib/subscription"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
+import { listNewsArticles } from "@/lib/news-db"
+import { buildNewsWidgetArticles } from "@/lib/news-widget"
 import { parseProfileCommunityFromRow } from "@/lib/profile-community"
 import { parseProfileAboutFromRow } from "@/lib/profile-about"
 import { createClient } from "@/lib/supabase/server"
@@ -140,11 +142,13 @@ export default async function ProfilePage({ params }: PageProps) {
   let ownerTier
   let canManageSubscriptionFlag
   let quizHistory
+  let ownerNewsArticles = buildNewsWidgetArticles([], locale)
   if (isOwner) {
     ownerTier = await getTier()
     const subscriptionProfile = await getProfileSubscription(profile.id)
     canManageSubscriptionFlag = canManageSubscription(subscriptionProfile?.subscription_status)
     quizHistory = await fetchQuizResultHistorySummaries(profile.id)
+    ownerNewsArticles = buildNewsWidgetArticles(await listNewsArticles(5), locale, 5)
   }
 
   return (
@@ -167,6 +171,7 @@ export default async function ProfilePage({ params }: PageProps) {
       ownerTier={ownerTier}
       canManageSubscription={canManageSubscriptionFlag}
       quizHistory={quizHistory}
+      ownerNewsArticles={ownerNewsArticles}
     />
   )
 }

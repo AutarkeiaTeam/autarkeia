@@ -12,6 +12,7 @@ import type { ProfileCommunityData } from "@/lib/profile-community"
 import type { Tier } from "@/lib/auth-server"
 import type { QuizType } from "@/lib/quiz-data"
 import { QUIZ_TYPE_LIST, type QuizResultSummary } from "@/lib/quiz-results-shared"
+import type { NewsWidgetArticle } from "@/lib/news-widget"
 
 export type ProfileViewProps = {
   username: string
@@ -32,6 +33,7 @@ export type ProfileViewProps = {
   ownerTier?: Tier
   canManageSubscription?: boolean
   quizHistory?: QuizResultSummary[]
+  ownerNewsArticles?: NewsWidgetArticle[]
 }
 
 function formatRelativeTaken(takenAt: string, locale: "en" | "es"): string {
@@ -76,6 +78,7 @@ function ProfileViewContent({
   ownerTier,
   canManageSubscription,
   quizHistory,
+  ownerNewsArticles = [],
 }: ProfileViewProps) {
   const { t, locale } = useI18n()
 
@@ -204,6 +207,7 @@ function ProfileViewContent({
             canManageSubscription={canManageSubscription}
             quizLatest={quizScores ?? {}}
             quizHistory={quizHistory ?? []}
+            newsArticles={ownerNewsArticles}
           />
         ) : null}
       </div>

@@ -7,11 +7,9 @@ import {
   CheckCircle2,
   Circle,
   Lock,
-  Mail,
   MessageSquare,
   Newspaper,
   ShoppingBag,
-  Sparkles,
   TrendingUp,
   Users,
 } from "lucide-react"
@@ -25,6 +23,7 @@ import {
   QUIZ_TYPE_LIST,
   type QuizResultSummary,
 } from "@/lib/quiz-results-shared"
+import type { NewsWidgetArticle } from "@/lib/news-widget"
 
 export type DashboardUser = {
   id: string
@@ -113,22 +112,6 @@ const categoryScores = [
   { nameKey: "dashboard.cat.community", score: 80 },
 ]
 
-const newsHeadlines = [
-  { titleKey: "dashboard.news.1", href: "/news" },
-  { titleKey: "dashboard.news.2", href: "/news" },
-  { titleKey: "dashboard.news.3", href: "/news" },
-  { titleKey: "dashboard.news.4", href: "/news" },
-  { titleKey: "dashboard.news.5", href: "/news" },
-]
-
-const monthlyReports = [
-  { year: 2026, month: 5, titleKey: "dashboard.report.2026_05" },
-  { year: 2026, month: 4, titleKey: "dashboard.report.2026_04" },
-  { year: 2026, month: 3, titleKey: "dashboard.report.2026_03" },
-  { year: 2026, month: 2, titleKey: "dashboard.report.2026_02" },
-  { year: 2026, month: 1, titleKey: "dashboard.report.2026_01" },
-]
-
 function asErrorKey(value: unknown): string | null {
   if (typeof value !== "string") return null
   return /^[a-z0-9_.-]+\.[a-z0-9_.-]+$/i.test(value) ? value : null
@@ -141,9 +124,11 @@ function withError(message: string, error: string): string {
 export function DashboardView({
   user,
   quizData,
+  newsArticles = [],
 }: {
   user: DashboardUser
   quizData?: DashboardQuizData
+  newsArticles?: NewsWidgetArticle[]
 }) {
   const { t, locale } = useI18n()
   const router = useRouter()
@@ -578,24 +563,36 @@ export function DashboardView({
             </p>
             <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">{t("dashboard.latest_headlines")}</h2>
             <ul className="mt-3 space-y-2">
-              {newsHeadlines.slice(0, isPro ? 5 : 3).map((h) => (
-                <li key={h.titleKey}>
-                  <Link href={h.href} className="text-sm text-[#3d5166] hover:text-[#009b70]">
-                    · {t(h.titleKey)}
+              {newsArticles.length === 0 ? (
+                <li>
+                  <Link href="/news" className="text-sm text-[#009b70] hover:underline">
+                    {t("nav.news")} →
                   </Link>
                 </li>
-              ))}
+              ) : (
+                newsArticles.slice(0, isPro ? 5 : 3).map((article) => (
+                  <li key={article.id}>
+                    {article.isExternal ? (
+                      <a
+                        href={article.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-[#3d5166] hover:text-[#009b70]"
+                      >
+                        · {article.title}
+                      </a>
+                    ) : (
+                      <Link href={article.href} className="text-sm text-[#3d5166] hover:text-[#009b70]">
+                        · {article.title}
+                      </Link>
+                    )}
+                  </li>
+                ))
+              )}
             </ul>
-            {isPro && (
-              <div className="mt-4 rounded-lg border border-[#d4dce8] bg-[#f5f7fa] p-3">
-                <p className="text-xs font-medium text-[#0d1b2a]">
-                  <Mail className="mr-1 inline h-3 w-3" /> {t("dashboard.weekly_briefing")}
-                </p>
-                <label className="mt-2 flex items-center gap-2 text-xs text-[#3d5166]">
-                  <input type="checkbox" defaultChecked /> {t("dashboard.briefing_checkbox")}
-                </label>
-              </div>
-            )}
+            <Link href="/news" className="mt-3 inline-block text-sm font-medium text-[#009b70]">
+              {t("nav.news")} →
+            </Link>
           </section>
 
           <section className="rounded-2xl border border-[#d4dce8] bg-white p-6">
@@ -659,23 +656,6 @@ export function DashboardView({
                 {t("common.send")}
               </button>
             </div>
-          </section>
-        )}
-
-        {/* Pro: Monthly Global Report */}
-        {isPro && (
-          <section className="mt-6 rounded-2xl border border-[#d4dce8] bg-white p-6">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#009b70]">
-              <Sparkles className="mr-1 inline h-3 w-3" /> {t("dashboard.monthly_report")}
-            </p>
-            <h2 className="mt-1 text-lg font-medium text-[#0d1b2a]">{t("dashboard.newsletter_archive")}</h2>
-            <ul className="mt-3 space-y-2 text-sm text-[#3d5166]">
-              {monthlyReports.map((report) => (
-                <li key={report.titleKey}>
-                  · {formatMonth(report.year, report.month)} {report.year} — {t(report.titleKey)}
-                </li>
-              ))}
-            </ul>
           </section>
         )}
 

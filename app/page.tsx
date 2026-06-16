@@ -9,10 +9,13 @@ import { Suspense } from "react"
 import { AccountDeletedBanner } from "@/components/account-deleted-banner"
 import { getLocale } from "@/lib/i18n-server"
 import { translate } from "@/lib/i18n-core"
+import { listNewsArticles } from "@/lib/news-db"
+import { buildNewsWidgetArticles } from "@/lib/news-widget"
 
 export default async function Home() {
   const locale = await getLocale()
   const t = (key: string) => translate(locale, key)
+  const newsArticles = buildNewsWidgetArticles(await listNewsArticles(3), locale, 3)
 
   return (
     <main className="min-h-screen">
@@ -27,7 +30,7 @@ export default async function Home() {
       />
       <StatsBar />
       <Pillars />
-      <NewsWatch />
+      <NewsWatch articles={newsArticles} />
       <RuralCommunities />
       <HowItWorks />
       <section className="bg-[#f5f7fa] py-12">
