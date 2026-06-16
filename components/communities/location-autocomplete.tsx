@@ -21,6 +21,7 @@ type Props = {
   maxLocations?: number
   onChange: (locations: PreferredLocation[]) => void
   disabled?: boolean
+  searchPlaceholderKey?: string
 }
 
 export function LocationAutocomplete({
@@ -28,6 +29,7 @@ export function LocationAutocomplete({
   maxLocations = 10,
   onChange,
   disabled = false,
+  searchPlaceholderKey = "communities.form.location.search_placeholder",
 }: Props) {
   const { t } = useI18n()
   const listboxId = useId()
@@ -143,7 +145,7 @@ export function LocationAutocomplete({
           placeholder={
             atLimit
               ? t("communities.form.location.max_selected")
-              : t("communities.form.location.search_placeholder")
+              : t(searchPlaceholderKey)
           }
           value={query}
           disabled={disabled || atLimit}

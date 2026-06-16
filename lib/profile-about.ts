@@ -136,6 +136,7 @@ const profileAboutFieldsSchema = z.object({
   showQuizScores: z.boolean().optional(),
   showCountry: z.boolean().optional(),
   hometown: preferredLocationSchema.nullable().optional(),
+  currentCity: preferredLocationSchema.nullable().optional(),
   languages: slugArray(PROFILE_LANGUAGE_SLUGS, 10).optional(),
   skills: slugArray(PROFILE_SKILL_SLUGS, 15).optional(),
   prepGoal: z.enum(PROFILE_PREP_GOAL_SLUGS).nullable().optional(),
@@ -145,6 +146,7 @@ const profileAboutFieldsSchema = z.object({
   householdPets: z.boolean().nullable().optional(),
   householdSpecialNeeds: slugArray(PROFILE_SPECIAL_NEEDS_SLUGS).optional(),
   showHometown: z.boolean().optional(),
+  showCurrentCity: z.boolean().optional(),
   showLanguages: z.boolean().optional(),
   showSkills: z.boolean().optional(),
   showPrepGoal: z.boolean().optional(),
@@ -166,6 +168,7 @@ export const profileAboutUpdateSchema = profileAboutFieldsSchema
       data.showQuizScores !== undefined ||
       data.showCountry !== undefined ||
       data.hometown !== undefined ||
+      data.currentCity !== undefined ||
       data.languages !== undefined ||
       data.skills !== undefined ||
       data.prepGoal !== undefined ||
@@ -175,6 +178,7 @@ export const profileAboutUpdateSchema = profileAboutFieldsSchema
       data.householdPets !== undefined ||
       data.householdSpecialNeeds !== undefined ||
       data.showHometown !== undefined ||
+      data.showCurrentCity !== undefined ||
       data.showLanguages !== undefined ||
       data.showSkills !== undefined ||
       data.showPrepGoal !== undefined ||
@@ -222,6 +226,7 @@ export type ProfileAboutData = {
   householdPets: boolean | null
   householdSpecialNeeds: string[]
   showHometown: boolean
+  showCurrentCity: boolean
   showLanguages: boolean
   showSkills: boolean
   showPrepGoal: boolean
@@ -233,7 +238,7 @@ export type ProfileAboutRecord = ProfileAboutData & {
   profile_public: boolean
 }
 
-function parseHometown(value: unknown): PreferredLocation | null {
+function parsePreferredLocation(value: unknown): PreferredLocation | null {
   if (!value || typeof value !== "object") return null
   const parsed = preferredLocationSchema.safeParse(value)
   return parsed.success ? parsed.data : null
@@ -241,7 +246,8 @@ function parseHometown(value: unknown): PreferredLocation | null {
 
 export function parseProfileAboutFromRow(row: Record<string, unknown>): ProfileAboutData {
   return {
-    hometown: parseHometown(row.hometown),
+    hometown: parsePreferredLocation(row.hometown),
+    currentCity: parsePreferredLocation(row.current_city),
     languages: Array.isArray(row.languages) ? row.languages.filter((v) => typeof v === "string") : [],
     skills: Array.isArray(row.skills) ? row.skills.filter((v) => typeof v === "string") : [],
     prepGoal: typeof row.prep_goal === "string" ? row.prep_goal : null,
@@ -253,6 +259,7 @@ export function parseProfileAboutFromRow(row: Record<string, unknown>): ProfileA
       ? row.household_special_needs.filter((v) => typeof v === "string")
       : [],
     showHometown: row.show_hometown === true,
+    showCurrentCity: row.show_current_city === true,
     showLanguages: row.show_languages === true,
     showSkills: row.show_skills === true,
     showPrepGoal: row.show_prep_goal === true,
@@ -265,6 +272,8 @@ export function fieldIsFilled(about: ProfileAboutData, field: keyof ProfileAbout
   switch (field) {
     case "hometown":
       return about.hometown != null
+    case "currentCity":
+      return about.currentCity != null
     case "languages":
       return about.languages.length > 0
     case "skills":
@@ -297,6 +306,7 @@ export function shouldShowAboutField(
   showKey: keyof Pick<
     ProfileAboutData,
     | "showHometown"
+    | "showCurrentCity"
     | "showLanguages"
     | "showSkills"
     | "showPrepGoal"
@@ -324,6 +334,7 @@ export function hasVisibleAboutSection(
   if (!profilePublic && !isOwner) return false
   const checks: Array<[keyof ProfileAboutData, keyof ProfileAboutData]> = [
     ["showHometown", "hometown"],
+    ["showCurrentCity", "currentCity"],
     ["showLanguages", "languages"],
     ["showSkills", "skills"],
     ["showPrepGoal", "prepGoal"],

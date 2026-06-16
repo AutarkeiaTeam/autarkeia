@@ -88,6 +88,10 @@ export async function PATCH(request: Request) {
       updates.hometown = parsed.data.hometown
     }
 
+    if (parsed.data.currentCity !== undefined) {
+      updates.current_city = parsed.data.currentCity
+    }
+
     if (parsed.data.languages !== undefined) {
       updates.languages = parsed.data.languages.length ? parsed.data.languages : null
     }
@@ -124,6 +128,10 @@ export async function PATCH(request: Request) {
 
     if (parsed.data.showHometown !== undefined) {
       updates.show_hometown = nextProfilePublic ? parsed.data.showHometown : false
+    }
+
+    if (parsed.data.showCurrentCity !== undefined) {
+      updates.show_current_city = nextProfilePublic ? parsed.data.showCurrentCity : false
     }
 
     if (parsed.data.showLanguages !== undefined) {
@@ -172,6 +180,7 @@ export async function PATCH(request: Request) {
       updates.show_quiz_scores = false
       updates.show_country = false
       updates.show_hometown = false
+      updates.show_current_city = false
       updates.show_languages = false
       updates.show_skills = false
       updates.show_prep_goal = false

@@ -19,6 +19,7 @@ export type PublicProfileRecord = {
   bio: string | null
   avatar_url: string | null
   hometown: unknown
+  current_city: unknown
   languages: string[] | null
   skills: string[] | null
   prep_goal: string | null
@@ -28,6 +29,7 @@ export type PublicProfileRecord = {
   household_pets: boolean | null
   household_special_needs: string[] | null
   show_hometown: boolean
+  show_current_city: boolean
   show_languages: boolean
   show_skills: boolean
   show_prep_goal: boolean
@@ -82,7 +84,7 @@ export async function fetchProfileByUsername(
   const { data, error } = await admin
     .from("profiles")
     .select(
-      "id, username, display_name, first_name, last_name, created_at, profile_public, show_quiz_scores, show_country, bio, avatar_url, hometown, languages, skills, prep_goal, years_preparing, household_adults, household_children, household_pets, household_special_needs, show_hometown, show_languages, show_skills, show_prep_goal, show_years_preparing, show_household, interested_in_communities, community_intent, community_preferred_locations, community_climate_preference, community_distance_from_city, community_investment_capacity, community_investor_type, community_move_timeline, community_living_model, community_energy_ownership, community_energy_preferences, community_food_ownership, community_food_preferences, community_dietary_preference, community_food_products, community_food_frequency, community_notes, show_community_intent, show_community_locations, show_community_living_pref, show_community_investment, show_community_food_pref, show_community_timeline, subscription_status, subscription_plan"
+      "id, username, display_name, first_name, last_name, created_at, profile_public, show_quiz_scores, show_country, bio, avatar_url, hometown, current_city, languages, skills, prep_goal, years_preparing, household_adults, household_children, household_pets, household_special_needs, show_hometown, show_current_city, show_languages, show_skills, show_prep_goal, show_years_preparing, show_household, interested_in_communities, community_intent, community_preferred_locations, community_climate_preference, community_distance_from_city, community_investment_capacity, community_investor_type, community_move_timeline, community_living_model, community_energy_ownership, community_energy_preferences, community_food_ownership, community_food_preferences, community_dietary_preference, community_food_products, community_food_frequency, community_notes, show_community_intent, show_community_locations, show_community_living_pref, show_community_investment, show_community_food_pref, show_community_timeline, subscription_status, subscription_plan"
     )
     .ilike("username", normalized)
     .maybeSingle()

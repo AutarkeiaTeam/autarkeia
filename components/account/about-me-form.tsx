@@ -82,6 +82,7 @@ export function AboutMeForm({ initial }: AboutMeFormProps) {
       setIsSaving(true)
       await patchAbout({
         hometown: about.hometown,
+        currentCity: about.currentCity,
         languages: about.languages,
         skills: about.skills,
         prepGoal: about.prepGoal,
@@ -91,6 +92,7 @@ export function AboutMeForm({ initial }: AboutMeFormProps) {
         householdPets: about.householdPets,
         householdSpecialNeeds: about.householdSpecialNeeds,
         showHometown: about.showHometown,
+        showCurrentCity: about.showCurrentCity,
         showLanguages: about.showLanguages,
         showSkills: about.showSkills,
         showPrepGoal: about.showPrepGoal,
@@ -109,6 +111,10 @@ export function AboutMeForm({ initial }: AboutMeFormProps) {
 
   const setHometown = (locations: PreferredLocation[]) => {
     setAbout((prev) => ({ ...prev, hometown: locations[0] ?? null }))
+  }
+
+  const setCurrentCity = (locations: PreferredLocation[]) => {
+    setAbout((prev) => ({ ...prev, currentCity: locations[0] ?? null }))
   }
 
   return (
@@ -134,6 +140,24 @@ export function AboutMeForm({ initial }: AboutMeFormProps) {
             locations={about.hometown ? [about.hometown] : []}
             maxLocations={1}
             onChange={setHometown}
+          />
+        </div>
+
+        <div>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+            <p className={labelClassName()}>{t("about.current_city.label")}</p>
+            <ShowToggle
+              id="show-current-city"
+              checked={about.showCurrentCity}
+              onChange={(checked) => setAbout((prev) => ({ ...prev, showCurrentCity: checked }))}
+              label={t("about.show_current_city.label")}
+            />
+          </div>
+          <LocationAutocomplete
+            locations={about.currentCity ? [about.currentCity] : []}
+            maxLocations={1}
+            onChange={setCurrentCity}
+            searchPlaceholderKey="about.current_city.placeholder"
           />
         </div>
 

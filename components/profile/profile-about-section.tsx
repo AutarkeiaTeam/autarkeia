@@ -61,6 +61,13 @@ export function ProfileAboutSection({ about, isOwner, profilePublic }: ProfileAb
     isOwner,
     profilePublic
   )
+  const showCurrentCity = shouldShowAboutField(
+    about,
+    "showCurrentCity",
+    "currentCity",
+    isOwner,
+    profilePublic
+  )
   const showLanguages = shouldShowAboutField(
     about,
     "showLanguages",
@@ -140,6 +147,14 @@ export function ProfileAboutSection({ about, isOwner, profilePublic }: ProfileAb
             label={t("profile.about.field_labels.hometown")}
             value={preferredLocationDisplayLabel(about.hometown)}
             isPrivate={isOwner && !about.showHometown}
+          />
+        ) : null}
+
+        {showCurrentCity && about.currentCity ? (
+          <AboutRow
+            label={t("about.current_city.label")}
+            value={preferredLocationDisplayLabel(about.currentCity)}
+            isPrivate={isOwner && !about.showCurrentCity}
           />
         ) : null}
 
