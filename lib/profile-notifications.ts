@@ -4,6 +4,10 @@ export const NOTIFY_EMAIL_MODES = ["immediate", "daily", "off"] as const
 
 export type NotifyEmailMode = (typeof NOTIFY_EMAIL_MODES)[number]
 
+export function isEmailNotificationsEnabled(mode: NotifyEmailMode | string | null | undefined): boolean {
+  return mode !== "off"
+}
+
 export const notificationPreferencesSchema = z.object({
   notifyEmailMode: z.enum(NOTIFY_EMAIL_MODES).optional(),
   notifyInappEnabled: z.boolean().optional(),
@@ -26,7 +30,7 @@ export function parseNotificationPreferencesFromRow(
   const mode = row?.notify_email_mode
   return {
     notifyEmailMode:
-      mode === "daily" || mode === "off" ? mode : "immediate",
+      mode === "off" || mode === "daily" || mode === "immediate" ? mode : "immediate",
     notifyInappEnabled: row?.notify_inapp_enabled !== false,
     notifyForumReplies: row?.notify_forum_replies !== false,
     notifyForumReactions: row?.notify_forum_reactions !== false,

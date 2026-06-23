@@ -3,7 +3,10 @@
 import { FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useI18n } from "@/components/i18n-provider"
-import type { NotificationPreferencesData, NotifyEmailMode } from "@/lib/profile-notifications"
+import {
+  isEmailNotificationsEnabled,
+  type NotificationPreferencesData,
+} from "@/lib/profile-notifications"
 
 type NotificationPreferencesFormProps = {
   initial: NotificationPreferencesData
@@ -51,16 +54,7 @@ export function NotificationPreferencesForm({ initial }: NotificationPreferences
     }
   }
 
-  const emailOptions: { value: NotifyEmailMode; labelKey: string; disabled?: boolean; hintKey?: string }[] = [
-    { value: "immediate", labelKey: "account.notifications.email_immediate" },
-    {
-      value: "daily",
-      labelKey: "account.notifications.email_daily",
-      disabled: true,
-      hintKey: "account.notifications.email_daily_hint",
-    },
-    { value: "off", labelKey: "account.notifications.email_off" },
-  ]
+  const emailEnabled = isEmailNotificationsEnabled(prefs.notifyEmailMode)
 
   return (
     <section
@@ -72,39 +66,20 @@ export function NotificationPreferencesForm({ initial }: NotificationPreferences
       </h2>
 
       <form onSubmit={handleSave} className="mt-5 space-y-6">
-        <fieldset>
-          <legend className="mb-3 text-sm font-medium text-[#0d1b2a]">
-            {t("account.notifications.email_label")}
-          </legend>
-          <div className="space-y-3">
-            {emailOptions.map((option) => (
-              <label
-                key={option.value}
-                className={`flex items-start gap-3 ${option.disabled ? "opacity-60" : ""}`}
-              >
-                <input
-                  type="radio"
-                  name="notifyEmailMode"
-                  value={option.value}
-                  checked={prefs.notifyEmailMode === option.value}
-                  disabled={option.disabled}
-                  onChange={() =>
-                    setPrefs((p) => ({ ...p, notifyEmailMode: option.value }))
-                  }
-                  className={`mt-1 ${fieldClassName()}`}
-                />
-                <span>
-                  <span className="block text-sm text-[#0d1b2a]">{t(option.labelKey)}</span>
-                  {option.hintKey && (
-                    <span className="mt-0.5 block text-xs text-[#8a9bb0]">
-                      {t(option.hintKey)}
-                    </span>
-                  )}
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        <label className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            checked={emailEnabled}
+            onChange={(e) =>
+              setPrefs((p) => ({
+                ...p,
+                notifyEmailMode: e.target.checked ? "immediate" : "off",
+              }))
+            }
+            className={`mt-1 ${fieldClassName()}`}
+          />
+          <span className="text-sm text-[#0d1b2a]">{t("notify.email_enabled.label")}</span>
+        </label>
 
         <label className="flex items-start gap-3">
           <input

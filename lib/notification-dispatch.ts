@@ -6,6 +6,7 @@ import { notificationTargetHref } from "@/lib/notification-links"
 import { createNotification, type NotificationRow } from "@/lib/notifications"
 import {
   parseNotificationRecipientPrefs,
+  isEmailNotificationsEnabled,
   type NotificationRecipientPrefs,
 } from "@/lib/profile-notifications"
 import { fetchProfileAuthorInfo } from "@/lib/profiles"
@@ -53,7 +54,7 @@ async function deliverNotification(
   row: NotificationRow,
   locale: Locale
 ): Promise<void> {
-  if (prefs.notifyEmailMode !== "immediate" || !prefs.email?.trim()) return
+  if (!isEmailNotificationsEnabled(prefs.notifyEmailMode) || !prefs.email?.trim()) return
 
   const actors = row.actor_id ? await fetchProfileAuthorInfo([row.actor_id]) : new Map()
   const actor = row.actor_id ? actors.get(row.actor_id) : undefined
